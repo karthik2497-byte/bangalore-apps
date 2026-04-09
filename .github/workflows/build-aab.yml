@@ -54,15 +54,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Bubblewrap CLI
+      - name: Install Bubblewrap
         run: npm i -g @bubblewrap/cli
 
-      - name: Pre-create Bubblewrap config (skip interactive JDK/SDK prompts)
+      - name: Write Bubblewrap config
         run: |
-          # Bubblewrap config: ~/.bubblewrap/config.json (from source: packages/cli/src/lib/config.ts)
           mkdir -p "$HOME/.bubblewrap"
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > "$HOME/.bubblewrap/config.json"
-          echo "Created ~/.bubblewrap/config.json"
           cat "$HOME/.bubblewrap/config.json"
 
       - name: Accept Android SDK licenses
@@ -78,49 +76,28 @@ jobs:
             -keypass "bangaloreapps123" \
             -dname "CN=Karthik, O=BangaloreApps, L=Bangalore, ST=Karnataka, C=IN"
 
-      - name: Init TWA project from live manifest
+      - name: Generate TWA project (non-interactive)
         run: |
-          mkdir -p "build_${{ matrix.dir }}"
-          cd "build_${{ matrix.dir }}"
+          MANIFEST_URL="https://karthik2497-byte.github.io/bangalore-apps/${{ matrix.dir }}/manifest.json"
+          BUILD_DIR="build_${{ matrix.dir }}"
 
-          # Bubblewrap init is interactive -- pipe Enter keys to accept all
-          # defaults auto-filled from the web manifest. Config file handles JDK/SDK.
-          printf '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n' | \
-            bubblewrap init \
-              --manifest "https://karthik2497-byte.github.io/bangalore-apps/${{ matrix.dir }}/manifest.json" \
-              2>&1 || true
+          # Use @bubblewrap/core directly to avoid interactive CLI prompts
+          node scripts/generate-twa.mjs \
+            "$MANIFEST_URL" \
+            "$BUILD_DIR" \
+            "$GITHUB_WORKSPACE/android.keystore"
 
-          # Verify twa-manifest.json was created
-          if [ ! -f twa-manifest.json ]; then
-            echo "ERROR: twa-manifest.json was not created"
-            ls -la
-            exit 1
-          fi
-
-          # Patch signing key path to use our generated keystore
-          python3 << 'PYEOF'
-          import json, os
-          with open("twa-manifest.json", "r") as f:
-              m = json.load(f)
-          m["signingKey"] = {
-              "path": os.environ["GITHUB_WORKSPACE"] + "/android.keystore",
-              "alias": "android"
-          }
-          with open("twa-manifest.json", "w") as f:
-              json.dump(m, f, indent=2)
-          print("Patched signing key in twa-manifest.json")
-          PYEOF
-
+          echo "=== Generated files ==="
+          ls -la "$BUILD_DIR/"
           echo "=== twa-manifest.json ==="
-          cat twa-manifest.json
+          cat "$BUILD_DIR/twa-manifest.json"
 
       - name: Build AAB and APK
         working-directory: build_${{ matrix.dir }}
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: bangaloreapps123
           BUBBLEWRAP_KEY_PASSWORD: bangaloreapps123
-        run: |
-          bubblewrap build --skipPwaValidation 2>&1
+        run: bubblewrap build --skipPwaValidation
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
