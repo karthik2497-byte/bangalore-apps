@@ -55,7 +55,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Bubblewrap
-        run: npm i -g @bubblewrap/cli
+        run: |
+          npm i -g @bubblewrap/cli
+          cd scripts && npm init -y && npm install @bubblewrap/core
 
       - name: Write Bubblewrap config
         run: |
@@ -82,8 +84,7 @@ jobs:
           BUILD_DIR="build_${{ matrix.dir }}"
 
           # Use @bubblewrap/core directly to avoid interactive CLI prompts.
-          # NODE_PATH lets Node find @bubblewrap/core inside the global @bubblewrap/cli.
-          NODE_PATH="$(npm root -g)" node scripts/generate-twa.mjs \
+          node scripts/generate-twa.mjs \
             "$MANIFEST_URL" \
             "$BUILD_DIR" \
             "$GITHUB_WORKSPACE/android.keystore"
