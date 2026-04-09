@@ -57,11 +57,13 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm i -g @bubblewrap/cli
 
-      - name: Configure Bubblewrap SDK paths
+      - name: Pre-create Bubblewrap config (skip interactive JDK/SDK prompts)
         run: |
-          bubblewrap updateConfig \
-            --jdkPath="$JAVA_HOME" \
-            --androidSdkPath="$ANDROID_HOME"
+          # Bubblewrap config: ~/.bubblewrap/config.json (from source: packages/cli/src/lib/config.ts)
+          mkdir -p "$HOME/.bubblewrap"
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > "$HOME/.bubblewrap/config.json"
+          echo "Created ~/.bubblewrap/config.json"
+          cat "$HOME/.bubblewrap/config.json"
 
       - name: Accept Android SDK licenses
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
@@ -82,16 +84,21 @@ jobs:
           cd "build_${{ matrix.dir }}"
 
           # Bubblewrap init is interactive -- pipe Enter keys to accept all
-          # defaults auto-filled from the web manifest. Then fix signing key.
-          printf '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n' | \
+          # defaults auto-filled from the web manifest. Config file handles JDK/SDK.
+          printf '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n' | \
             bubblewrap init \
               --manifest "https://karthik2497-byte.github.io/bangalore-apps/${{ matrix.dir }}/manifest.json" \
               2>&1 || true
 
-          # Patch signing key path in generated twa-manifest.json
-          if [ -f twa-manifest.json ]; then
-            # Update keystore path and alias
-            python3 - << 'PYEOF'
+          # Verify twa-manifest.json was created
+          if [ ! -f twa-manifest.json ]; then
+            echo "ERROR: twa-manifest.json was not created"
+            ls -la
+            exit 1
+          fi
+
+          # Patch signing key path to use our generated keystore
+          python3 << 'PYEOF'
           import json, os
           with open("twa-manifest.json", "r") as f:
               m = json.load(f)
@@ -101,12 +108,11 @@ jobs:
           }
           with open("twa-manifest.json", "w") as f:
               json.dump(m, f, indent=2)
-          print("Patched twa-manifest.json signing key")
+          print("Patched signing key in twa-manifest.json")
           PYEOF
-          else
-            echo "ERROR: twa-manifest.json was not created by init"
-            exit 1
-          fi
+
+          echo "=== twa-manifest.json ==="
+          cat twa-manifest.json
 
       - name: Build AAB and APK
         working-directory: build_${{ matrix.dir }}
