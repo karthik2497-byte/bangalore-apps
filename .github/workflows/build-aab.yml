@@ -15,6 +15,8 @@ on:
           - 3_pg_buddy
           - 4_nest_hub
           - 5_lingo_local
+          - 6_stock_ping
+          - 7_card_guard
 
 jobs:
   prepare:
@@ -25,7 +27,7 @@ jobs:
       - id: set-matrix
         run: |
           if [ "${{ github.event.inputs.app }}" = "all" ]; then
-            echo 'matrix={"include":[{"name":"PowerPulse","dir":"1_power_pulse"},{"name":"MeterSmart","dir":"2_meter_smart"},{"name":"PGBuddy","dir":"3_pg_buddy"},{"name":"NestHub","dir":"4_nest_hub"},{"name":"LingoLocal","dir":"5_lingo_local"}]}' >> "$GITHUB_OUTPUT"
+            echo 'matrix={"include":[{"name":"PowerPulse","dir":"1_power_pulse"},{"name":"MeterSmart","dir":"2_meter_smart"},{"name":"PGBuddy","dir":"3_pg_buddy"},{"name":"NestHub","dir":"4_nest_hub"},{"name":"LingoLocal","dir":"5_lingo_local"},{"name":"StockPing","dir":"6_stock_ping"},{"name":"CardGuard","dir":"7_card_guard"}]}' >> "$GITHUB_OUTPUT"
           else
             DIR="${{ github.event.inputs.app }}"
             NAME=$(echo "$DIR" | sed 's/^[0-9]*_//' | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1' | tr -d ' ')

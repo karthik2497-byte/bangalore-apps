@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <clipPath id="circle-clip-192">
+      <circle cx="96" cy="96" r="96"/>
+    </clipPath>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="96" fill="#0D1117"/>
+  <!-- Radar/ping arcs -->
+  <g clip-path="url(#circle-clip-192)">
+    <!-- Outer arc -->
+    <path d="M 96 30 A 66 66 0 0 1 162 96" fill="none" stroke="#58A6FF" stroke-width="5" stroke-linecap="round" opacity="0.4"/>
+    <!-- Middle arc -->
+    <path d="M 96 46 A 50 50 0 0 1 146 96" fill="none" stroke="#58A6FF" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+    <!-- Inner arc -->
+    <path d="M 96 62 A 34 34 0 0 1 130 96" fill="none" stroke="#58A6FF" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+    <!-- Ping dot -->
+    <circle cx="96" cy="96" r="4" fill="#58A6FF"/>
+  </g>
+  <!-- Shopping bag -->
+  <g transform="translate(96, 105)" fill="none" stroke="#F0F6FC" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Bag body -->
+    <path d="M -24 -8 L -20 -28 L 20 -28 L 24 -8 L 24 20 C 24 22 22 24 20 24 L -20 24 C -22 24 -24 22 -24 20 Z" fill="#F0F6FC" fill-opacity="0.1"/>
+    <!-- Bag handles -->
+    <path d="M -10 -28 L -10 -38 C -10 -44 -4 -48 0 -48 C 4 -48 10 -44 10 -38 L 10 -28" fill="none"/>
+  </g>
+</svg>

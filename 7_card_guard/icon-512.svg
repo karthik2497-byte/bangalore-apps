@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD54F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB800;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="248" fill="#0A0E1A"/>
+  <!-- Gold ring border -->
+  <circle cx="256" cy="256" r="238" fill="none" stroke="#FFB800" stroke-width="6"/>
+  <!-- Shield shape -->
+  <path d="M256 72 L376 136 L376 264 C376 344 320 404 256 440 C192 404 136 344 136 264 L136 136 Z" fill="url(#shieldGrad)"/>
+  <!-- Credit card icon inside shield -->
+  <rect x="192" y="204" width="128" height="86" rx="10" ry="10" fill="#FFFFFF" opacity="0.95"/>
+  <!-- Card magnetic stripe -->
+  <rect x="192" y="226" width="128" height="20" fill="#0A0E1A" opacity="0.3"/>
+  <!-- Card chip -->
+  <rect x="208" y="254" width="26" height="20" rx="4" ry="4" fill="#FFB800" opacity="0.8"/>
+  <!-- Chip lines -->
+  <line x1="215" y1="254" x2="215" y2="274" stroke="#0A0E1A" stroke-width="0.8" opacity="0.3"/>
+  <line x1="221" y1="254" x2="221" y2="274" stroke="#0A0E1A" stroke-width="0.8" opacity="0.3"/>
+  <line x1="227" y1="254" x2="227" y2="274" stroke="#0A0E1A" stroke-width="0.8" opacity="0.3"/>
+  <line x1="208" y1="262" x2="234" y2="262" stroke="#0A0E1A" stroke-width="0.8" opacity="0.3"/>
+  <line x1="208" y1="268" x2="234" y2="268" stroke="#0A0E1A" stroke-width="0.8" opacity="0.3"/>
+  <!-- Card dots (last 4 digits representation) -->
+  <circle cx="268" cy="272" r="4" fill="#0A0E1A" opacity="0.4"/>
+  <circle cx="282" cy="272" r="4" fill="#0A0E1A" opacity="0.4"/>
+  <circle cx="296" cy="272" r="4" fill="#0A0E1A" opacity="0.4"/>
+  <circle cx="310" cy="272" r="4" fill="#0A0E1A" opacity="0.4"/>
+</svg>

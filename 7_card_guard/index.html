@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CardGuard - Credit Card Bill Reminder</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0A0E1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+  <style>
+    /* ====================== RESET & BASE ====================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #050810;
+      color: #FFFFFF;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    input, select, button, textarea { font-family: inherit; outline: none; border: none; }
+    button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2A3550; border-radius: 4px; }
+
+    /* ====================== APP SHELL ====================== */
+    #app-container {
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      max-height: 100vh;
+      background: #0A0E1A;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(255,184,0,0.08);
+    }
+    @media (min-width: 500px) {
+      #app-container {
+        height: 92vh;
+        max-height: 900px;
+        border-radius: 24px;
+        border: 1px solid rgba(255,184,0,0.1);
+      }
+    }
+
+    /* ====================== SPLASH SCREEN ====================== */
+    #splash-screen {
+      position: absolute;
+      inset: 0;
+      background: #0A0E1A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .splash-shield {
+      width: 100px; height: 120px;
+      position: relative;
+      animation: splashAssemble 1s ease-out forwards;
+    }
+    @keyframes splashAssemble {
+      0% { transform: scale(0.3) rotate(-20deg); opacity: 0; }
+      50% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .splash-shield svg { width: 100%; height: 100%; }
+    .splash-title {
+      font-size: 28px; font-weight: 700; color: #FFB800;
+      margin-top: 20px; opacity: 0;
+      animation: splashFadeIn 0.6s ease 0.6s forwards;
+    }
+    .splash-subtitle {
+      font-size: 13px; color: #7B8CA8; margin-top: 6px; opacity: 0;
+      animation: splashFadeIn 0.6s ease 0.9s forwards;
+    }
+    @keyframes splashFadeIn { to { opacity: 1; } }
+    .splash-shimmer {
+      position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,184,0,0.3), transparent);
+      animation: shimmer 1.2s ease 0.5s forwards;
+    }
+    @keyframes shimmer { to { left: 200%; } }
+
+    /* ====================== SCREENS ====================== */
+    .screen-area {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      bottom: 64px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screen { display: none; min-height: 100%; padding: 0 16px 24px; }
+    .screen.active { display: block; animation: screenFadeIn 0.25s ease; }
+    @keyframes screenFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ====================== HEADER ====================== */
+    .app-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 0 12px; position: sticky; top: 0;
+      background: linear-gradient(180deg, #0A0E1A 85%, transparent);
+      z-index: 10;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-logo svg { width: 32px; height: 32px; }
+    .header-title { font-size: 22px; font-weight: 700; color: #FFB800; }
+    .header-badge {
+      background: rgba(255,184,0,0.15); color: #FFB800;
+      font-size: 10px; font-weight: 600; padding: 3px 8px;
+      border-radius: 20px; letter-spacing: 0.5px;
+    }
+
+    /* ====================== COUNTDOWN WIDGET ====================== */
+    .countdown-widget {
+      background: #141B2D; border-radius: 20px; padding: 24px;
+      margin: 8px 0 20px; text-align: center;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .countdown-ring-container { position: relative; width: 160px; height: 160px; margin: 0 auto 16px; }
+    .countdown-ring { transform: rotate(-90deg); }
+    .countdown-ring-bg { fill: none; stroke: #1C2438; stroke-width: 8; }
+    .countdown-ring-fill {
+      fill: none; stroke-width: 8; stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease, stroke 0.5s ease;
+    }
+    .countdown-center {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .countdown-days { font-size: 42px; font-weight: 800; line-height: 1; }
+    .countdown-label { font-size: 13px; color: #7B8CA8; margin-top: 2px; }
+    .countdown-card-name { font-size: 14px; font-weight: 600; margin-top: 4px; color: #FFB800; }
+    .countdown-empty { color: #7B8CA8; font-size: 14px; }
+
+    /* ====================== SECTION TITLES ====================== */
+    .section-title {
+      font-size: 16px; font-weight: 600; color: #FFFFFF;
+      margin: 20px 0 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title .count {
+      background: rgba(255,184,0,0.15); color: #FFB800;
+      font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+    }
+
+    /* ====================== BILL CARDS ====================== */
+    .bill-card {
+      background: #141B2D; border-radius: 14px; margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.04);
+      overflow: hidden; transition: all 0.3s ease;
+    }
+    .bill-card:active { transform: scale(0.985); }
+    .bill-card-main {
+      display: flex; align-items: center; padding: 14px;
+      cursor: pointer; gap: 12px;
+    }
+    .bill-stripe { width: 4px; border-radius: 4px; align-self: stretch; min-height: 48px; flex-shrink: 0; }
+    .bill-info { flex: 1; min-width: 0; }
+    .bill-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bill-last4 { font-size: 12px; color: #7B8CA8; margin-top: 1px; }
+    .bill-right { text-align: right; flex-shrink: 0; }
+    .bill-amount { font-size: 16px; font-weight: 700; }
+    .bill-due-text { font-size: 11px; color: #7B8CA8; margin-top: 2px; }
+    .bill-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 600; padding: 3px 8px;
+      border-radius: 20px; margin-top: 4px; white-space: nowrap;
+    }
+    .badge-paid { background: rgba(0,200,83,0.15); color: #00C853; }
+    .badge-due-soon { background: rgba(255,145,0,0.15); color: #FF9100; }
+    .badge-overdue { background: rgba(255,23,68,0.15); color: #FF1744; animation: pulse 1.5s infinite; }
+    .badge-due-today { background: rgba(255,23,68,0.15); color: #FF1744; }
+    .badge-safe { background: rgba(0,188,212,0.15); color: #00BCD4; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .bill-expanded {
+      max-height: 0; overflow: hidden; transition: max-height 0.35s ease;
+    }
+    .bill-expanded.open { max-height: 300px; }
+    .bill-expanded-inner {
+      padding: 0 14px 14px; border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .bill-detail-row {
+      display: flex; justify-content: space-between; padding: 6px 0;
+      font-size: 13px; color: #7B8CA8;
+    }
+    .bill-detail-row span:last-child { color: #FFFFFF; font-weight: 500; }
+    .bill-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-mark-paid {
+      flex: 1; padding: 10px; border-radius: 10px;
+      background: rgba(0,200,83,0.15); color: #00C853;
+      font-size: 13px; font-weight: 600; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-mark-paid:hover { background: rgba(0,200,83,0.25); }
+    .btn-snooze {
+      padding: 10px 16px; border-radius: 10px;
+      background: rgba(123,140,168,0.15); color: #7B8CA8;
+      font-size: 13px; font-weight: 600; transition: all 0.2s;
+    }
+    .btn-snooze:hover { background: rgba(123,140,168,0.25); }
+
+    /* ====================== EMPTY STATE ====================== */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 60px 20px; text-align: center;
+    }
+    .empty-state svg { width: 120px; height: 120px; margin-bottom: 20px; opacity: 0.5; }
+    .empty-state h3 { font-size: 18px; font-weight: 600; color: #FFFFFF; margin-bottom: 8px; }
+    .empty-state p { font-size: 13px; color: #7B8CA8; margin-bottom: 24px; line-height: 1.5; }
+    .btn-primary {
+      background: linear-gradient(135deg, #FFB800, #FF9100);
+      color: #0A0E1A; font-size: 14px; font-weight: 700;
+      padding: 12px 28px; border-radius: 12px;
+      transition: all 0.2s; box-shadow: 0 4px 16px rgba(255,184,0,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,184,0,0.4); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    /* ====================== CREDIT CARDS SCREEN ====================== */
+    .cards-scroll {
+      display: flex; gap: 16px; overflow-x: auto;
+      padding: 10px 0 20px; scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .cards-scroll::-webkit-scrollbar { display: none; }
+    .credit-card-wrapper {
+      min-width: 300px; max-width: 340px; scroll-snap-align: center;
+      perspective: 1000px; flex-shrink: 0;
+    }
+    .credit-card-inner {
+      position: relative; width: 100%; height: 190px;
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d; cursor: pointer;
+    }
+    .credit-card-inner.flipped { transform: rotateY(180deg); }
+    .credit-card-front, .credit-card-back {
+      position: absolute; inset: 0; border-radius: 16px;
+      padding: 20px; backface-visibility: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .credit-card-back { transform: rotateY(180deg); }
+    .cc-bank-name { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.95); }
+    .cc-chip {
+      display: inline-block; width: 36px; height: 28px;
+      background: linear-gradient(135deg, #FFD54F, #FFB800);
+      border-radius: 5px; margin-top: 18px; position: relative;
+      overflow: hidden;
+    }
+    .cc-chip::before {
+      content: ''; position: absolute;
+      top: 6px; left: 4px; right: 4px; bottom: 6px;
+      border: 1.5px solid rgba(0,0,0,0.2); border-radius: 2px;
+    }
+    .cc-chip::after {
+      content: ''; position: absolute;
+      top: 0; bottom: 0; left: 50%; width: 1.5px;
+      background: rgba(0,0,0,0.15);
+    }
+    .cc-nickname { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.8); margin-top: 14px; }
+    .cc-bottom { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
+    .cc-last4 { font-size: 18px; font-weight: 600; letter-spacing: 3px; color: rgba(255,255,255,0.95); }
+    .cc-due-label { font-size: 10px; color: rgba(255,255,255,0.5); }
+    .cc-due-day { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.9); }
+    .cc-back-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: rgba(255,255,255,0.9); }
+    .cc-back-row {
+      display: flex; justify-content: space-between; padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 13px;
+    }
+    .cc-back-row .label { color: rgba(255,255,255,0.5); }
+    .cc-back-row .value { color: rgba(255,255,255,0.9); font-weight: 500; }
+    .cc-delete-btn {
+      position: absolute; bottom: 14px; right: 14px;
+      background: rgba(255,23,68,0.2); color: #FF1744;
+      font-size: 11px; font-weight: 600; padding: 5px 12px;
+      border-radius: 8px; transition: all 0.2s;
+    }
+    .cc-delete-btn:hover { background: rgba(255,23,68,0.35); }
+
+    .add-card-btn {
+      width: 100%; padding: 14px; border-radius: 14px;
+      background: rgba(255,184,0,0.1); border: 2px dashed rgba(255,184,0,0.3);
+      color: #FFB800; font-size: 15px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 16px; transition: all 0.2s;
+    }
+    .add-card-btn:hover { background: rgba(255,184,0,0.15); border-color: rgba(255,184,0,0.5); }
+
+    /* ====================== MODALS ====================== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 100; display: none; align-items: flex-end; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-sheet {
+      width: 100%; max-width: 430px;
+      background: #141B2D; border-radius: 24px 24px 0 0;
+      padding: 20px; max-height: 90vh; overflow-y: auto;
+      animation: slideUp 0.35s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle {
+      width: 40px; height: 4px; background: #2A3550;
+      border-radius: 4px; margin: 0 auto 16px;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #7B8CA8; margin-bottom: 6px; display: block; }
+    .form-input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      background: #1C2438; color: #FFFFFF; font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: #FFB800; }
+    .form-input::placeholder { color: #4A5670; }
+    select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237B8CA8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    select.form-input option { background: #1C2438; color: #FFFFFF; }
+    .btn-gmail-detect {
+      width: 100%; padding: 12px; border-radius: 10px;
+      background: transparent; border: 1.5px solid rgba(255,184,0,0.3);
+      color: #FFB800; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s; margin-bottom: 16px;
+    }
+    .btn-gmail-detect:hover { background: rgba(255,184,0,0.08); }
+    .btn-save-card {
+      width: 100%; padding: 14px; border-radius: 12px;
+      background: linear-gradient(135deg, #FFB800, #FF9100);
+      color: #0A0E1A; font-size: 15px; font-weight: 700;
+      transition: all 0.2s; box-shadow: 0 4px 16px rgba(255,184,0,0.3);
+    }
+    .btn-save-card:hover { box-shadow: 0 6px 20px rgba(255,184,0,0.4); }
+    .btn-cancel {
+      width: 100%; padding: 12px; text-align: center;
+      color: #7B8CA8; font-size: 13px; font-weight: 500;
+      background: none; margin-top: 8px;
+    }
+
+    /* ====================== PAYMENT MODAL ====================== */
+    .payment-modal .modal-sheet { text-align: center; }
+    .payment-card-stripe {
+      height: 4px; border-radius: 4px; width: 60px;
+      margin: 0 auto 16px;
+    }
+    .payment-card-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .payment-amount-label { font-size: 13px; color: #7B8CA8; }
+    .payment-amount { font-size: 32px; font-weight: 800; color: #FFB800; margin: 4px 0 20px; }
+    .payment-form .form-group { text-align: left; }
+    .btn-confirm-paid {
+      width: 100%; padding: 14px; border-radius: 12px;
+      background: linear-gradient(135deg, #00C853, #00E676);
+      color: #0A0E1A; font-size: 15px; font-weight: 700;
+      transition: all 0.2s; box-shadow: 0 4px 16px rgba(0,200,83,0.3);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-confirm-paid:hover { box-shadow: 0 6px 20px rgba(0,200,83,0.4); }
+
+    /* ====================== CELEBRATION ====================== */
+    .celebration-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+    }
+    .celebration-overlay.active { display: flex; }
+    .celebration-check {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: #00C853; display: flex; align-items: center;
+      justify-content: center; animation: celebPop 0.4s ease;
+    }
+    @keyframes celebPop { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    .celebration-check svg { width: 40px; height: 40px; }
+    .confetti-piece {
+      position: absolute; width: 8px; height: 8px; border-radius: 50%;
+      animation: confettiBurst 0.8s ease-out forwards;
+    }
+    @keyframes confettiBurst {
+      0% { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ====================== HISTORY SCREEN ====================== */
+    .history-stats {
+      background: #141B2D; border-radius: 14px; padding: 16px;
+      margin: 8px 0 16px; display: flex; align-items: center; gap: 16px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .stat-ring { position: relative; width: 60px; height: 60px; flex-shrink: 0; }
+    .stat-ring svg { transform: rotate(-90deg); }
+    .stat-ring-bg { fill: none; stroke: #1C2438; stroke-width: 6; }
+    .stat-ring-fill { fill: none; stroke: #00C853; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+    .stat-ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #00C853; }
+    .stat-info h4 { font-size: 14px; font-weight: 600; }
+    .stat-info p { font-size: 12px; color: #7B8CA8; margin-top: 2px; }
+    .history-month {
+      margin-bottom: 16px;
+    }
+    .history-month-header {
+      font-size: 13px; font-weight: 600; color: #7B8CA8;
+      padding: 8px 0; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .history-month-header svg { width: 16px; height: 16px; transition: transform 0.2s; }
+    .history-month-header.expanded svg { transform: rotate(180deg); }
+    .history-entries { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+    .history-entries.open { max-height: 1000px; }
+    .history-entry {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; background: #141B2D; border-radius: 10px;
+      margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.04);
+    }
+    .history-stripe { width: 3px; border-radius: 3px; align-self: stretch; min-height: 36px; }
+    .history-info { flex: 1; }
+    .history-card-name { font-size: 13px; font-weight: 600; }
+    .history-date { font-size: 11px; color: #7B8CA8; margin-top: 1px; }
+    .history-right { text-align: right; }
+    .history-amount { font-size: 14px; font-weight: 600; }
+    .history-status { font-size: 11px; margin-top: 2px; }
+    .history-status.paid { color: #00C853; }
+    .history-status.missed { color: #FF1744; }
+
+    /* ====================== SETTINGS SCREEN ====================== */
+    .settings-section {
+      margin-bottom: 24px;
+    }
+    .settings-section-title {
+      font-size: 11px; font-weight: 700; color: #7B8CA8;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .settings-card {
+      background: #141B2D; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-label { font-size: 14px; font-weight: 500; }
+    .settings-row-sub { font-size: 11px; color: #7B8CA8; margin-top: 2px; }
+
+    /* Toggle switch */
+    .toggle-switch {
+      width: 44px; height: 24px; border-radius: 12px;
+      background: #2A3550; position: relative; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-switch.active { background: #FFB800; }
+    .toggle-switch::after {
+      content: ''; position: absolute;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #FFFFFF; top: 2px; left: 2px;
+      transition: transform 0.2s;
+    }
+    .toggle-switch.active::after { transform: translateX(20px); }
+
+    /* Segmented selector */
+    .segmented {
+      display: flex; gap: 4px; background: #1C2438;
+      border-radius: 10px; padding: 3px;
+    }
+    .seg-option {
+      flex: 1; padding: 7px 4px; text-align: center;
+      border-radius: 8px; font-size: 12px; font-weight: 600;
+      color: #7B8CA8; background: transparent; transition: all 0.2s;
+      cursor: pointer;
+    }
+    .seg-option.active { background: #FFB800; color: #0A0E1A; }
+
+    /* Sound picker */
+    .sound-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .sound-card {
+      background: #1C2438; border-radius: 10px; padding: 12px;
+      cursor: pointer; border: 2px solid transparent;
+      transition: all 0.2s; display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .sound-card.selected { border-color: #FFB800; background: rgba(255,184,0,0.08); }
+    .sound-card-name { font-size: 12px; font-weight: 600; }
+    .sound-play-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,184,0,0.15); display: flex;
+      align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .sound-play-btn:hover { background: rgba(255,184,0,0.3); }
+    .sound-play-btn svg { width: 12px; height: 12px; }
+
+    /* Gmail settings */
+    .gmail-input-wrapper {
+      position: relative;
+    }
+    .gmail-input-wrapper input { padding-right: 40px; }
+    .gmail-toggle-vis {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; color: #7B8CA8; padding: 4px;
+    }
+    .gmail-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; margin-top: 8px;
+    }
+    .gmail-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .gmail-status .dot.connected { background: #00C853; }
+    .gmail-status .dot.disconnected { background: #FF1744; }
+    .btn-sync {
+      padding: 10px 20px; border-radius: 10px;
+      background: rgba(255,184,0,0.15); color: #FFB800;
+      font-size: 13px; font-weight: 600; margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .btn-sync:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-sync:not(:disabled):hover { background: rgba(255,184,0,0.25); }
+
+    /* Data buttons */
+    .btn-data {
+      width: 100%; padding: 12px; border-radius: 10px;
+      font-size: 13px; font-weight: 600; margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-export { background: rgba(0,188,212,0.1); color: #00BCD4; }
+    .btn-import { background: rgba(255,184,0,0.1); color: #FFB800; }
+    .btn-clear { background: rgba(255,23,68,0.1); color: #FF1744; }
+    .btn-data:hover { filter: brightness(1.2); }
+
+    /* About */
+    .about-info { text-align: center; padding: 20px; color: #7B8CA8; font-size: 13px; }
+    .about-info .version { font-size: 15px; font-weight: 600; color: #FFB800; margin-bottom: 4px; }
+
+    /* ====================== BOTTOM TAB BAR ====================== */
+    .tab-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 64px; background: #0D1220;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: space-around;
+      z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .tab-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 6px 12px; background: none;
+      color: #7B8CA8; transition: color 0.2s;
+      position: relative;
+    }
+    .tab-item.active { color: #FFB800; }
+    .tab-item.active::before {
+      content: ''; position: absolute; top: -1px;
+      width: 24px; height: 2px; background: #FFB800;
+      border-radius: 0 0 2px 2px;
+    }
+    .tab-item svg { width: 22px; height: 22px; }
+    .tab-item span { font-size: 10px; font-weight: 600; }
+
+    /* ====================== TOAST ====================== */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #1C2438; color: #FFFFFF; padding: 10px 20px;
+      border-radius: 10px; font-size: 13px; font-weight: 500;
+      z-index: 300; opacity: 0; transition: opacity 0.3s;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .toast.visible { opacity: 1; }
+
+    /* ====================== CONFIRM DIALOG ====================== */
+    .confirm-dialog {
+      position: fixed; inset: 0; z-index: 250;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    }
+    .confirm-dialog.active { display: flex; }
+    .confirm-box {
+      background: #141B2D; border-radius: 16px; padding: 24px;
+      width: 90%; max-width: 340px; text-align: center;
+      animation: celebPop 0.3s ease;
+    }
+    .confirm-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .confirm-box p { font-size: 13px; color: #7B8CA8; margin-bottom: 20px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-actions button {
+      flex: 1; padding: 11px; border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+    }
+    .confirm-cancel-btn { background: #1C2438; color: #7B8CA8; }
+    .confirm-ok-btn { background: rgba(255,23,68,0.2); color: #FF1744; }
+
+    /* ====================== GMAIL INFO MODAL ====================== */
+    .gmail-info-modal .modal-sheet { max-height: 80vh; }
+    .gmail-info-steps { text-align: left; }
+    .gmail-info-steps ol { padding-left: 20px; }
+    .gmail-info-steps li { font-size: 13px; color: #7B8CA8; margin-bottom: 8px; line-height: 1.5; }
+    .gmail-detected-list { margin-top: 16px; }
+    .gmail-detected-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px; background: #1C2438; border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .gmail-detected-check {
+      width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid #FFB800; display: flex;
+      align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    }
+    .gmail-detected-check.checked { background: #FFB800; }
+    .gmail-detected-info { flex: 1; }
+    .gmail-detected-bank { font-size: 13px; font-weight: 600; }
+    .gmail-detected-details { font-size: 11px; color: #7B8CA8; }
+    .btn-import-gmail {
+      width: 100%; padding: 12px; border-radius: 10px;
+      background: linear-gradient(135deg, #FFB800, #FF9100);
+      color: #0A0E1A; font-size: 14px; font-weight: 700;
+      margin-top: 12px; transition: all 0.2s;
+    }
+
+    /* ====================== RESPONSIVE ====================== */
+    @media (max-width: 374px) {
+      .countdown-ring-container { width: 130px; height: 130px; }
+      .countdown-days { font-size: 36px; }
+      .credit-card-wrapper { min-width: 270px; }
+      .sound-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app-container">
+  <!-- ======================== SPLASH SCREEN ======================== -->
+  <div id="splash-screen">
+    <div class="splash-shield">
+      <div class="splash-shimmer"></div>
+      <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 5 L90 25 L90 65 C90 90 72 108 50 118 C28 108 10 90 10 65 L10 25 Z" fill="#FFB800"/>
+        <rect x="28" y="48" width="44" height="30" rx="4" fill="#FFFFFF" opacity="0.9"/>
+        <rect x="28" y="56" width="44" height="8" fill="#0A0E1A" opacity="0.25"/>
+        <rect x="33" y="66" width="10" height="7" rx="2" fill="#FFB800" opacity="0.7"/>
+        <circle cx="57" cy="71" r="1.5" fill="#0A0E1A" opacity="0.3"/>
+        <circle cx="62" cy="71" r="1.5" fill="#0A0E1A" opacity="0.3"/>
+        <circle cx="67" cy="71" r="1.5" fill="#0A0E1A" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="splash-title">CardGuard</div>
+    <div class="splash-subtitle">Never Miss a Bill</div>
+  </div>
+
+  <!-- ======================== SCREEN AREA ======================== -->
+  <div class="screen-area">
+
+    <!-- ==================== DASHBOARD SCREEN ==================== -->
+    <div id="screen-dashboard" class="screen active">
+      <div class="app-header">
+        <div class="header-left">
+          <div class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none"><path d="M16 2 L28 9 L28 19 C28 27 22 31 16 33 C10 31 4 27 4 19 L4 9 Z" fill="#FFB800"/><rect x="9" y="14" width="14" height="9" rx="2" fill="#FFF" opacity="0.9"/><rect x="9" y="17" width="14" height="3" fill="#0A0E1A" opacity="0.2"/></svg>
+          </div>
+          <span class="header-title">CardGuard</span>
+        </div>
+        <span class="header-badge">PREMIUM</span>
+      </div>
+
+      <div id="dashboard-content">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ==================== CARDS SCREEN ==================== -->
+    <div id="screen-cards" class="screen">
+      <div class="app-header">
+        <div class="header-left">
+          <span class="header-title">My Cards</span>
+        </div>
+        <span id="cards-count" class="header-badge">0</span>
+      </div>
+      <div id="cards-content">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ==================== HISTORY SCREEN ==================== -->
+    <div id="screen-history" class="screen">
+      <div class="app-header">
+        <div class="header-left">
+          <span class="header-title">History</span>
+        </div>
+      </div>
+      <div id="history-content">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ==================== SETTINGS SCREEN ==================== -->
+    <div id="screen-settings" class="screen">
+      <div class="app-header">
+        <div class="header-left">
+          <span class="header-title">Settings</span>
+        </div>
+      </div>
+      <div id="settings-content">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== BOTTOM TAB BAR ======================== -->
+  <div class="tab-bar">
+    <button class="tab-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="tab-item" data-tab="cards" onclick="switchTab('cards')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span>Cards</span>
+    </button>
+    <button class="tab-item" data-tab="history" onclick="switchTab('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>History</span>
+    </button>
+    <button class="tab-item" data-tab="settings" onclick="switchTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </div>
+</div>
+
+<!-- ======================== ADD CARD MODAL ======================== -->
+<div id="modal-add-card" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-card')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Credit Card</div>
+    <button class="btn-gmail-detect" onclick="handleGmailDetect()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Auto-detect from Gmail
+    </button>
+    <div class="form-group">
+      <label class="form-label">Bank</label>
+      <select id="input-bank" class="form-input">
+        <option value="">Select Bank</option>
+        <option value="HDFC">HDFC Bank</option>
+        <option value="ICICI">ICICI Bank</option>
+        <option value="SBI">SBI Card</option>
+        <option value="Axis">Axis Bank</option>
+        <option value="Kotak">Kotak Mahindra</option>
+        <option value="IndusInd">IndusInd Bank</option>
+        <option value="AMEX">American Express</option>
+        <option value="Citi">Citi Bank</option>
+        <option value="RBL">RBL Bank</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Card Nickname</label>
+      <input type="text" id="input-nickname" class="form-input" placeholder="e.g., Shopping Card, Rewards Card">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Last 4 Digits</label>
+      <input type="number" id="input-last4" class="form-input" placeholder="1234" maxlength="4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monthly Due Date (Day)</label>
+      <input type="number" id="input-dueday" class="form-input" placeholder="1-31" min="1" max="31">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Typical Bill Amount (Optional)</label>
+      <input type="number" id="input-amount" class="form-input" placeholder="₹ 0">
+    </div>
+    <button class="btn-save-card" onclick="saveCard()">Save Card</button>
+    <button class="btn-cancel" onclick="closeModal('modal-add-card')">Cancel</button>
+  </div>
+</div>
+
+<!-- ======================== PAYMENT MODAL ======================== -->
+<div id="modal-payment" class="modal-overlay payment-modal" onclick="if(event.target===this)closeModal('modal-payment')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Confirm Payment</div>
+    <div id="payment-card-stripe" class="payment-card-stripe"></div>
+    <div id="payment-card-name" class="payment-card-name"></div>
+    <div class="payment-amount-label">Amount Due</div>
+    <div id="payment-amount" class="payment-amount"></div>
+    <div class="payment-form">
+      <div class="form-group">
+        <label class="form-label">Amount Paid</label>
+        <input type="number" id="input-paid-amount" class="form-input" placeholder="₹ 0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reference / UTR Number (Optional)</label>
+        <input type="text" id="input-reference" class="form-input" placeholder="Enter reference number">
+      </div>
+    </div>
+    <button class="btn-confirm-paid" onclick="confirmPayment()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Confirm Paid
+    </button>
+    <button class="btn-cancel" onclick="closeModal('modal-payment')">Cancel</button>
+  </div>
+</div>
+
+<!-- ======================== GMAIL INFO MODAL ======================== -->
+<div id="modal-gmail-info" class="modal-overlay gmail-info-modal" onclick="if(event.target===this)closeModal('modal-gmail-info')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Gmail Auto-Detect Setup</div>
+    <div class="gmail-info-steps">
+      <p style="font-size:13px;color:#7B8CA8;margin-bottom:12px;">To use Gmail auto-detect, you need a Google Cloud OAuth Client ID:</p>
+      <ol>
+        <li>Go to <strong style="color:#FFB800">console.cloud.google.com</strong></li>
+        <li>Create a project and enable the <strong style="color:#FFB800">Gmail API</strong></li>
+        <li>Create <strong style="color:#FFB800">OAuth 2.0 credentials</strong> (Web application type)</li>
+        <li>Add your domain as an <strong style="color:#FFB800">authorized JavaScript origin</strong></li>
+        <li>Paste the Client ID in <strong style="color:#FFB800">Settings &rarr; Gmail Integration</strong></li>
+      </ol>
+    </div>
+    <button class="btn-save-card" onclick="closeModal('modal-gmail-info');switchTab('settings')">Go to Settings</button>
+    <button class="btn-cancel" onclick="closeModal('modal-gmail-info')">Close</button>
+  </div>
+</div>
+
+<!-- ======================== GMAIL DETECTED MODAL ======================== -->
+<div id="modal-gmail-detected" class="modal-overlay gmail-info-modal" onclick="if(event.target===this)closeModal('modal-gmail-detected')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Detected Cards from Gmail</div>
+    <div id="gmail-detected-list" class="gmail-detected-list"></div>
+    <button class="btn-import-gmail" onclick="importDetectedCards()">Import Selected</button>
+    <button class="btn-cancel" onclick="closeModal('modal-gmail-detected')">Cancel</button>
+  </div>
+</div>
+
+<!-- ======================== CELEBRATION OVERLAY ======================== -->
+<div id="celebration-overlay" class="celebration-overlay">
+  <div class="celebration-check">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+</div>
+
+<!-- ======================== CONFIRM DIALOG ======================== -->
+<div id="confirm-dialog" class="confirm-dialog">
+  <div class="confirm-box">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-message">This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="confirm-cancel-btn" onclick="closeConfirmDialog(false)">Cancel</button>
+      <button class="confirm-ok-btn" onclick="closeConfirmDialog(true)">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== TOAST ======================== -->
+<div id="toast" class="toast"></div>
+
+<!-- ======================== HIDDEN FILE INPUT ======================== -->
+<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImportFile(event)">
+
+<script>
+/* ======================================================================
+   CARDGUARD - Complete Application Logic
+   ====================================================================== */
+
+// ====================== CONSTANTS ======================
+const BANK_GRADIENTS = {
+  HDFC: 'linear-gradient(135deg, #004B87, #0066B2)',
+  ICICI: 'linear-gradient(135deg, #F37021, #C2185B)',
+  SBI: 'linear-gradient(135deg, #1565C0, #42A5F5)',
+  Axis: 'linear-gradient(135deg, #6A1B3D, #97234F)',
+  Kotak: 'linear-gradient(135deg, #CC0000, #8B0000)',
+  IndusInd: 'linear-gradient(135deg, #00695C, #26A69A)',
+  AMEX: 'linear-gradient(135deg, #78909C, #37474F)',
+  Citi: 'linear-gradient(135deg, #003DA5, #0052CC)',
+  RBL: 'linear-gradient(135deg, #FF6F00, #E65100)',
+  Other: 'linear-gradient(135deg, #455A64, #263238)'
+};
+
+const BANK_COLORS = {
+  HDFC: '#0066B2', ICICI: '#F37021', SBI: '#1565C0', Axis: '#97234F',
+  Kotak: '#CC0000', IndusInd: '#00695C', AMEX: '#78909C', Citi: '#003DA5',
+  RBL: '#FF6F00', Other: '#455A64'
+};
+
+const SOUND_TYPES = [
+  { id: 'chime', name: 'Gentle Chime' },
+  { id: 'cash', name: 'Cash Register' },
+  { id: 'swipe', name: 'Card Swipe' },
+  { id: 'bell', name: 'Alert Bell' },
+  { id: 'ping', name: 'Digital Ping' },
+  { id: 'buzz', name: 'Soft Buzz' }
+];
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ====================== STATE ======================
+let cards = JSON.parse(localStorage.getItem('cardguard_cards') || '[]');
+let bills = JSON.parse(localStorage.getItem('cardguard_bills') || '[]');
+let settings = JSON.parse(localStorage.getItem('cardguard_settings') || 'null') || {
+  notifications: true,
+  remindDays: 3,
+  sound: 'chime',
+  gmailClientId: '',
+  gmailConnected: false,
+  lastSynced: null
+};
+
+let currentPaymentCardId = null;
+let confirmCallback = null;
+let detectedGmailCards = [];
+let gmailAccessToken = null;
+
+// ====================== PERSISTENCE ======================
+function saveCards() { localStorage.setItem('cardguard_cards', JSON.stringify(cards)); }
+function saveBills() { localStorage.setItem('cardguard_bills', JSON.stringify(bills)); }
+function saveSettings() { localStorage.setItem('cardguard_settings', JSON.stringify(settings)); }
+
+// ====================== DATE UTILITIES ======================
+function getNextDueDate(dayOfMonth) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let day = Math.min(dayOfMonth, new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
+  let dueDate = new Date(today.getFullYear(), today.getMonth(), day);
+  if (dueDate <= today) {
+    day = Math.min(dayOfMonth, new Date(today.getFullYear(), today.getMonth() + 2, 0).getDate());
+    dueDate = new Date(today.getFullYear(), today.getMonth() + 1, day);
+  }
+  return dueDate;
+}
+
+function getDaysUntilDue(dayOfMonth) {
+  const due = getNextDueDate(dayOfMonth);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+}
+
+function formatDate(date) {
+  const d = new Date(date);
+  return d.getDate() + ' ' + MONTHS[d.getMonth()].substring(0, 3) + ' ' + d.getFullYear();
+}
+
+function formatCurrency(amount) {
+  if (!amount && amount !== 0) return '₹ --';
+  return '₹' + Number(amount).toLocaleString('en-IN');
+}
+
+function getBillingCycleKey(cardId, dueDay) {
+  const dueDate = getNextDueDate(dueDay);
+  return cardId + '_' + dueDate.getFullYear() + '_' + dueDate.getMonth() + '_' + dueDate.getDate();
+}
+
+function isBillPaidThisCycle(cardId, dueDay) {
+  const key = getBillingCycleKey(cardId, dueDay);
+  return bills.some(b => b.cycleKey === key && b.status === 'paid');
+}
+
+function getCurrentBill(cardId, dueDay) {
+  const key = getBillingCycleKey(cardId, dueDay);
+  return bills.find(b => b.cycleKey === key);
+}
+
+function getStatusInfo(daysLeft, isPaid) {
+  if (isPaid) return { text: 'Paid', class: 'badge-paid', color: '#00C853' };
+  if (daysLeft <= 0) return { text: 'Overdue', class: 'badge-overdue', color: '#FF1744' };
+  if (daysLeft === 0) return { text: 'Due Today', class: 'badge-due-today', color: '#FF1744' };
+  if (daysLeft <= 3) return { text: 'Due in ' + daysLeft + 'd', class: 'badge-due-soon', color: '#FF9100' };
+  if (daysLeft <= 7) return { text: 'Due in ' + daysLeft + 'd', class: 'badge-due-soon', color: '#FF9100' };
+  return { text: 'Due in ' + daysLeft + 'd', class: 'badge-safe', color: '#00BCD4' };
+}
+
+function getRingColor(daysLeft) {
+  if (daysLeft <= 3) return '#FF1744';
+  if (daysLeft <= 7) return '#FF9100';
+  return '#00BCD4';
+}
+
+// ====================== GENERATE IDs ======================
+function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+
+// ====================== SPLASH SCREEN ======================
+setTimeout(() => {
+  document.getElementById('splash-screen').classList.add('hidden');
+}, 2000);
+
+// ====================== TAB NAVIGATION ======================
+function switchTab(tabName) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + tabName).classList.add('active');
+  document.querySelector('.tab-item[data-tab="' + tabName + '"]').classList.add('active');
+  renderCurrentScreen(tabName);
+}
+
+function renderCurrentScreen(tabName) {
+  switch (tabName) {
+    case 'dashboard': renderDashboard(); break;
+    case 'cards': renderCards(); break;
+    case 'history': renderHistory(); break;
+    case 'settings': renderSettings(); break;
+  }
+}
+
+// ====================== DASHBOARD RENDERING ======================
+function renderDashboard() {
+  const container = document.getElementById('dashboard-content');
+
+  if (cards.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M60 8 L100 28 L100 68 C100 95 82 112 60 120 C38 112 20 95 20 68 L20 28 Z" fill="#1C2438" stroke="#FFB800" stroke-width="2"/>
+          <rect x="36" y="52" width="48" height="32" rx="4" fill="#2A3550"/>
+          <rect x="36" y="60" width="48" height="8" fill="#1C2438"/>
+          <rect x="42" y="70" width="12" height="8" rx="2" fill="#FFB800" opacity="0.5"/>
+          <circle cx="64" cy="76" r="2" fill="#7B8CA8"/>
+          <circle cx="70" cy="76" r="2" fill="#7B8CA8"/>
+          <circle cx="76" cy="76" r="2" fill="#7B8CA8"/>
+        </svg>
+        <h3>No Cards Added</h3>
+        <p>Add your credit cards to start tracking due dates and never miss a payment.</p>
+        <button class="btn-primary" onclick="switchTab('cards');setTimeout(()=>openModal('modal-add-card'),300)">Add Your First Card</button>
+      </div>`;
+    return;
+  }
+
+  // Sort cards by days until due
+  const sortedCards = [...cards].sort((a, b) => getDaysUntilDue(a.dueDay) - getDaysUntilDue(b.dueDay));
+  const unpaidCards = sortedCards.filter(c => !isBillPaidThisCycle(c.id, c.dueDay));
+  const nextCard = unpaidCards[0] || sortedCards[0];
+  const nextDays = getDaysUntilDue(nextCard.dueDay);
+  const nextIsPaid = isBillPaidThisCycle(nextCard.id, nextCard.dueDay);
+  const ringColor = nextIsPaid ? '#00C853' : getRingColor(nextDays);
+  const maxDays = 31;
+  const progress = nextIsPaid ? 1 : Math.max(0, 1 - nextDays / maxDays);
+  const circumference = 2 * Math.PI * 68;
+  const dashOffset = circumference * (1 - progress);
+
+  let html = `
+    <div class="countdown-widget">
+      <div class="countdown-ring-container">
+        <svg class="countdown-ring" width="160" height="160" viewBox="0 0 160 160">
+          <circle class="countdown-ring-bg" cx="80" cy="80" r="68"/>
+          <circle class="countdown-ring-fill" cx="80" cy="80" r="68"
+            stroke="${ringColor}" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"/>
+        </svg>
+        <div class="countdown-center">
+          ${nextIsPaid
+            ? `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+               <div class="countdown-label" style="color:#00C853;margin-top:6px">All Paid!</div>`
+            : `<div class="countdown-days" style="color:${ringColor}">${nextDays}</div>
+               <div class="countdown-label">${nextDays === 1 ? 'day left' : 'days left'}</div>`
+          }
+          <div class="countdown-card-name">${nextCard.nickname || nextCard.bank}</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Upcoming Bills
+  const pendingCount = sortedCards.filter(c => !isBillPaidThisCycle(c.id, c.dueDay)).length;
+  html += `<div class="section-title">Upcoming Bills <span class="count">${pendingCount} pending</span></div>`;
+
+  sortedCards.forEach(card => {
+    const days = getDaysUntilDue(card.dueDay);
+    const isPaid = isBillPaidThisCycle(card.id, card.dueDay);
+    const status = getStatusInfo(days, isPaid);
+    const dueDate = getNextDueDate(card.dueDay);
+    const currentBill = getCurrentBill(card.id, card.dueDay);
+    const amount = (currentBill && currentBill.amount) || card.typicalAmount;
+    const bankColor = BANK_COLORS[card.bank] || BANK_COLORS.Other;
+
+    html += `
+      <div class="bill-card" id="bill-${card.id}">
+        <div class="bill-card-main" onclick="toggleBillExpand('${card.id}')">
+          <div class="bill-stripe" style="background:${bankColor}"></div>
+          <div class="bill-info">
+            <div class="bill-name">${card.nickname || card.bank + ' Card'}</div>
+            <div class="bill-last4">•••• ${card.last4}</div>
+          </div>
+          <div class="bill-right">
+            <div class="bill-amount" style="color:${isPaid ? '#00C853' : '#FFFFFF'}">${formatCurrency(amount)}</div>
+            <div class="bill-due-text">${formatDate(dueDate)}</div>
+            <div class="bill-badge ${status.class}">
+              ${isPaid ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+              ${status.text}
+            </div>
+          </div>
+        </div>
+        <div class="bill-expanded" id="bill-expand-${card.id}">
+          <div class="bill-expanded-inner">
+            <div class="bill-detail-row"><span>Bank</span><span>${card.bank}</span></div>
+            <div class="bill-detail-row"><span>Due Date</span><span>${formatDate(dueDate)}</span></div>
+            <div class="bill-detail-row"><span>Days Remaining</span><span style="color:${status.color}">${days} days</span></div>
+            <div class="bill-detail-row"><span>Billing Day</span><span>${card.dueDay} of every month</span></div>
+            ${amount ? `<div class="bill-detail-row"><span>Amount</span><span>${formatCurrency(amount)}</span></div>` : ''}
+            ${!isPaid ? `
+              <div class="bill-actions">
+                <button class="btn-mark-paid" onclick="openPaymentModal('${card.id}')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Mark as Paid
+                </button>
+                <button class="btn-snooze" onclick="snoozeBill('${card.id}')">Snooze</button>
+              </div>` : `
+              <div style="text-align:center;padding:8px 0;color:#00C853;font-size:13px;font-weight:600">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2.5" style="vertical-align:middle;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>
+                Payment recorded${currentBill && currentBill.paidAt ? ' on ' + formatDate(currentBill.paidAt) : ''}
+              </div>`
+            }
+          </div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleBillExpand(cardId) {
+  const el = document.getElementById('bill-expand-' + cardId);
+  if (el) el.classList.toggle('open');
+}
+
+// ====================== CARDS RENDERING ======================
+function renderCards() {
+  const container = document.getElementById('cards-content');
+  document.getElementById('cards-count').textContent = cards.length;
+
+  if (cards.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 120 120" fill="none">
+          <rect x="15" y="30" width="90" height="60" rx="8" fill="#1C2438" stroke="#FFB800" stroke-width="2"/>
+          <rect x="15" y="42" width="90" height="12" fill="#2A3550"/>
+          <rect x="25" y="62" width="20" height="14" rx="3" fill="#FFB800" opacity="0.4"/>
+          <circle cx="70" cy="72" r="3" fill="#7B8CA8"/>
+          <circle cx="80" cy="72" r="3" fill="#7B8CA8"/>
+          <circle cx="90" cy="72" r="3" fill="#7B8CA8"/>
+        </svg>
+        <h3>No Cards Yet</h3>
+        <p>Add your credit cards to track billing dates, amounts, and payment status.</p>
+        <button class="btn-primary" onclick="openModal('modal-add-card')">Add Your First Card</button>
+      </div>`;
+    return;
+  }
+
+  let html = '<div class="cards-scroll">';
+  cards.forEach(card => {
+    const gradient = BANK_GRADIENTS[card.bank] || BANK_GRADIENTS.Other;
+    const dueDate = getNextDueDate(card.dueDay);
+    const days = getDaysUntilDue(card.dueDay);
+    const isPaid = isBillPaidThisCycle(card.id, card.dueDay);
+
+    html += `
+      <div class="credit-card-wrapper">
+        <div class="credit-card-inner" id="cc-${card.id}" onclick="flipCard('${card.id}')">
+          <div class="credit-card-front" style="background:${gradient}">
+            <div class="cc-bank-name">${card.bank}</div>
+            <div class="cc-chip"></div>
+            <div class="cc-nickname">${card.nickname || 'Credit Card'}</div>
+            <div class="cc-bottom">
+              <div>
+                <div class="cc-last4">•••• ${card.last4}</div>
+              </div>
+              <div style="text-align:right">
+                <div class="cc-due-label">BILLING DATE</div>
+                <div class="cc-due-day">${card.dueDay}</div>
+              </div>
+            </div>
+          </div>
+          <div class="credit-card-back" style="background:${gradient}">
+            <div class="cc-back-title">Billing Details</div>
+            <div class="cc-back-row"><span class="label">Due Date</span><span class="value">${formatDate(dueDate)}</span></div>
+            <div class="cc-back-row"><span class="label">Days Until Due</span><span class="value">${days} days</span></div>
+            <div class="cc-back-row"><span class="label">Typical Amount</span><span class="value">${formatCurrency(card.typicalAmount)}</span></div>
+            <div class="cc-back-row"><span class="label">Status</span><span class="value" style="color:${isPaid ? '#00E676' : (days <= 3 ? '#FF1744' : '#FFD54F')}">${isPaid ? 'Paid' : 'Pending'}</span></div>
+            <button class="cc-delete-btn" onclick="event.stopPropagation();deleteCard('${card.id}')">Delete Card</button>
+          </div>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+
+  html += `<button class="add-card-btn" onclick="openModal('modal-add-card')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add New Card
+  </button>`;
+
+  container.innerHTML = html;
+}
+
+function flipCard(cardId) {
+  const el = document.getElementById('cc-' + cardId);
+  if (el) el.classList.toggle('flipped');
+}
+
+// ====================== HISTORY RENDERING ======================
+function renderHistory() {
+  const container = document.getElementById('history-content');
+
+  const paidBills = bills.filter(b => b.status === 'paid');
+  const totalBills = bills.length;
+  const onTimeRate = totalBills > 0 ? Math.round((paidBills.length / totalBills) * 100) : 0;
+
+  if (bills.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 120 120" fill="none">
+          <circle cx="60" cy="60" r="45" fill="#1C2438" stroke="#7B8CA8" stroke-width="2"/>
+          <polyline points="60 30 60 60 78 68" fill="none" stroke="#7B8CA8" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <h3>No History Yet</h3>
+        <p>Your payment history will appear here once you start marking bills as paid.</p>
+      </div>`;
+    return;
+  }
+
+  // Stats
+  const statCirc = 2 * Math.PI * 24;
+  const statOffset = statCirc * (1 - onTimeRate / 100);
+
+  let html = `
+    <div class="history-stats">
+      <div class="stat-ring">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle class="stat-ring-bg" cx="30" cy="30" r="24"/>
+          <circle class="stat-ring-fill" cx="30" cy="30" r="24"
+            stroke-dasharray="${statCirc}" stroke-dashoffset="${statOffset}"/>
+        </svg>
+        <div class="stat-ring-text">${onTimeRate}%</div>
+      </div>
+      <div class="stat-info">
+        <h4>On-Time Payment Rate</h4>
+        <p>${paidBills.length} paid out of ${totalBills} total bills</p>
+      </div>
+    </div>`;
+
+  // Group by month
+  const grouped = {};
+  const sortedBills = [...bills].sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
+  sortedBills.forEach(bill => {
+    const d = new Date(bill.dueDate);
+    const key = MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(bill);
+  });
+
+  Object.keys(grouped).forEach((monthKey, idx) => {
+    const monthBills = grouped[monthKey];
+    html += `
+      <div class="history-month">
+        <div class="history-month-header ${idx === 0 ? 'expanded' : ''}" onclick="toggleHistoryMonth(this)">
+          <span>${monthKey} (${monthBills.length})</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="history-entries ${idx === 0 ? 'open' : ''}">`;
+
+    monthBills.forEach(bill => {
+      const card = cards.find(c => c.id === bill.cardId);
+      const bankColor = card ? (BANK_COLORS[card.bank] || BANK_COLORS.Other) : '#455A64';
+      const cardName = card ? (card.nickname || card.bank + ' Card') : 'Unknown Card';
+
+      html += `
+          <div class="history-entry">
+            <div class="history-stripe" style="background:${bankColor}"></div>
+            <div class="history-info">
+              <div class="history-card-name">${cardName}</div>
+              <div class="history-date">Due: ${formatDate(bill.dueDate)}</div>
+            </div>
+            <div class="history-right">
+              <div class="history-amount">${formatCurrency(bill.paidAmount || bill.amount)}</div>
+              <div class="history-status ${bill.status === 'paid' ? 'paid' : 'missed'}">
+                ${bill.status === 'paid' ? '✓ Paid' + (bill.paidAt ? ' ' + formatDate(bill.paidAt) : '') : '✗ Missed'}
+              </div>
+            </div>
+          </div>`;
+    });
+
+    html += '</div></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleHistoryMonth(el) {
+  el.classList.toggle('expanded');
+  const entries = el.nextElementSibling;
+  entries.classList.toggle('open');
+}
+
+// ====================== SETTINGS RENDERING ======================
+function renderSettings() {
+  const container = document.getElementById('settings-content');
+
+  const remindOptions = [1, 2, 3, 5, 7];
+  let segHtml = '';
+  remindOptions.forEach(d => {
+    segHtml += `<button class="seg-option ${settings.remindDays === d ? 'active' : ''}" onclick="setRemindDays(${d})">${d}d</button>`;
+  });
+
+  let soundHtml = '';
+  SOUND_TYPES.forEach(s => {
+    soundHtml += `
+      <div class="sound-card ${settings.sound === s.id ? 'selected' : ''}" onclick="selectSound('${s.id}')">
+        <span class="sound-card-name">${s.name}</span>
+        <button class="sound-play-btn" onclick="event.stopPropagation();playSound('${s.id}')">
+          <svg viewBox="0 0 24 24" fill="#FFB800"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+      </div>`;
+  });
+
+  container.innerHTML = `
+    <div class="settings-section">
+      <div class="settings-section-title">Notifications</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Enable Reminders</div>
+            <div class="settings-row-sub">Get notified before bill due dates</div>
+          </div>
+          <div class="toggle-switch ${settings.notifications ? 'active' : ''}" onclick="toggleNotifications()"></div>
+        </div>
+        <div class="settings-row">
+          <div style="width:100%">
+            <div class="settings-row-label" style="margin-bottom:8px">Remind Before</div>
+            <div class="segmented">${segHtml}</div>
+          </div>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start">
+          <div class="settings-row-label" style="margin-bottom:4px">Notification Sound</div>
+          <div class="sound-grid" style="width:100%">${soundHtml}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Gmail Integration</div>
+      <div class="settings-card">
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="settings-row-label">Google OAuth Client ID</div>
+          <div class="gmail-input-wrapper" style="width:100%">
+            <input type="password" id="settings-gmail-id" class="form-input" placeholder="Enter Client ID"
+              value="${settings.gmailClientId || ''}" onchange="saveGmailClientId(this.value)">
+            <button class="gmail-toggle-vis" onclick="toggleGmailIdVis()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="gmail-status">
+            <div class="dot ${settings.gmailConnected ? 'connected' : 'disconnected'}"></div>
+            <span style="color:#7B8CA8;font-size:12px">${settings.gmailConnected ? 'Connected' : 'Not connected'}</span>
+          </div>
+          ${settings.lastSynced ? `<span style="color:#4A5670;font-size:11px">Last synced: ${formatDate(settings.lastSynced)}</span>` : ''}
+          <button class="btn-sync" ${!settings.gmailClientId ? 'disabled' : ''} onclick="syncGmail()">Sync Now</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Data</div>
+      <div class="settings-card" style="padding:12px">
+        <button class="btn-data btn-export" onclick="exportData()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export All Data
+        </button>
+        <button class="btn-data btn-import" onclick="document.getElementById('import-file-input').click()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import Data
+        </button>
+        <button class="btn-data btn-clear" onclick="clearAllData()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          Clear All Data
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="about-info">
+        <div class="version">CardGuard v1.0</div>
+        <div>Never Miss a Bill.</div>
+      </div>
+    </div>`;
+}
+
+// ====================== SETTINGS ACTIONS ======================
+function toggleNotifications() {
+  settings.notifications = !settings.notifications;
+  saveSettings();
+  if (settings.notifications) {
+    requestNotificationPermission();
+  }
+  renderSettings();
+}
+
+function setRemindDays(days) {
+  settings.remindDays = days;
+  saveSettings();
+  renderSettings();
+}
+
+function selectSound(soundId) {
+  settings.sound = soundId;
+  saveSettings();
+  playSound(soundId);
+  renderSettings();
+}
+
+function saveGmailClientId(value) {
+  settings.gmailClientId = value.trim();
+  saveSettings();
+}
+
+function toggleGmailIdVis() {
+  const input = document.getElementById('settings-gmail-id');
+  if (input) input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// ====================== SOUND SYSTEM ======================
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.value = 0.3;
+
+    switch (type) {
+      case 'chime':
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        osc.frequency.linearRampToValueAtTime(1320, ctx.currentTime + 0.3);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+        break;
+      case 'cash':
+        osc.type = 'square';
+        osc.frequency.value = 1200;
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        for (let i = 0; i < 4; i++) {
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.08);
+          gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.08 + 0.04);
+        }
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+        break;
+      case 'swipe':
+        osc.type = 'sine';
+        osc.frequency.value = 400;
+        osc.frequency.exponentialRampToValueAtTime(2000, ctx.currentTime + 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+        break;
+      case 'bell':
+        osc.type = 'triangle';
+        osc.frequency.value = 660;
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
+        osc.start();
+        osc.stop(ctx.currentTime + 1.0);
+        break;
+      case 'ping':
+        osc.type = 'sine';
+        osc.frequency.value = 1400;
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+        setTimeout(() => {
+          try {
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.type = 'sine';
+            osc2.frequency.value = 1400;
+            gain2.gain.value = 0.3;
+            gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+            osc2.start();
+            osc2.stop(ctx.currentTime + 0.25);
+          } catch (e) {}
+        }, 150);
+        break;
+      case 'buzz':
+        osc.type = 'sawtooth';
+        osc.frequency.value = 200;
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+        break;
+    }
+  } catch (e) {
+    console.warn('Audio playback failed:', e);
+  }
+}
+
+// ====================== MODAL MANAGEMENT ======================
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// ====================== CARD CRUD ======================
+function saveCard() {
+  const bank = document.getElementById('input-bank').value;
+  const nickname = document.getElementById('input-nickname').value.trim();
+  const last4 = document.getElementById('input-last4').value.trim();
+  const dueDay = parseInt(document.getElementById('input-dueday').value);
+  const amount = parseFloat(document.getElementById('input-amount').value) || 0;
+
+  if (!bank) { showToast('Please select a bank'); return; }
+  if (!last4 || last4.length !== 4) { showToast('Enter valid last 4 digits'); return; }
+  if (!dueDay || dueDay < 1 || dueDay > 31) { showToast('Enter a valid due date (1-31)'); return; }
+
+  const card = {
+    id: genId(),
+    bank: bank,
+    nickname: nickname || bank + ' Card',
+    last4: last4,
+    dueDay: dueDay,
+    typicalAmount: amount,
+    addedAt: new Date().toISOString()
+  };
+
+  cards.push(card);
+  saveCards();
+
+  // Create initial bill entry for this cycle
+  ensureBillForCycle(card);
+
+  // Reset form
+  document.getElementById('input-bank').value = '';
+  document.getElementById('input-nickname').value = '';
+  document.getElementById('input-last4').value = '';
+  document.getElementById('input-dueday').value = '';
+  document.getElementById('input-amount').value = '';
+
+  closeModal('modal-add-card');
+  showToast('Card added successfully!');
+  renderCards();
+}
+
+function deleteCard(cardId) {
+  showConfirm('Delete Card', 'Are you sure you want to delete this card? This will also remove all related bills.', (confirmed) => {
+    if (confirmed) {
+      cards = cards.filter(c => c.id !== cardId);
+      bills = bills.filter(b => b.cardId !== cardId);
+      saveCards();
+      saveBills();
+      showToast('Card deleted');
+      renderCards();
+    }
+  });
+}
+
+function ensureBillForCycle(card) {
+  const key = getBillingCycleKey(card.id, card.dueDay);
+  const existing = bills.find(b => b.cycleKey === key);
+  if (!existing) {
+    bills.push({
+      id: genId(),
+      cardId: card.id,
+      cycleKey: key,
+      dueDate: getNextDueDate(card.dueDay).toISOString(),
+      amount: card.typicalAmount || 0,
+      status: 'pending',
+      paidAt: null,
+      paidAmount: null,
+      reference: null
+    });
+    saveBills();
+  }
+}
+
+// Ensure bills exist for all cards on app load
+function ensureAllBills() {
+  cards.forEach(card => ensureBillForCycle(card));
+}
+
+// ====================== PAYMENT FLOW ======================
+function openPaymentModal(cardId) {
+  currentPaymentCardId = cardId;
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+
+  const bill = getCurrentBill(card.id, card.dueDay);
+  const amount = (bill && bill.amount) || card.typicalAmount || 0;
+  const bankColor = BANK_COLORS[card.bank] || BANK_COLORS.Other;
+
+  document.getElementById('payment-card-stripe').style.background = bankColor;
+  document.getElementById('payment-card-name').textContent = card.nickname || card.bank + ' Card';
+  document.getElementById('payment-amount').textContent = formatCurrency(amount);
+  document.getElementById('input-paid-amount').value = amount || '';
+  document.getElementById('input-reference').value = '';
+
+  openModal('modal-payment');
+}
+
+function confirmPayment() {
+  const card = cards.find(c => c.id === currentPaymentCardId);
+  if (!card) return;
+
+  const paidAmount = parseFloat(document.getElementById('input-paid-amount').value) || 0;
+  const reference = document.getElementById('input-reference').value.trim();
+
+  const key = getBillingCycleKey(card.id, card.dueDay);
+  let bill = bills.find(b => b.cycleKey === key);
+
+  if (bill) {
+    bill.status = 'paid';
+    bill.paidAt = new Date().toISOString();
+    bill.paidAmount = paidAmount;
+    bill.reference = reference;
+  } else {
+    bills.push({
+      id: genId(),
+      cardId: card.id,
+      cycleKey: key,
+      dueDate: getNextDueDate(card.dueDay).toISOString(),
+      amount: card.typicalAmount || paidAmount,
+      status: 'paid',
+      paidAt: new Date().toISOString(),
+      paidAmount: paidAmount,
+      reference: reference
+    });
+  }
+
+  saveBills();
+  closeModal('modal-payment');
+  showCelebration();
+
+  setTimeout(() => {
+    renderDashboard();
+    showToast('Payment recorded!');
+  }, 1200);
+}
+
+function snoozeBill(cardId) {
+  showToast('Reminder snoozed for 1 day');
+}
+
+// ====================== CELEBRATION ANIMATION ======================
+function showCelebration() {
+  const overlay = document.getElementById('celebration-overlay');
+  overlay.classList.add('active');
+
+  // Create confetti
+  const colors = ['#FFB800', '#00C853', '#00BCD4', '#FF9100', '#FF1744', '#7C4DFF'];
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.left = '50%';
+    piece.style.top = '50%';
+    const angle = (Math.PI * 2 * i) / 30;
+    const distance = 60 + Math.random() * 120;
+    const tx = Math.cos(angle) * distance;
+    const ty = Math.sin(angle) * distance;
+    piece.style.animation = 'none';
+    piece.style.width = (4 + Math.random() * 6) + 'px';
+    piece.style.height = piece.style.width;
+    piece.animate([
+      { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+    ], { duration: 600 + Math.random() * 400, easing: 'ease-out', fill: 'forwards' });
+    overlay.appendChild(piece);
+  }
+
+  playSound(settings.sound);
+
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    overlay.querySelectorAll('.confetti-piece').forEach(p => p.remove());
+  }, 1500);
+}
+
+// ====================== NOTIFICATIONS ======================
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission !== 'granted') {
+    Notification.requestPermission();
+  }
+}
+
+function checkAndNotify() {
+  if (!settings.notifications) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  cards.forEach(card => {
+    const days = getDaysUntilDue(card.dueDay);
+    const isPaid = isBillPaidThisCycle(card.id, card.dueDay);
+
+    if (!isPaid && days <= settings.remindDays && days >= 0) {
+      const amount = card.typicalAmount ? ' of ' + formatCurrency(card.typicalAmount) : '';
+      const title = 'CardGuard Reminder';
+      const body = `💳 ${card.nickname || card.bank + ' Card'}${amount} due in ${days} day${days !== 1 ? 's' : ''}!`;
+
+      // Check if we already notified today for this card
+      const notifKey = 'cardguard_notif_' + card.id + '_' + new Date().toDateString();
+      if (!localStorage.getItem(notifKey)) {
+        try {
+          const notification = new Notification(title, {
+            body: body,
+            icon: 'icon-192.svg',
+            badge: 'icon-192.svg',
+            tag: 'cardguard-' + card.id,
+            data: { cardId: card.id },
+            actions: [
+              { action: 'markPaid', title: 'Mark as Paid' },
+              { action: 'snooze', title: 'Snooze' }
+            ]
+          });
+          notification.onclick = function () {
+            window.focus();
+            openPaymentModal(card.id);
+          };
+          localStorage.setItem(notifKey, '1');
+          playSound(settings.sound);
+        } catch (e) {
+          console.warn('Notification failed:', e);
+        }
+      }
+    }
+  });
+}
+
+// ====================== GMAIL INTEGRATION ======================
+function handleGmailDetect() {
+  if (!settings.gmailClientId) {
+    openModal('modal-gmail-info');
+    return;
+  }
+
+  if (typeof google === 'undefined' || !google.accounts) {
+    showToast('Google Identity Services not loaded. Please check your connection.');
+    return;
+  }
+
+  try {
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: settings.gmailClientId,
+      scope: 'https://www.googleapis.com/auth/gmail.readonly',
+      callback: handleGmailAuth
+    });
+    tokenClient.requestAccessToken();
+  } catch (e) {
+    showToast('Failed to initialize Gmail auth: ' + e.message);
+  }
+}
+
+function handleGmailAuth(response) {
+  if (response.error) {
+    showToast('Gmail auth failed: ' + response.error);
+    return;
+  }
+
+  gmailAccessToken = response.access_token;
+  settings.gmailConnected = true;
+  saveSettings();
+
+  searchGmailForBills();
+}
+
+function searchGmailForBills() {
+  if (!gmailAccessToken) { showToast('Not authenticated with Gmail'); return; }
+
+  const query = encodeURIComponent(
+    'subject:(credit card statement OR bill due OR payment due OR amount due) from:(alerts@hdfcbank.net OR iclogin@icicibank.com OR sbicard.com OR axisbank.com OR kotak.com OR indusind.com OR americanexpress.co.in OR citibank.com OR rblbank.com)'
+  );
+
+  showToast('Searching Gmail for bills...');
+
+  fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=20`, {
+    headers: { 'Authorization': 'Bearer ' + gmailAccessToken }
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.messages || data.messages.length === 0) {
+        showToast('No credit card emails found');
+        return;
+      }
+
+      const messagePromises = data.messages.slice(0, 10).map(msg =>
+        fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`, {
+          headers: { 'Authorization': 'Bearer ' + gmailAccessToken }
+        }).then(res => res.json())
+      );
+
+      return Promise.all(messagePromises);
+    })
+    .then(messages => {
+      if (!messages) return;
+
+      detectedGmailCards = [];
+      const seen = new Set();
+
+      messages.forEach(msg => {
+        const headers = msg.payload.headers;
+        const from = (headers.find(h => h.name === 'From') || {}).value || '';
+        const subject = (headers.find(h => h.name === 'Subject') || {}).value || '';
+
+        // Get body text
+        let bodyText = '';
+        if (msg.payload.body && msg.payload.body.data) {
+          bodyText = atob(msg.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+        } else if (msg.payload.parts) {
+          msg.payload.parts.forEach(part => {
+            if (part.mimeType === 'text/plain' && part.body && part.body.data) {
+              bodyText += atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            }
+          });
+        }
+
+        const fullText = subject + ' ' + bodyText;
+
+        // Detect bank
+        let bank = 'Other';
+        if (from.includes('hdfc') || subject.toLowerCase().includes('hdfc')) bank = 'HDFC';
+        else if (from.includes('icici') || subject.toLowerCase().includes('icici')) bank = 'ICICI';
+        else if (from.includes('sbi') || subject.toLowerCase().includes('sbi')) bank = 'SBI';
+        else if (from.includes('axis') || subject.toLowerCase().includes('axis')) bank = 'Axis';
+        else if (from.includes('kotak') || subject.toLowerCase().includes('kotak')) bank = 'Kotak';
+        else if (from.includes('indusind') || subject.toLowerCase().includes('indusind')) bank = 'IndusInd';
+        else if (from.includes('americanexpress') || from.includes('amex')) bank = 'AMEX';
+        else if (from.includes('citi') || subject.toLowerCase().includes('citi')) bank = 'Citi';
+        else if (from.includes('rbl') || subject.toLowerCase().includes('rbl')) bank = 'RBL';
+
+        // Extract last 4 digits
+        const last4Match = fullText.match(/(?:card|ending|xx|XX)\s*(?:in\s*)?(\d{4})/);
+        const last4 = last4Match ? last4Match[1] : '0000';
+
+        // Extract amount
+        const amountMatch = fullText.match(/(?:Rs\.?|₹|INR)\s*([\d,]+(?:\.\d{2})?)/);
+        const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : 0;
+
+        // Extract due date
+        const dueDateMatch = fullText.match(/(?:due\s*(?:date|on)?)\s*:?\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/i);
+        let dueDay = 0;
+        if (dueDateMatch) {
+          dueDay = parseInt(dueDateMatch[1]);
+        }
+
+        const key = bank + '_' + last4;
+        if (!seen.has(key)) {
+          seen.add(key);
+          detectedGmailCards.push({
+            bank, last4, amount, dueDay,
+            nickname: bank + ' Card',
+            selected: true
+          });
+        }
+      });
+
+      settings.lastSynced = new Date().toISOString();
+      saveSettings();
+
+      if (detectedGmailCards.length > 0) {
+        showDetectedCards();
+      } else {
+        showToast('Could not parse card details from emails');
+      }
+    })
+    .catch(err => {
+      showToast('Gmail search failed: ' + err.message);
+      console.error(err);
+    });
+}
+
+function showDetectedCards() {
+  const container = document.getElementById('gmail-detected-list');
+  let html = '';
+  detectedGmailCards.forEach((card, idx) => {
+    html += `
+      <div class="gmail-detected-item">
+        <div class="gmail-detected-check ${card.selected ? 'checked' : ''}" onclick="toggleDetectedCard(${idx})">
+          ${card.selected ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0A0E1A" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+        </div>
+        <div class="gmail-detected-info">
+          <div class="gmail-detected-bank">${card.bank} •••• ${card.last4}</div>
+          <div class="gmail-detected-details">${card.amount ? formatCurrency(card.amount) : 'Amount unknown'} ${card.dueDay ? '| Due: ' + card.dueDay + 'th' : ''}</div>
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html;
+  closeModal('modal-add-card');
+  openModal('modal-gmail-detected');
+}
+
+function toggleDetectedCard(idx) {
+  detectedGmailCards[idx].selected = !detectedGmailCards[idx].selected;
+  showDetectedCards();
+}
+
+function importDetectedCards() {
+  let imported = 0;
+  detectedGmailCards.forEach(dc => {
+    if (!dc.selected) return;
+    // Check for duplicate
+    const exists = cards.find(c => c.bank === dc.bank && c.last4 === dc.last4);
+    if (exists) return;
+
+    const card = {
+      id: genId(),
+      bank: dc.bank,
+      nickname: dc.nickname,
+      last4: dc.last4,
+      dueDay: dc.dueDay || 15,
+      typicalAmount: dc.amount || 0,
+      addedAt: new Date().toISOString()
+    };
+    cards.push(card);
+    ensureBillForCycle(card);
+    imported++;
+  });
+
+  saveCards();
+  saveBills();
+  closeModal('modal-gmail-detected');
+  showToast(`Imported ${imported} card${imported !== 1 ? 's' : ''} from Gmail!`);
+  renderCards();
+}
+
+function syncGmail() {
+  if (!settings.gmailClientId) {
+    showToast('Please add your Gmail Client ID first');
+    return;
+  }
+  handleGmailDetect();
+}
+
+// ====================== DATA MANAGEMENT ======================
+function exportData() {
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    cards: cards,
+    bills: bills,
+    settings: settings
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cardguard-backup-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Data exported successfully!');
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.cards && data.bills) {
+        showConfirm('Import Data', 'This will replace all existing data. Continue?', (confirmed) => {
+          if (confirmed) {
+            cards = data.cards || [];
+            bills = data.bills || [];
+            if (data.settings) {
+              settings = { ...settings, ...data.settings };
+            }
+            saveCards();
+            saveBills();
+            saveSettings();
+            showToast('Data imported successfully!');
+            renderDashboard();
+          }
+        });
+      } else {
+        showToast('Invalid backup file');
+      }
+    } catch (err) {
+      showToast('Failed to parse backup file');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function clearAllData() {
+  showConfirm('Clear All Data', 'This will permanently delete all cards, bills, and history. This action cannot be undone.', (confirmed) => {
+    if (confirmed) {
+      cards = [];
+      bills = [];
+      saveCards();
+      saveBills();
+      showToast('All data cleared');
+      renderDashboard();
+    }
+  });
+}
+
+// ====================== UI UTILITIES ======================
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 2500);
+}
+
+function showConfirm(title, message, callback) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = message;
+  confirmCallback = callback;
+  document.getElementById('confirm-dialog').classList.add('active');
+}
+
+function closeConfirmDialog(result) {
+  document.getElementById('confirm-dialog').classList.remove('active');
+  if (confirmCallback) {
+    confirmCallback(result);
+    confirmCallback = null;
+  }
+}
+
+// ====================== URL PARAMS (from notification clicks) ======================
+function handleUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const action = params.get('action');
+  const cardId = params.get('cardId');
+
+  if (action === 'markPaid' && cardId) {
+    setTimeout(() => openPaymentModal(cardId), 500);
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+// ====================== INITIALIZATION ======================
+function init() {
+  ensureAllBills();
+  renderDashboard();
+
+  // Request notification permission if enabled
+  if (settings.notifications) {
+    requestNotificationPermission();
+  }
+
+  // Check for pending notifications
+  setTimeout(checkAndNotify, 3000);
+
+  // Handle URL params from notification clicks
+  handleUrlParams();
+
+  // Periodic check (every 6 hours)
+  setInterval(checkAndNotify, 6 * 60 * 60 * 1000);
+
+  // Also check and ensure bills every time app opens
+  setInterval(() => {
+    ensureAllBills();
+  }, 60 * 60 * 1000);
+}
+
+// Start the app
+init();
+</script>
+</body>
+</html>

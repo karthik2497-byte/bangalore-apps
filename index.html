@@ -75,7 +75,6 @@
 
         @media (min-width: 640px) {
             .apps-grid { grid-template-columns: 1fr 1fr; }
-            .app-card:last-child { grid-column: 1 / -1; max-width: 380px; margin: 0 auto; width: 100%; }
         }
 
         .app-card {
@@ -112,6 +111,8 @@
         .app-card[data-app="pg"]::before { background: linear-gradient(90deg, #FF6B35, #7CB342); }
         .app-card[data-app="nest"]::before { background: linear-gradient(90deg, #0D9488, #F59E0B); }
         .app-card[data-app="lingo"]::before { background: linear-gradient(90deg, #7C3AED, #F59E0B); }
+        .app-card[data-app="stock"]::before { background: linear-gradient(90deg, #58A6FF, #3FB950); }
+        .app-card[data-app="card"]::before { background: linear-gradient(90deg, #FFB800, #FF6B35); }
 
         .app-number {
             display: inline-flex;
@@ -130,6 +131,8 @@
         .app-card[data-app="pg"] .app-number { background: rgba(255, 107, 53, 0.2); color: #FF6B35; }
         .app-card[data-app="nest"] .app-number { background: rgba(13, 148, 136, 0.2); color: #2DD4BF; }
         .app-card[data-app="lingo"] .app-number { background: rgba(124, 58, 237, 0.2); color: #A78BFA; }
+        .app-card[data-app="stock"] .app-number { background: rgba(88, 166, 255, 0.2); color: #58A6FF; }
+        .app-card[data-app="card"] .app-number { background: rgba(255, 184, 0, 0.2); color: #FFB800; }
 
         .app-card h2 {
             font-size: 20px;
@@ -204,7 +207,7 @@
 </head>
 <body>
     <div class="hero">
-        <div class="hero-badge">5 Apps for Namma Bengaluru</div>
+        <div class="hero-badge">7 Apps for Namma Bengaluru</div>
         <h1>Bangalore Apps</h1>
         <p>Local solutions for everyday problems. Built as mobile-first PWAs. No servers, no sign-ups, works offline.</p>
     </div>
@@ -279,6 +282,36 @@
                 <span class="app-tag">Kannada</span>
                 <span class="app-tag">Flashcards</span>
                 <span class="app-tag">Quiz</span>
+            </div>
+            <div class="open-label">
+                Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <a href="6_stock_ping/index.html" class="app-card" data-app="stock">
+            <div class="app-number">6</div>
+            <h2>StockPing</h2>
+            <div class="tagline">Track out-of-stock products. Paste any product URL, get notified when it's back in stock via CORS-proxy monitoring.</div>
+            <div class="app-tags">
+                <span class="app-tag">Shopping</span>
+                <span class="app-tag">Stock Alerts</span>
+                <span class="app-tag">E-Commerce</span>
+                <span class="app-tag">Tracker</span>
+            </div>
+            <div class="open-label">
+                Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <a href="7_card_guard/index.html" class="app-card" data-app="card">
+            <div class="app-number">7</div>
+            <h2>CardGuard</h2>
+            <div class="tagline">Credit card bill reminder. Auto-detect bills from Gmail, get notified 3 days before due dates, confirm payments with custom alert sounds.</div>
+            <div class="app-tags">
+                <span class="app-tag">Finance</span>
+                <span class="app-tag">Bills</span>
+                <span class="app-tag">Gmail Sync</span>
+                <span class="app-tag">Reminders</span>
             </div>
             <div class="open-label">
                 Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
