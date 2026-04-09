@@ -81,8 +81,9 @@ jobs:
           MANIFEST_URL="https://karthik2497-byte.github.io/bangalore-apps/${{ matrix.dir }}/manifest.json"
           BUILD_DIR="build_${{ matrix.dir }}"
 
-          # Use @bubblewrap/core directly to avoid interactive CLI prompts
-          node scripts/generate-twa.mjs \
+          # Use @bubblewrap/core directly to avoid interactive CLI prompts.
+          # NODE_PATH lets Node find @bubblewrap/core inside the global @bubblewrap/cli.
+          NODE_PATH="$(npm root -g)" node scripts/generate-twa.mjs \
             "$MANIFEST_URL" \
             "$BUILD_DIR" \
             "$GITHUB_WORKSPACE/android.keystore"
