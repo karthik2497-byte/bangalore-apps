@@ -99,7 +99,7 @@ jobs:
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: bangaloreapps123
           BUBBLEWRAP_KEY_PASSWORD: bangaloreapps123
-        run: bubblewrap build --skipPwaValidation
+        run: echo "N" | bubblewrap build --skipPwaValidation
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4

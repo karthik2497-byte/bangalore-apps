@@ -6,7 +6,8 @@
  */
 import { TwaManifest, TwaGenerator, ConsoleLog, BufferedLog } from '@bubblewrap/core';
 import { join } from 'path';
-import { mkdirSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { createHash } from 'crypto';
 
 const manifestUrl = process.argv[2];
 const targetDir = process.argv[3] || '.';
@@ -47,6 +48,12 @@ async function main() {
   const generator = new TwaGenerator();
   await generator.createTwaProject(targetDir, twaManifest, log);
   log.flush();
+
+  // Generate manifest-checksum.txt (prevents bubblewrap build from asking to regenerate)
+  const manifestContents = readFileSync(manifestPath);
+  const checksum = createHash('sha1').update(manifestContents).digest('hex');
+  writeFileSync(join(targetDir, 'manifest-checksum.txt'), checksum);
+  console.log(`Wrote manifest-checksum.txt: ${checksum}`);
 
   console.log('TWA Android project generated successfully');
 }
