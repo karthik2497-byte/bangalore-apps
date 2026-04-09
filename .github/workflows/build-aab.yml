@@ -1,0 +1,133 @@
+name: Build Android AABs
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'Which app to build (or "all")'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - 1_power_pulse
+          - 2_meter_smart
+          - 3_pg_buddy
+          - 4_nest_hub
+          - 5_lingo_local
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [ "${{ github.event.inputs.app }}" = "all" ]; then
+            echo 'matrix={"include":[{"name":"PowerPulse","dir":"1_power_pulse"},{"name":"MeterSmart","dir":"2_meter_smart"},{"name":"PGBuddy","dir":"3_pg_buddy"},{"name":"NestHub","dir":"4_nest_hub"},{"name":"LingoLocal","dir":"5_lingo_local"}]}' >> "$GITHUB_OUTPUT"
+          else
+            DIR="${{ github.event.inputs.app }}"
+            NAME=$(echo "$DIR" | sed 's/^[0-9]*_//' | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1' | tr -d ' ')
+            echo "matrix={\"include\":[{\"name\":\"$NAME\",\"dir\":\"$DIR\"}]}" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Bubblewrap CLI
+        run: npm i -g @bubblewrap/cli
+
+      - name: Configure Bubblewrap SDK paths
+        run: |
+          bubblewrap updateConfig \
+            --jdkPath="$JAVA_HOME" \
+            --androidSdkPath="$ANDROID_HOME"
+
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+
+      - name: Generate signing keystore
+        run: |
+          keytool -genkey -v \
+            -keystore "$GITHUB_WORKSPACE/android.keystore" \
+            -alias android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "bangaloreapps123" \
+            -keypass "bangaloreapps123" \
+            -dname "CN=Karthik, O=BangaloreApps, L=Bangalore, ST=Karnataka, C=IN"
+
+      - name: Init TWA project from live manifest
+        run: |
+          mkdir -p "build_${{ matrix.dir }}"
+          cd "build_${{ matrix.dir }}"
+
+          # Bubblewrap init is interactive -- pipe Enter keys to accept all
+          # defaults auto-filled from the web manifest. Then fix signing key.
+          printf '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n' | \
+            bubblewrap init \
+              --manifest "https://karthik2497-byte.github.io/bangalore-apps/${{ matrix.dir }}/manifest.json" \
+              2>&1 || true
+
+          # Patch signing key path in generated twa-manifest.json
+          if [ -f twa-manifest.json ]; then
+            # Update keystore path and alias
+            python3 - << 'PYEOF'
+          import json, os
+          with open("twa-manifest.json", "r") as f:
+              m = json.load(f)
+          m["signingKey"] = {
+              "path": os.environ["GITHUB_WORKSPACE"] + "/android.keystore",
+              "alias": "android"
+          }
+          with open("twa-manifest.json", "w") as f:
+              json.dump(m, f, indent=2)
+          print("Patched twa-manifest.json signing key")
+          PYEOF
+          else
+            echo "ERROR: twa-manifest.json was not created by init"
+            exit 1
+          fi
+
+      - name: Build AAB and APK
+        working-directory: build_${{ matrix.dir }}
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: bangaloreapps123
+          BUBBLEWRAP_KEY_PASSWORD: bangaloreapps123
+        run: |
+          bubblewrap build --skipPwaValidation 2>&1
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.name }}-aab
+          path: build_${{ matrix.dir }}/app-release-bundle.aab
+          if-no-files-found: warn
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.name }}-apk
+          path: build_${{ matrix.dir }}/app-release-signed.apk
+          if-no-files-found: warn
