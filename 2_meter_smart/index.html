@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FBBF24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MeterSmart">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>MeterSmart - Bangalore Auto Fare Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CSS CUSTOM PROPERTIES
+   ============================================================ */
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-input: #F1F5F9;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --border-color: #E2E8F0;
+  --green: #10B981;
+  --green-light: #D1FAE5;
+  --green-dark: #059669;
+  --red: #EF4444;
+  --red-light: #FEE2E2;
+  --red-dark: #DC2626;
+  --yellow: #FBBF24;
+  --yellow-light: #FEF3C7;
+  --yellow-dark: #D97706;
+  --orange: #F97316;
+  --blue: #3B82F6;
+  --blue-light: #DBEAFE;
+  --purple: #8B5CF6;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.06);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --nav-height: 72px;
+  --header-height: 56px;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-card: #1E293B;
+  --bg-input: #334155;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --border-color: #334155;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.4);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+input, button, select, textarea { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; border: none; background: none; }
+a { text-decoration: none; color: inherit; }
+img { max-width: 100%; display: block; }
+
+/* ============================================================
+   SPLASH SCREEN
+   ============================================================ */
+#splash {
+  position: fixed; inset: 0; z-index: 10000;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#splash.hide {
+  opacity: 0; transform: scale(1.1); pointer-events: none;
+}
+#splash .splash-auto {
+  width: 120px; height: 120px;
+  animation: splashBounce 1.5s ease infinite;
+}
+@keyframes splashBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-15px) rotate(-2deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-8px) rotate(2deg); }
+}
+#splash .splash-title {
+  font-size: 2rem; font-weight: 800; color: #0F172A;
+  margin-top: 20px; letter-spacing: -0.5px;
+}
+#splash .splash-sub {
+  font-size: 0.85rem; color: #78350F; font-weight: 500;
+  margin-top: 4px; opacity: 0.8;
+}
+#splash .splash-loader {
+  width: 60px; height: 4px; background: rgba(0,0,0,0.15);
+  border-radius: 4px; margin-top: 30px; overflow: hidden;
+}
+#splash .splash-loader::after {
+  content: ''; display: block; width: 60%; height: 100%;
+  background: #0F172A; border-radius: 4px;
+  animation: splashLoad 1.5s ease forwards;
+}
+@keyframes splashLoad {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(120%); }
+}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#app {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 500px) {
+  body { background: #F1F5F9; }
+  [data-theme="dark"] body { background: #020617; }
+  #app {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-radius: 24px;
+    min-height: calc(100vh - 40px);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header {
+  height: var(--header-height);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--yellow); display: flex; align-items: center; justify-content: center;
+}
+.header-logo svg { width: 20px; height: 20px; }
+.header-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.header-title span { color: var(--yellow-dark); }
+.header-badge {
+  font-size: 0.65rem; background: var(--green-light); color: var(--green-dark);
+  padding: 2px 8px; border-radius: var(--radius-full); font-weight: 600;
+}
+[data-theme="dark"] .header-badge { background: rgba(16,185,129,0.15); }
+.header-right { display: flex; align-items: center; gap: 8px; }
+
+/* ============================================================
+   MAIN CONTENT AREA
+   ============================================================ */
+.main-content {
+  height: calc(100vh - var(--header-height) - var(--nav-height));
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 500px) {
+  .main-content {
+    height: calc(100vh - var(--header-height) - var(--nav-height) - 40px);
+  }
+}
+.tab-content {
+  display: none; padding: 16px;
+  animation: fadeSlideIn 0.3s ease;
+}
+.tab-content.active { display: block; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   BOTTOM NAVIGATION
+   ============================================================ */
+.bottom-nav {
+  height: var(--nav-height);
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 4px; padding-bottom: env(safe-area-inset-bottom, 8px);
+  position: sticky; bottom: 0; z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: 8px 4px;
+  color: var(--text-muted); transition: all 0.2s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item svg { width: 22px; height: 22px; transition: transform 0.2s ease; }
+.nav-item span { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.3px; }
+.nav-item.active { color: var(--yellow-dark); }
+[data-theme="dark"] .nav-item.active { color: var(--yellow); }
+.nav-item.active svg { transform: scale(1.15); }
+.nav-item.active::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 32px; height: 3px; background: var(--yellow); border-radius: 0 0 4px 4px;
+}
+.nav-item:active svg { transform: scale(0.9); }
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.section-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-muted);
+  margin-bottom: 10px; padding-left: 2px;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: var(--radius-full);
+  font-size: 0.7rem; font-weight: 600;
+}
+.badge-green { background: var(--green-light); color: var(--green-dark); }
+.badge-red { background: var(--red-light); color: var(--red-dark); }
+.badge-yellow { background: var(--yellow-light); color: var(--yellow-dark); }
+[data-theme="dark"] .badge-green { background: rgba(16,185,129,0.15); }
+[data-theme="dark"] .badge-red { background: rgba(239,68,68,0.15); }
+[data-theme="dark"] .badge-yellow { background: rgba(251,191,36,0.15); }
+
+/* ============================================================
+   CALCULATOR TAB
+   ============================================================ */
+.meter-display {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  border-radius: var(--radius-xl);
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+.meter-display::before {
+  content: ''; position: absolute; top: -50%; right: -30%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.meter-display::after {
+  content: ''; position: absolute; bottom: -20%; left: -10%;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.meter-label {
+  font-size: 0.7rem; font-weight: 600; color: #94A3B8;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 4px; position: relative; z-index: 1;
+}
+.meter-fare {
+  font-family: var(--font-mono);
+  font-size: 3.2rem; font-weight: 700; color: #FFFFFF;
+  line-height: 1.1; position: relative; z-index: 1;
+  display: flex; align-items: baseline; gap: 4px;
+}
+.meter-fare .rupee { font-size: 1.8rem; color: var(--yellow); }
+.meter-fare .decimal { font-size: 1.8rem; color: #64748B; }
+.meter-status {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 10px; position: relative; z-index: 1;
+}
+.meter-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+.meter-status-text {
+  font-size: 0.7rem; color: #64748B; font-weight: 500;
+}
+.meter-auto-icon {
+  position: absolute; right: 16px; bottom: 16px;
+  opacity: 0.15; z-index: 0;
+}
+.meter-auto-icon svg { width: 80px; height: 80px; }
+
+/* Distance Input */
+.distance-section { margin-bottom: 16px; }
+.distance-input-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.stepper-btn {
+  width: 48px; height: 48px; border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 700;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.stepper-btn:active { transform: scale(0.92); }
+.stepper-minus {
+  background: var(--bg-input); color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+.stepper-plus {
+  background: var(--yellow); color: #0F172A;
+  box-shadow: 0 2px 8px rgba(251,191,36,0.3);
+}
+.distance-display {
+  flex: 1; text-align: center;
+}
+.distance-display input {
+  width: 100%; text-align: center;
+  font-family: var(--font-mono); font-size: 1.8rem; font-weight: 700;
+  color: var(--text-primary); background: transparent;
+  border: none; outline: none;
+}
+.distance-display input:focus {
+  background: var(--bg-input); border-radius: var(--radius-md);
+}
+.distance-display .unit {
+  font-size: 0.75rem; color: var(--text-muted); font-weight: 500;
+}
+
+/* Quick Presets */
+.quick-presets {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.preset-btn {
+  padding: 8px 16px; border-radius: var(--radius-full);
+  background: var(--bg-input); color: var(--text-secondary);
+  font-size: 0.8rem; font-weight: 600;
+  border: 1px solid var(--border-color);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.preset-btn:active { transform: scale(0.95); }
+.preset-btn.active {
+  background: var(--yellow-light); color: var(--yellow-dark);
+  border-color: var(--yellow);
+}
+[data-theme="dark"] .preset-btn.active { background: rgba(251,191,36,0.15); }
+
+/* Toggle Rows */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid var(--border-color);
+}
+.toggle-row:last-child { border-bottom: none; }
+.toggle-info { display: flex; align-items: center; gap: 10px; }
+.toggle-icon {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.toggle-icon svg { width: 18px; height: 18px; }
+.toggle-label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.toggle-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 48px; height: 28px; border-radius: 14px;
+  background: var(--bg-input); border: 2px solid var(--border-color);
+  position: relative; cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: ''; position: absolute;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #FFFFFF; box-shadow: var(--shadow-sm);
+  top: 2px; left: 2px;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.toggle-switch.on {
+  background: var(--green); border-color: var(--green);
+}
+.toggle-switch.on::after {
+  transform: translateX(20px);
+}
+
+/* Luggage Counter */
+.luggage-counter {
+  display: flex; align-items: center; gap: 8px;
+}
+.luggage-counter button {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 700;
+  transition: all 0.15s ease;
+}
+.luggage-counter button:active { transform: scale(0.9); }
+.luggage-counter .lug-minus {
+  background: var(--bg-input); color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+.luggage-counter .lug-plus {
+  background: var(--yellow-light); color: var(--yellow-dark);
+  border: 1px solid var(--yellow);
+}
+.luggage-count {
+  font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700;
+  min-width: 24px; text-align: center;
+}
+
+/* Fare Breakdown */
+.fare-breakdown { margin-bottom: 16px; }
+.breakdown-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; font-size: 0.85rem;
+}
+.breakdown-row .label { color: var(--text-secondary); }
+.breakdown-row .value {
+  font-family: var(--font-mono); font-weight: 600;
+  color: var(--text-primary);
+}
+.breakdown-divider {
+  height: 1px; background: var(--border-color); margin: 4px 0;
+}
+.breakdown-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; font-size: 1rem;
+}
+.breakdown-total .label { font-weight: 700; }
+.breakdown-total .value {
+  font-family: var(--font-mono); font-weight: 800;
+  font-size: 1.3rem; color: var(--green);
+}
+
+/* Fair Fare Badge */
+.fair-fare-badge {
+  background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+  border: 2px solid var(--green);
+  border-radius: var(--radius-xl);
+  padding: 20px; text-align: center;
+  margin-bottom: 16px; position: relative;
+  overflow: hidden;
+}
+[data-theme="dark"] .fair-fare-badge {
+  background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.08) 100%);
+}
+.fair-fare-badge::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2310B981' fill-opacity='0.05'%3E%3Ccircle cx='2' cy='2' r='1'/%3E%3C/g%3E%3C/svg%3E");
+}
+.fair-fare-label {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--green-dark);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  position: relative; z-index: 1;
+}
+.fair-fare-amount {
+  font-family: var(--font-mono); font-size: 2.5rem;
+  font-weight: 800; color: var(--green-dark);
+  position: relative; z-index: 1; margin-top: 4px;
+}
+.fair-fare-note {
+  font-size: 0.7rem; color: var(--green-dark); opacity: 0.7;
+  margin-top: 4px; position: relative; z-index: 1;
+}
+
+/* Waiting Charge Input */
+.waiting-input-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.waiting-input {
+  width: 60px; padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  text-align: center; font-family: var(--font-mono);
+  font-weight: 600; background: var(--bg-input);
+  color: var(--text-primary); outline: none;
+}
+.waiting-input:focus { border-color: var(--yellow); }
+.waiting-unit { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Popular Routes */
+.popular-routes { margin-bottom: 16px; }
+.route-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px; border-radius: var(--radius-md);
+  background: var(--bg-input); margin-bottom: 8px;
+  transition: all 0.15s ease; cursor: pointer;
+  border: 1px solid transparent;
+}
+.route-card:active { transform: scale(0.98); }
+.route-card:hover { border-color: var(--yellow); }
+.route-icon {
+  width: 40px; height: 40px; border-radius: var(--radius-sm);
+  background: var(--yellow-light);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .route-icon { background: rgba(251,191,36,0.15); }
+.route-icon svg { width: 20px; height: 20px; }
+.route-info { flex: 1; min-width: 0; }
+.route-name { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.route-dist { font-size: 0.7rem; color: var(--text-muted); }
+.route-fare {
+  font-family: var(--font-mono); font-size: 0.95rem;
+  font-weight: 700; color: var(--green-dark);
+  white-space: nowrap;
+}
+[data-theme="dark"] .route-fare { color: var(--green); }
+
+/* Share Button */
+.share-btn {
+  width: 100%; padding: 14px;
+  background: var(--bg-input); border: 1px solid var(--border-color);
+  border-radius: var(--radius-md); display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+  font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+.share-btn:active { transform: scale(0.98); background: var(--border-color); }
+.share-btn svg { width: 18px; height: 18px; }
+
+/* ============================================================
+   RIDE LOGGER TAB
+   ============================================================ */
+.log-form .form-group { margin-bottom: 14px; }
+.form-label {
+  font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 6px; display: block;
+}
+.form-input {
+  width: 100%; padding: 12px 14px;
+  background: var(--bg-input); border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md); color: var(--text-primary);
+  font-size: 0.9rem; outline: none;
+  transition: border-color 0.2s ease;
+}
+.form-input:focus { border-color: var(--yellow); }
+.form-input::placeholder { color: var(--text-muted); }
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+
+/* Fare Comparison Visual */
+.fare-comparison {
+  display: flex; align-items: flex-end; gap: 16px;
+  padding: 20px; justify-content: center;
+}
+.fare-bar-group { text-align: center; flex: 1; max-width: 120px; }
+.fare-bar-wrapper {
+  height: 120px; display: flex; align-items: flex-end;
+  justify-content: center; margin-bottom: 8px;
+}
+.fare-bar {
+  width: 60px; border-radius: 8px 8px 4px 4px;
+  transition: height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-height: 20px; position: relative;
+}
+.fare-bar.meter { background: linear-gradient(180deg, #34D399, #10B981); }
+.fare-bar.charged { background: linear-gradient(180deg, #FCA5A5, #EF4444); }
+.fare-bar.charged.fair { background: linear-gradient(180deg, #34D399, #10B981); }
+.fare-bar.charged.slight { background: linear-gradient(180deg, #FDE68A, #F59E0B); }
+.fare-bar-amount {
+  font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700;
+  color: #FFFFFF; position: absolute; top: 8px; left: 0; right: 0;
+  text-align: center;
+}
+.fare-bar-label { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); }
+.overcharge-amount {
+  text-align: center; padding: 10px; border-radius: var(--radius-md);
+  font-weight: 700; font-size: 1rem; margin-top: 4px;
+}
+
+/* Primary Button */
+.btn-primary {
+  width: 100%; padding: 14px; border-radius: var(--radius-md);
+  background: var(--yellow); color: #0F172A;
+  font-size: 0.9rem; font-weight: 700;
+  box-shadow: 0 4px 12px rgba(251,191,36,0.3);
+  transition: all 0.15s ease; margin-top: 8px;
+}
+.btn-primary:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(251,191,36,0.2); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  width: 100%; padding: 14px; border-radius: var(--radius-md);
+  background: var(--bg-input); color: var(--text-primary);
+  font-size: 0.9rem; font-weight: 600;
+  border: 1px solid var(--border-color);
+  transition: all 0.15s ease;
+}
+.btn-secondary:active { transform: scale(0.98); }
+
+/* Ride History */
+.ride-history-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px; border-radius: var(--radius-md);
+  background: var(--bg-input); margin-bottom: 8px;
+  border-left: 3px solid var(--green);
+}
+.ride-history-item.overcharged { border-left-color: var(--red); }
+.ride-history-item.slight { border-left-color: var(--orange); }
+.rh-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.rh-icon.fair { background: var(--green-light); color: var(--green); }
+.rh-icon.over { background: var(--red-light); color: var(--red); }
+.rh-icon.slight-icon { background: var(--yellow-light); color: var(--yellow-dark); }
+[data-theme="dark"] .rh-icon.fair { background: rgba(16,185,129,0.15); }
+[data-theme="dark"] .rh-icon.over { background: rgba(239,68,68,0.15); }
+[data-theme="dark"] .rh-icon.slight-icon { background: rgba(251,191,36,0.15); }
+.rh-info { flex: 1; min-width: 0; }
+.rh-route { font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rh-date { font-size: 0.68rem; color: var(--text-muted); }
+.rh-amount { text-align: right; flex-shrink: 0; }
+.rh-amount .charged { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; }
+.rh-amount .diff { font-size: 0.68rem; font-weight: 600; }
+
+/* Stats Card */
+.stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.stat-card {
+  flex: 1; padding: 14px; border-radius: var(--radius-md);
+  text-align: center; background: var(--bg-input);
+  border: 1px solid var(--border-color);
+}
+.stat-value {
+  font-family: var(--font-mono); font-size: 1.3rem; font-weight: 800;
+  color: var(--text-primary);
+}
+.stat-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+.stat-card.highlight {
+  background: linear-gradient(135deg, var(--green-light), #ECFDF5);
+  border-color: var(--green);
+}
+[data-theme="dark"] .stat-card.highlight {
+  background: rgba(16,185,129,0.1);
+}
+.stat-card.highlight .stat-value { color: var(--green-dark); }
+[data-theme="dark"] .stat-card.highlight .stat-value { color: var(--green); }
+
+/* ============================================================
+   COMPLAINT TAB
+   ============================================================ */
+.complaint-preview {
+  background: var(--bg-input); border-radius: var(--radius-md);
+  padding: 14px; margin-bottom: 12px;
+  font-size: 0.8rem; line-height: 1.6; color: var(--text-secondary);
+  white-space: pre-wrap; max-height: 200px; overflow-y: auto;
+  font-family: var(--font-mono);
+  border: 1px solid var(--border-color);
+}
+.portal-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px; border-radius: var(--radius-md);
+  background: var(--bg-input); margin-bottom: 8px;
+  border: 1px solid var(--border-color);
+  transition: all 0.15s ease;
+}
+.portal-link:active { transform: scale(0.98); }
+.portal-icon {
+  width: 40px; height: 40px; border-radius: var(--radius-sm);
+  background: var(--blue-light); display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+[data-theme="dark"] .portal-icon { background: rgba(59,130,246,0.15); }
+.portal-icon svg { width: 20px; height: 20px; color: var(--blue); }
+.portal-info { flex: 1; }
+.portal-name { font-size: 0.85rem; font-weight: 600; }
+.portal-desc { font-size: 0.7rem; color: var(--text-muted); }
+.portal-arrow { color: var(--text-muted); }
+
+/* ============================================================
+   TIPS TAB
+   ============================================================ */
+.tip-card {
+  border-radius: var(--radius-lg); padding: 18px;
+  margin-bottom: 12px; position: relative;
+  overflow: hidden; border: 1px solid var(--border-color);
+}
+.tip-card::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%;
+}
+.tip-card.green::before { background: var(--green); }
+.tip-card.yellow::before { background: var(--yellow); }
+.tip-card.red::before { background: var(--red); }
+.tip-card.blue::before { background: var(--blue); }
+.tip-card.purple::before { background: var(--purple); }
+.tip-card.orange::before { background: var(--orange); }
+.tip-emoji { font-size: 1.5rem; margin-bottom: 6px; }
+.tip-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+.tip-text { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; }
+
+.rights-card {
+  background: var(--bg-input); border-radius: var(--radius-md);
+  padding: 14px; margin-bottom: 8px;
+  border-left: 3px solid var(--blue);
+}
+.rights-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; }
+.rights-text { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5; }
+
+.emergency-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px; border-radius: var(--radius-md);
+  background: var(--red-light); margin-bottom: 8px;
+  border: 1px solid #FECACA;
+}
+[data-theme="dark"] .emergency-card {
+  background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2);
+}
+.emergency-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--red); display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+.emergency-icon svg { width: 20px; height: 20px; color: #FFF; }
+.emergency-info { flex: 1; }
+.emergency-name { font-size: 0.85rem; font-weight: 700; color: var(--red-dark); }
+[data-theme="dark"] .emergency-name { color: var(--red); }
+.emergency-num { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+
+/* ============================================================
+   PROFILE TAB
+   ============================================================ */
+.profile-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--yellow), var(--orange));
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px; font-size: 1.8rem; color: #FFF; font-weight: 800;
+  box-shadow: 0 4px 12px rgba(251,191,36,0.3);
+}
+.profile-name {
+  text-align: center; font-size: 1.1rem; font-weight: 700;
+}
+.profile-sub {
+  text-align: center; font-size: 0.75rem; color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.profile-section { margin-bottom: 20px; }
+.profile-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 0; border-bottom: 1px solid var(--border-color);
+}
+.profile-item:last-child { border-bottom: none; }
+.profile-item-icon {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-input); flex-shrink: 0;
+}
+.profile-item-icon svg { width: 18px; height: 18px; color: var(--text-secondary); }
+.profile-item-info { flex: 1; }
+.profile-item-label { font-size: 0.85rem; font-weight: 600; }
+.profile-item-value { font-size: 0.72rem; color: var(--text-muted); }
+.profile-item-action { color: var(--text-muted); }
+
+.overcharge-score {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  border: 2px solid var(--yellow);
+  border-radius: var(--radius-xl);
+  padding: 20px; text-align: center;
+  margin-bottom: 16px; position: relative;
+}
+[data-theme="dark"] .overcharge-score {
+  background: rgba(251,191,36,0.1);
+}
+.score-ring {
+  width: 80px; height: 80px; margin: 0 auto 10px;
+  position: relative;
+}
+.score-ring svg { width: 80px; height: 80px; transform: rotate(-90deg); }
+.score-ring .ring-bg { fill: none; stroke: var(--border-color); stroke-width: 6; }
+.score-ring .ring-progress { fill: none; stroke: var(--green); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+.score-value {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; font-family: var(--font-mono);
+  font-size: 1.3rem; font-weight: 800; color: var(--text-primary);
+}
+.score-label { font-size: 0.8rem; font-weight: 700; color: var(--yellow-dark); }
+.score-sub { font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; }
+
+/* ============================================================
+   TOAST NOTIFICATION
+   ============================================================ */
+.toast {
+  position: fixed; bottom: calc(var(--nav-height) + 20px);
+  left: 50%; transform: translateX(-50%) translateY(100px);
+  background: #0F172A; color: #FFF;
+  padding: 12px 24px; border-radius: var(--radius-full);
+  font-size: 0.8rem; font-weight: 600;
+  box-shadow: var(--shadow-xl); z-index: 5000;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none; display: flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+[data-theme="dark"] .toast { background: #F8FAFC; color: #0F172A; }
+
+/* ============================================================
+   CONFETTI
+   ============================================================ */
+.confetti-container {
+  position: fixed; inset: 0; pointer-events: none; z-index: 4000;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute; width: 10px; height: 10px;
+  top: -10px; border-radius: 2px;
+  animation: confettiFall 2s ease-out forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg) scale(0); opacity: 0; }
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+.main-content::-webkit-scrollbar { width: 4px; }
+.main-content::-webkit-scrollbar-track { background: transparent; }
+.main-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+/* ============================================================
+   ODOMETER ANIMATION
+   ============================================================ */
+.odometer-digit {
+  display: inline-block;
+  overflow: hidden;
+  height: 1em;
+  vertical-align: bottom;
+}
+.odometer-digit-inner {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* ============================================================
+   SAVED LOCATIONS INPUT
+   ============================================================ */
+.location-input-group {
+  display: flex; gap: 8px; margin-bottom: 8px;
+}
+.location-input-group .form-input { flex: 1; }
+.location-save-btn {
+  padding: 0 16px; border-radius: var(--radius-md);
+  background: var(--yellow); color: #0F172A;
+  font-weight: 700; font-size: 0.8rem; white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.location-save-btn:active { transform: scale(0.95); }
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--text-muted);
+}
+.empty-state svg { width: 64px; height: 64px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state p { font-size: 0.85rem; }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-scale { animation: scaleIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-auto">
+    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="25" y="35" width="70" height="50" rx="10" fill="#0F172A"/>
+      <rect x="30" y="28" width="55" height="15" rx="6" fill="#0F172A"/>
+      <rect x="35" y="40" width="25" height="20" rx="4" fill="#FEF3C7"/>
+      <rect x="65" y="40" width="25" height="20" rx="4" fill="#FEF3C7"/>
+      <circle cx="38" cy="85" r="10" fill="#334155"/>
+      <circle cx="38" cy="85" r="5" fill="#94A3B8"/>
+      <circle cx="82" cy="85" r="10" fill="#334155"/>
+      <circle cx="82" cy="85" r="5" fill="#94A3B8"/>
+      <rect x="15" y="55" width="12" height="6" rx="3" fill="#0F172A"/>
+      <circle cx="18" cy="58" r="3" fill="#FBBF24"/>
+      <line x1="55" y1="15" x2="55" y2="28" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="55" cy="12" r="5" fill="#0F172A"/>
+      <rect x="92" y="55" width="12" height="20" rx="3" fill="#0F172A"/>
+      <rect x="94" y="57" width="8" height="6" rx="2" fill="#EF4444"/>
+      <rect x="94" y="65" width="8" height="6" rx="2" fill="#FBBF24"/>
+    </svg>
+  </div>
+  <div class="splash-title">Meter<span style="color:#78350F">Smart</span></div>
+  <div class="splash-sub">Know your fare. Ride fair.</div>
+  <div class="splash-loader"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">Meter<span>Smart</span></div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="header-badge">Bangalore</span>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content" id="mainContent">
+
+    <!-- TAB 1: CALCULATOR -->
+    <div class="tab-content active" id="tabCalculator">
+      <!-- Meter Display -->
+      <div class="meter-display">
+        <div class="meter-label">Estimated Fare</div>
+        <div class="meter-fare">
+          <span class="rupee">&rupee;</span>
+          <span id="meterFareDisplay">30</span>
+          <span class="decimal">.00</span>
+        </div>
+        <div class="meter-status">
+          <div class="meter-dot"></div>
+          <span class="meter-status-text" id="meterStatusText">Base fare (first 2 km)</span>
+        </div>
+        <div class="meter-auto-icon">
+          <svg viewBox="0 0 100 80" fill="currentColor" style="color: #FFF">
+            <rect x="15" y="15" width="60" height="40" rx="8"/>
+            <rect x="20" y="8" width="45" height="12" rx="5"/>
+            <rect x="25" y="20" width="20" height="15" rx="3"/>
+            <rect x="50" y="20" width="20" height="15" rx="3"/>
+            <circle cx="28" cy="60" r="8"/>
+            <circle cx="62" cy="60" r="8"/>
+            <rect x="5" y="30" width="10" height="5" rx="2.5"/>
+            <rect x="75" y="28" width="10" height="16" rx="3"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Distance Input -->
+      <div class="distance-section">
+        <div class="section-title">Distance</div>
+        <div class="distance-input-row">
+          <button class="stepper-btn stepper-minus" onclick="adjustDistance(-0.5)" aria-label="Decrease distance">-</button>
+          <div class="distance-display">
+            <input type="number" id="distanceInput" value="2" min="0" max="100" step="0.5" oninput="calculateFare()" aria-label="Distance in km">
+            <div class="unit">kilometers</div>
+          </div>
+          <button class="stepper-btn stepper-plus" onclick="adjustDistance(0.5)" aria-label="Increase distance">+</button>
+        </div>
+        <div class="quick-presets">
+          <button class="preset-btn active" onclick="setDistance(2, this)">2 km</button>
+          <button class="preset-btn" onclick="setDistance(5, this)">5 km</button>
+          <button class="preset-btn" onclick="setDistance(10, this)">10 km</button>
+          <button class="preset-btn" onclick="setDistance(15, this)">15 km</button>
+          <button class="preset-btn" onclick="setDistance(20, this)">20 km</button>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="card">
+        <div class="section-title">Options</div>
+        <!-- Night Mode -->
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-icon" style="background: #312E81;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="2" stroke-linecap="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="toggle-label">Night Surcharge</div>
+              <div class="toggle-sub">50% extra (10 PM - 5 AM)</div>
+            </div>
+          </div>
+          <div class="toggle-switch" id="nightToggle" onclick="toggleNight()" role="switch" aria-checked="false" tabindex="0"></div>
+        </div>
+        <!-- Waiting -->
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-icon" style="background: #FEF3C7;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <div>
+              <div class="toggle-label">Waiting Time</div>
+              <div class="toggle-sub">&rupee;5 per 15 minutes</div>
+            </div>
+          </div>
+          <div class="waiting-input-row">
+            <input type="number" class="waiting-input" id="waitingInput" value="0" min="0" max="120" oninput="calculateFare()" aria-label="Waiting time">
+            <span class="waiting-unit">min</span>
+          </div>
+        </div>
+        <!-- Luggage -->
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-icon" style="background: #DBEAFE;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6" y="7" width="12" height="14" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+                <line x1="6" y1="12" x2="18" y2="12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="toggle-label">Luggage</div>
+              <div class="toggle-sub">&rupee;5 per large piece</div>
+            </div>
+          </div>
+          <div class="luggage-counter">
+            <button class="lug-minus" onclick="adjustLuggage(-1)" aria-label="Remove luggage">-</button>
+            <span class="luggage-count" id="luggageCount">0</span>
+            <button class="lug-plus" onclick="adjustLuggage(1)" aria-label="Add luggage">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fare Breakdown -->
+      <div class="card fare-breakdown">
+        <div class="section-title">Fare Breakdown</div>
+        <div class="breakdown-row">
+          <span class="label">Base fare (first 2 km)</span>
+          <span class="value" id="breakBase">&rupee;30</span>
+        </div>
+        <div class="breakdown-row" id="breakDistRow" style="display:none">
+          <span class="label">Distance fare (<span id="breakDistKm">0</span> km &times; &rupee;15)</span>
+          <span class="value" id="breakDist">&rupee;0</span>
+        </div>
+        <div class="breakdown-row" id="breakWaitRow" style="display:none">
+          <span class="label">Waiting charge</span>
+          <span class="value" id="breakWait">&rupee;0</span>
+        </div>
+        <div class="breakdown-row" id="breakLugRow" style="display:none">
+          <span class="label">Luggage (<span id="breakLugPcs">0</span> pcs)</span>
+          <span class="value" id="breakLug">&rupee;0</span>
+        </div>
+        <div class="breakdown-row" id="breakNightRow" style="display:none">
+          <span class="label">Night surcharge (50%)</span>
+          <span class="value" id="breakNight">&rupee;0</span>
+        </div>
+        <div class="breakdown-divider"></div>
+        <div class="breakdown-total">
+          <span class="label">Total Fair Fare</span>
+          <span class="value" id="breakTotal">&rupee;30</span>
+        </div>
+      </div>
+
+      <!-- Fair Fare Badge -->
+      <div class="fair-fare-badge">
+        <div class="fair-fare-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          You Should Pay
+        </div>
+        <div class="fair-fare-amount" id="fairFareAmount">&rupee;30</div>
+        <div class="fair-fare-note">As per Bangalore transport authority rules</div>
+      </div>
+
+      <!-- Popular Routes -->
+      <div class="popular-routes">
+        <div class="section-title">Popular Routes</div>
+        <div class="route-card" onclick="setRouteDistance(8)">
+          <div class="route-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          </div>
+          <div class="route-info">
+            <div class="route-name">Majestic &rarr; Koramangala</div>
+            <div class="route-dist">~8 km</div>
+          </div>
+          <div class="route-fare">&rupee;120</div>
+        </div>
+        <div class="route-card" onclick="setRouteDistance(16)">
+          <div class="route-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          </div>
+          <div class="route-info">
+            <div class="route-name">Whitefield &rarr; MG Road</div>
+            <div class="route-dist">~16 km</div>
+          </div>
+          <div class="route-fare">&rupee;240</div>
+        </div>
+        <div class="route-card" onclick="setRouteDistance(12)">
+          <div class="route-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          </div>
+          <div class="route-info">
+            <div class="route-name">Electronic City &rarr; Silk Board</div>
+            <div class="route-dist">~12 km</div>
+          </div>
+          <div class="route-fare">&rupee;180</div>
+        </div>
+        <div class="route-card" onclick="setRouteDistance(35)">
+          <div class="route-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          </div>
+          <div class="route-info">
+            <div class="route-name">Indiranagar &rarr; Airport</div>
+            <div class="route-dist">~35 km</div>
+          </div>
+          <div class="route-fare">&rupee;525</div>
+        </div>
+        <div class="route-card" onclick="setRouteDistance(18)">
+          <div class="route-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          </div>
+          <div class="route-info">
+            <div class="route-name">Hebbal &rarr; Banashankari</div>
+            <div class="route-dist">~18 km</div>
+          </div>
+          <div class="route-fare">&rupee;270</div>
+        </div>
+      </div>
+
+      <!-- Share -->
+      <button class="share-btn" onclick="shareFare()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Share Fare Info
+      </button>
+    </div>
+
+    <!-- TAB 2: RIDE LOGGER -->
+    <div class="tab-content" id="tabRideLog">
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card highlight">
+          <div class="stat-value" id="statSaved">&rupee;340</div>
+          <div class="stat-label">Total Saved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statRides">6</div>
+          <div class="stat-label">Rides Logged</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statFair">67%</div>
+          <div class="stat-label">Fair Rides</div>
+        </div>
+      </div>
+
+      <!-- Log Form -->
+      <div class="card">
+        <div class="section-title">Log a Ride</div>
+        <div class="log-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">From</label>
+              <input type="text" class="form-input" id="logFrom" placeholder="e.g., Indiranagar">
+            </div>
+            <div class="form-group">
+              <label class="form-label">To</label>
+              <input type="text" class="form-input" id="logTo" placeholder="e.g., Koramangala">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Distance (km)</label>
+            <input type="number" class="form-input" id="logDistance" placeholder="e.g., 8" step="0.5">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Meter Fare (&rupee;)</label>
+              <input type="number" class="form-input" id="logMeterFare" placeholder="Correct fare">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Charged (&rupee;)</label>
+              <input type="number" class="form-input" id="logChargedFare" placeholder="Actually paid">
+            </div>
+          </div>
+
+          <!-- Fare Comparison -->
+          <div class="fare-comparison" id="fareComparison" style="display:none">
+            <div class="fare-bar-group">
+              <div class="fare-bar-wrapper">
+                <div class="fare-bar meter" id="meterBar" style="height: 60px">
+                  <div class="fare-bar-amount" id="meterBarAmt"></div>
+                </div>
+              </div>
+              <div class="fare-bar-label">Meter Fare</div>
+            </div>
+            <div class="fare-bar-group">
+              <div class="fare-bar-wrapper">
+                <div class="fare-bar charged" id="chargedBar" style="height: 60px">
+                  <div class="fare-bar-amount" id="chargedBarAmt"></div>
+                </div>
+              </div>
+              <div class="fare-bar-label">Charged</div>
+            </div>
+          </div>
+          <div class="overcharge-amount" id="overchargeDisplay" style="display:none"></div>
+
+          <button class="btn-primary" onclick="logRide()" id="logRideBtn">
+            Log This Ride
+          </button>
+        </div>
+      </div>
+
+      <!-- Ride History -->
+      <div class="section-title">Ride History</div>
+      <div id="rideHistoryList">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- TAB 3: COMPLAINT -->
+    <div class="tab-content" id="tabComplaint">
+      <div class="card">
+        <div class="section-title">File a Complaint</div>
+        <div class="log-form">
+          <div class="form-group">
+            <label class="form-label">Auto Number Plate</label>
+            <input type="text" class="form-input" id="compPlate" placeholder="e.g., KA 01 AB 1234" style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Driver Description (optional)</label>
+            <input type="text" class="form-input" id="compDriver" placeholder="Any identifying details">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="compDate">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Time</label>
+              <input type="time" class="form-input" id="compTime">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">From</label>
+              <input type="text" class="form-input" id="compFrom" placeholder="Start location">
+            </div>
+            <div class="form-group">
+              <label class="form-label">To</label>
+              <input type="text" class="form-input" id="compTo" placeholder="End location">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Meter Fare (&rupee;)</label>
+              <input type="number" class="form-input" id="compMeter" placeholder="Correct fare">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Charged (&rupee;)</label>
+              <input type="number" class="form-input" id="compCharged" placeholder="Charged amount">
+            </div>
+          </div>
+          <button class="btn-primary" onclick="generateComplaint()">Generate Complaint</button>
+        </div>
+      </div>
+
+      <!-- Complaint Preview -->
+      <div id="complaintPreviewCard" style="display:none">
+        <div class="card">
+          <div class="section-title">Complaint Preview</div>
+          <div class="complaint-preview" id="complaintText"></div>
+          <button class="btn-primary" onclick="copyComplaint()" style="margin-top:12px">
+            Copy to Clipboard
+          </button>
+        </div>
+      </div>
+
+      <!-- Official Portals -->
+      <div class="section-title" style="margin-top:16px">Official Portals</div>
+      <a href="https://btp.gov.in" target="_blank" class="portal-link">
+        <div class="portal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="portal-info">
+          <div class="portal-name">Bangalore Traffic Police</div>
+          <div class="portal-desc">Official BTP complaint portal</div>
+        </div>
+        <div class="portal-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </a>
+      <a href="https://pgportal.gov.in" target="_blank" class="portal-link">
+        <div class="portal-icon" style="background: #FEF3C7;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        </div>
+        <div class="portal-info">
+          <div class="portal-name">PG Portal (Govt. of India)</div>
+          <div class="portal-desc">Public Grievance portal</div>
+        </div>
+        <div class="portal-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </a>
+      <a href="https://transport.karnataka.gov.in" target="_blank" class="portal-link">
+        <div class="portal-icon" style="background: #D1FAE5;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <div class="portal-info">
+          <div class="portal-name">Karnataka Transport Dept.</div>
+          <div class="portal-desc">State transport authority</div>
+        </div>
+        <div class="portal-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </a>
+
+      <!-- Recent Complaints -->
+      <div class="section-title" style="margin-top:16px">Recent Complaints</div>
+      <div id="recentComplaintsList">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- TAB 4: TIPS -->
+    <div class="tab-content" id="tabTips">
+      <div class="tip-card green card">
+        <div class="tip-emoji">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+        </div>
+        <div class="tip-title">Always Insist on Meter</div>
+        <div class="tip-text">By law, every auto-rickshaw in Bangalore must have a working meter. If the driver refuses to use the meter, you have the right to report them. Don't negotiate - it's your right!</div>
+      </div>
+      <div class="tip-card red card">
+        <div class="tip-emoji">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="tip-title">Fine for Refusing Meter: &rupee;500</div>
+        <div class="tip-text">Under Karnataka Motor Vehicle Rules, an auto driver who refuses to ply by meter can be fined &rupee;500. You can report such incidents to the traffic police.</div>
+      </div>
+      <div class="tip-card yellow card">
+        <div class="tip-emoji">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </div>
+        <div class="tip-title">Photo the Auto Number Before Riding</div>
+        <div class="tip-text">Take a quick photo of the auto number plate before boarding. This helps if you need to file a complaint later. Share the photo with a friend for safety.</div>
+      </div>
+      <div class="tip-card blue card">
+        <div class="tip-emoji">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </div>
+        <div class="tip-title">Night Fare: 10 PM, Not Sunset</div>
+        <div class="tip-text">Night surcharge of 50% is only applicable between 10 PM and 5 AM. If a driver charges night fare before 10 PM, that's an overcharge. Check the time!</div>
+      </div>
+      <div class="tip-card purple card">
+        <div class="tip-emoji">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="tip-title">No Extra for One-Way Trips</div>
+        <div class="tip-text">The one-way return charge (1.5x fare) has been abolished since 2024. Drivers cannot charge extra saying "I won't get a return fare." This is now illegal!</div>
+      </div>
+      <div class="tip-card orange card">
+        <div class="tip-emoji">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01"/><path d="M2 12h20"/></svg>
+        </div>
+        <div class="tip-title">Carry Exact Change</div>
+        <div class="tip-text">Many drivers claim they don't have change to round up the fare. Carry small denominations (&rupee;10, &rupee;20, &rupee;50 notes) or use UPI payment to pay the exact meter fare.</div>
+      </div>
+
+      <!-- Rights Section -->
+      <div class="section-title" style="margin-top: 20px;">Your Rights</div>
+      <div class="rights-card">
+        <div class="rights-title">Right to Metered Fare</div>
+        <div class="rights-text">Under Section 66 of the Motor Vehicles Act, all auto-rickshaws must ply by meter. Refusing to do so is a punishable offence.</div>
+      </div>
+      <div class="rights-card">
+        <div class="rights-title">Right to Refuse Extra Charges</div>
+        <div class="rights-text">Drivers cannot demand tips, return fare, or any charge not prescribed by the transport authority. You only need to pay the metered fare plus applicable surcharges.</div>
+      </div>
+      <div class="rights-card">
+        <div class="rights-title">Right to a Receipt</div>
+        <div class="rights-text">You can ask for a receipt from the driver. Electronic meters are mandated to provide printed receipts.</div>
+      </div>
+
+      <!-- Emergency Contacts -->
+      <div class="section-title" style="margin-top: 20px;">Emergency Contacts</div>
+      <div class="emergency-card">
+        <div class="emergency-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="emergency-info">
+          <div class="emergency-name">BTP Helpline</div>
+          <div class="emergency-num">080-2294 2222</div>
+        </div>
+      </div>
+      <div class="emergency-card">
+        <div class="emergency-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="emergency-info">
+          <div class="emergency-name">Traffic Police Control Room</div>
+          <div class="emergency-num">103</div>
+        </div>
+      </div>
+      <div class="emergency-card">
+        <div class="emergency-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="emergency-info">
+          <div class="emergency-name">Women Helpline</div>
+          <div class="emergency-num">1091</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: PROFILE -->
+    <div class="tab-content" id="tabProfile">
+      <div class="card" style="text-align:center; padding: 24px;">
+        <div class="profile-avatar">MS</div>
+        <div class="profile-name">MeterSmart User</div>
+        <div class="profile-sub">Riding smart since 2024</div>
+      </div>
+
+      <!-- Overcharge Score -->
+      <div class="overcharge-score">
+        <div class="score-ring">
+          <svg viewBox="0 0 80 80">
+            <circle class="ring-bg" cx="40" cy="40" r="34"/>
+            <circle class="ring-progress" cx="40" cy="40" r="34"
+              stroke-dasharray="213.6" stroke-dashoffset="70" id="scoreRing"/>
+          </svg>
+          <div class="score-value" id="scoreValue">67%</div>
+        </div>
+        <div class="score-label">Fair Ride Score</div>
+        <div class="score-sub">Based on your logged rides</div>
+      </div>
+
+      <!-- Saved Locations -->
+      <div class="card">
+        <div class="section-title">Saved Locations</div>
+        <div class="profile-item">
+          <div class="profile-item-icon" style="background: var(--green-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="profile-item-info">
+            <div class="profile-item-label">Home</div>
+            <div class="profile-item-value" id="homeLocation">Tap to set home location</div>
+          </div>
+          <button class="profile-item-action" onclick="editLocation('home')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+        <div class="profile-item">
+          <div class="profile-item-icon" style="background: var(--blue-light);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <div class="profile-item-info">
+            <div class="profile-item-label">Work</div>
+            <div class="profile-item-value" id="workLocation">Tap to set work location</div>
+          </div>
+          <button class="profile-item-action" onclick="editLocation('work')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Ride Statistics -->
+      <div class="card">
+        <div class="section-title">Ride Statistics</div>
+        <div class="stats-row" style="margin-bottom:0">
+          <div class="stat-card">
+            <div class="stat-value" id="profileTotalRides">6</div>
+            <div class="stat-label">Total Rides</div>
+          </div>
+          <div class="stat-card highlight">
+            <div class="stat-value" id="profileTotalSaved">&rupee;340</div>
+            <div class="stat-label">Total Saved</div>
+          </div>
+        </div>
+        <div class="stats-row" style="margin-top:10px; margin-bottom:0">
+          <div class="stat-card">
+            <div class="stat-value" id="profileAvgOvercharge">18%</div>
+            <div class="stat-label">Avg Overcharge</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="profileFairRides">4</div>
+            <div class="stat-label">Fair Rides</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="card">
+        <div class="section-title">Settings</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-icon" style="background: var(--bg-input);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <div>
+              <div class="toggle-label">Dark Mode</div>
+              <div class="toggle-sub">Easy on the eyes</div>
+            </div>
+          </div>
+          <div class="toggle-switch" id="darkToggle" onclick="toggleDarkMode()" role="switch" aria-checked="false" tabindex="0"></div>
+        </div>
+      </div>
+
+      <!-- App Info -->
+      <div class="card" style="text-align:center;">
+        <div style="font-size:0.75rem; color: var(--text-muted); line-height: 1.8;">
+          <strong style="color: var(--text-primary);">MeterSmart v1.0</strong><br>
+          Made with care for Bangalore commuters<br>
+          Fare rules as per Karnataka Transport Authority<br>
+          <span style="color: var(--yellow-dark);">&hearts;</span> Stay safe, ride fair
+        </div>
+      </div>
+
+      <!-- Clear Data -->
+      <button class="btn-secondary" onclick="clearAllData()" style="margin-bottom: 20px; color: var(--red);">
+        Clear All Data
+      </button>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('Calculator', this)" aria-label="Calculator">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="4" y="2" width="16" height="20" rx="2"/>
+        <line x1="8" y1="6" x2="16" y2="6"/>
+        <line x1="8" y1="10" x2="10" y2="10"/>
+        <line x1="14" y1="10" x2="16" y2="10"/>
+        <line x1="8" y1="14" x2="10" y2="14"/>
+        <line x1="14" y1="14" x2="16" y2="14"/>
+        <line x1="8" y1="18" x2="16" y2="18"/>
+      </svg>
+      <span>CALC</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('RideLog', this)" aria-label="Ride Logger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <span>LOG</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Complaint', this)" aria-label="Complaint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>REPORT</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Tips', this)" aria-label="Tips">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      <span>TIPS</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Profile', this)" aria-label="Profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span>ME</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CONFETTI CONTAINER -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+/* ============================================================
+   STATE & CONSTANTS
+   ============================================================ */
+const FARE_RULES = {
+  baseFare: 30,
+  baseKm: 2,
+  perKm: 15,
+  waitingPerUnit: 5,
+  waitingUnitMinutes: 15,
+  nightMultiplier: 1.5,
+  luggagePerPiece: 5
+};
+
+let state = {
+  distance: 2,
+  nightMode: false,
+  waitingMinutes: 0,
+  luggagePieces: 0,
+  rides: [],
+  complaints: [],
+  totalSaved: 340,
+  homeLocation: '',
+  workLocation: '',
+  darkMode: false
+};
+
+/* ============================================================
+   INITIALIZATION
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  initSplash();
+  initDefaults();
+  calculateFare();
+  renderRideHistory();
+  renderComplaints();
+  updateProfileStats();
+  initDateTimeFields();
+  setupFareComparisonListeners();
+});
+
+function initSplash() {
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.classList.add('hide');
+    setTimeout(() => splash.style.display = 'none', 500);
+  }, 1500);
+}
+
+function initDefaults() {
+  // Load saved locations
+  const home = document.getElementById('homeLocation');
+  const work = document.getElementById('workLocation');
+  if (state.homeLocation) home.textContent = state.homeLocation;
+  if (state.workLocation) work.textContent = state.workLocation;
+
+  // Dark mode
+  if (state.darkMode) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('darkToggle').classList.add('on');
+  }
+
+  // Seed mock rides if empty
+  if (state.rides.length === 0) {
+    state.rides = [
+      { id: 1, from: 'Indiranagar', to: 'Koramangala', distance: 6, meterFare: 90, chargedFare: 90, date: '2024-12-15', fair: true },
+      { id: 2, from: 'Majestic', to: 'Whitefield', distance: 18, meterFare: 270, chargedFare: 350, date: '2024-12-18', fair: false },
+      { id: 3, from: 'HSR Layout', to: 'MG Road', distance: 10, meterFare: 150, chargedFare: 150, date: '2024-12-20', fair: true },
+      { id: 4, from: 'Hebbal', to: 'Electronic City', distance: 25, meterFare: 375, chargedFare: 500, date: '2024-12-22', fair: false },
+      { id: 5, from: 'Jayanagar', to: 'Marathahalli', distance: 14, meterFare: 210, chargedFare: 230, date: '2025-01-02', fair: false },
+      { id: 6, from: 'BTM Layout', to: 'Silk Board', distance: 4, meterFare: 60, chargedFare: 60, date: '2025-01-05', fair: true }
+    ];
+    state.totalSaved = 340;
+    saveState();
+  }
+}
+
+function initDateTimeFields() {
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const timeStr = now.toTimeString().slice(0,5);
+  const cd = document.getElementById('compDate');
+  const ct = document.getElementById('compTime');
+  if (cd) cd.value = dateStr;
+  if (ct) ct.value = timeStr;
+}
+
+/* ============================================================
+   LOCAL STORAGE
+   ============================================================ */
+function saveState() {
+  try {
+    localStorage.setItem('meterSmart', JSON.stringify({
+      rides: state.rides,
+      complaints: state.complaints,
+      totalSaved: state.totalSaved,
+      homeLocation: state.homeLocation,
+      workLocation: state.workLocation,
+      darkMode: state.darkMode
+    }));
+  } catch(e) { /* quota exceeded, silent fail */ }
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('meterSmart');
+    if (saved) {
+      const data = JSON.parse(saved);
+      state.rides = data.rides || [];
+      state.complaints = data.complaints || [];
+      state.totalSaved = data.totalSaved || 0;
+      state.homeLocation = data.homeLocation || '';
+      state.workLocation = data.workLocation || '';
+      state.darkMode = data.darkMode || false;
+    }
+  } catch(e) { /* corrupted, start fresh */ }
+}
+
+/* ============================================================
+   TAB NAVIGATION
+   ============================================================ */
+function switchTab(name, btn) {
+  // Deactivate all
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  // Activate selected
+  document.getElementById('tab' + name).classList.add('active');
+  btn.classList.add('active');
+
+  // Scroll to top
+  document.getElementById('mainContent').scrollTop = 0;
+
+  // Refresh data for tab
+  if (name === 'RideLog') {
+    renderRideHistory();
+    updateRideStats();
+  }
+  if (name === 'Profile') updateProfileStats();
+  if (name === 'Complaint') renderComplaints();
+}
+
+/* ============================================================
+   FARE CALCULATOR
+   ============================================================ */
+function calculateFare() {
+  const distInput = document.getElementById('distanceInput');
+  let distance = parseFloat(distInput.value) || 0;
+  if (distance < 0) distance = 0;
+  state.distance = distance;
+
+  const waitMinutes = parseInt(document.getElementById('waitingInput').value) || 0;
+  state.waitingMinutes = waitMinutes;
+
+  const luggage = state.luggagePieces;
+  const isNight = state.nightMode;
+
+  // Calculate components
+  let baseFare = FARE_RULES.baseFare;
+  let distanceFare = 0;
+  if (distance > FARE_RULES.baseKm) {
+    distanceFare = Math.ceil(distance - FARE_RULES.baseKm) * FARE_RULES.perKm;
+  }
+
+  let waitingCharge = Math.floor(waitMinutes / FARE_RULES.waitingUnitMinutes) * FARE_RULES.waitingPerUnit;
+  let luggageCharge = luggage * FARE_RULES.luggagePerPiece;
+
+  let subtotal = baseFare + distanceFare + waitingCharge + luggageCharge;
+  let nightSurcharge = 0;
+  if (isNight) {
+    nightSurcharge = Math.round((baseFare + distanceFare) * 0.5);
+    subtotal += nightSurcharge;
+  }
+
+  let total = subtotal;
+
+  // Update meter display with animation
+  animateMeterTo(total);
+
+  // Update status text
+  const statusText = document.getElementById('meterStatusText');
+  if (distance <= 2) {
+    statusText.textContent = 'Base fare (first 2 km)';
+  } else {
+    statusText.textContent = `${distance} km journey${isNight ? ' (night rate)' : ''}`;
+  }
+
+  // Update breakdown
+  document.getElementById('breakBase').textContent = `\u20B9${baseFare}`;
+
+  const distRow = document.getElementById('breakDistRow');
+  if (distanceFare > 0) {
+    distRow.style.display = 'flex';
+    document.getElementById('breakDistKm').textContent = Math.ceil(distance - FARE_RULES.baseKm);
+    document.getElementById('breakDist').textContent = `\u20B9${distanceFare}`;
+  } else {
+    distRow.style.display = 'none';
+  }
+
+  const waitRow = document.getElementById('breakWaitRow');
+  if (waitingCharge > 0) {
+    waitRow.style.display = 'flex';
+    document.getElementById('breakWait').textContent = `\u20B9${waitingCharge}`;
+  } else {
+    waitRow.style.display = 'none';
+  }
+
+  const lugRow = document.getElementById('breakLugRow');
+  if (luggageCharge > 0) {
+    lugRow.style.display = 'flex';
+    document.getElementById('breakLugPcs').textContent = luggage;
+    document.getElementById('breakLug').textContent = `\u20B9${luggageCharge}`;
+  } else {
+    lugRow.style.display = 'none';
+  }
+
+  const nightRow = document.getElementById('breakNightRow');
+  if (nightSurcharge > 0) {
+    nightRow.style.display = 'flex';
+    document.getElementById('breakNight').textContent = `\u20B9${nightSurcharge}`;
+  } else {
+    nightRow.style.display = 'none';
+  }
+
+  document.getElementById('breakTotal').textContent = `\u20B9${total}`;
+  document.getElementById('fairFareAmount').textContent = `\u20B9${total}`;
+}
+
+let meterAnimFrame = null;
+let currentMeterValue = 30;
+
+function animateMeterTo(target) {
+  if (meterAnimFrame) cancelAnimationFrame(meterAnimFrame);
+  const start = currentMeterValue;
+  const diff = target - start;
+  const duration = 400;
+  const startTime = performance.now();
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + diff * eased);
+    document.getElementById('meterFareDisplay').textContent = current;
+    currentMeterValue = current;
+    if (progress < 1) {
+      meterAnimFrame = requestAnimationFrame(step);
+    }
+  }
+  meterAnimFrame = requestAnimationFrame(step);
+}
+
+function adjustDistance(delta) {
+  const input = document.getElementById('distanceInput');
+  let val = parseFloat(input.value) || 0;
+  val = Math.max(0, Math.min(100, val + delta));
+  val = Math.round(val * 10) / 10;
+  input.value = val;
+
+  // Update preset buttons
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.textContent) === val);
+  });
+
+  calculateFare();
+  pulseButton(event.currentTarget);
+}
+
+function setDistance(km, btn) {
+  document.getElementById('distanceInput').value = km;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  calculateFare();
+}
+
+function setRouteDistance(km) {
+  setDistance(km, null);
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.textContent) === km);
+  });
+  document.getElementById('mainContent').scrollTop = 0;
+}
+
+function toggleNight() {
+  state.nightMode = !state.nightMode;
+  const toggle = document.getElementById('nightToggle');
+  toggle.classList.toggle('on', state.nightMode);
+  toggle.setAttribute('aria-checked', state.nightMode);
+  calculateFare();
+}
+
+function adjustLuggage(delta) {
+  state.luggagePieces = Math.max(0, Math.min(10, state.luggagePieces + delta));
+  document.getElementById('luggageCount').textContent = state.luggagePieces;
+  calculateFare();
+}
+
+function pulseButton(btn) {
+  btn.style.transform = 'scale(0.85)';
+  setTimeout(() => btn.style.transform = '', 100);
+}
+
+/* ============================================================
+   SHARE FARE
+   ============================================================ */
+function shareFare() {
+  const dist = state.distance;
+  const total = parseInt(document.getElementById('meterFareDisplay').textContent);
+  const night = state.nightMode ? ' (Night Rate)' : '';
+  const text = `Auto fare for ${dist} km in Bangalore${night}:\n\nFair Fare: \u20B9${total}\n\nBase fare: \u20B930 (first 2 km)\nPer km after 2 km: \u20B915/km${state.nightMode ? '\nNight surcharge: +50%' : ''}\n\nCalculated with MeterSmart - Know your fare, ride fair!`;
+
+  if (navigator.share) {
+    navigator.share({ title: 'MeterSmart Fare', text: text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Fare info copied to clipboard!');
+    }).catch(() => {
+      showToast('Could not copy');
+    });
+  }
+}
+
+/* ============================================================
+   RIDE LOGGER
+   ============================================================ */
+function setupFareComparisonListeners() {
+  const meterInput = document.getElementById('logMeterFare');
+  const chargedInput = document.getElementById('logChargedFare');
+
+  [meterInput, chargedInput].forEach(input => {
+    input.addEventListener('input', updateFareComparison);
+  });
+}
+
+function updateFareComparison() {
+  const meterFare = parseFloat(document.getElementById('logMeterFare').value) || 0;
+  const chargedFare = parseFloat(document.getElementById('logChargedFare').value) || 0;
+
+  const compDiv = document.getElementById('fareComparison');
+  const overDiv = document.getElementById('overchargeDisplay');
+
+  if (meterFare > 0 && chargedFare > 0) {
+    compDiv.style.display = 'flex';
+    overDiv.style.display = 'block';
+
+    const maxFare = Math.max(meterFare, chargedFare, 1);
+    const meterHeight = Math.max(20, (meterFare / maxFare) * 100);
+    const chargedHeight = Math.max(20, (chargedFare / maxFare) * 100);
+
+    document.getElementById('meterBar').style.height = meterHeight + 'px';
+    document.getElementById('chargedBar').style.height = chargedHeight + 'px';
+    document.getElementById('meterBarAmt').textContent = `\u20B9${meterFare}`;
+    document.getElementById('chargedBarAmt').textContent = `\u20B9${chargedFare}`;
+
+    const chargedBar = document.getElementById('chargedBar');
+    const diff = chargedFare - meterFare;
+
+    chargedBar.classList.remove('fair', 'slight');
+    if (diff <= 0) {
+      chargedBar.classList.add('fair');
+      overDiv.style.background = 'var(--green-light)';
+      overDiv.style.color = 'var(--green-dark)';
+      overDiv.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> Fair fare! No overcharge`;
+    } else if (diff / meterFare < 0.15) {
+      chargedBar.classList.add('slight');
+      overDiv.style.background = 'var(--yellow-light)';
+      overDiv.style.color = 'var(--yellow-dark)';
+      overDiv.textContent = `Slightly over: +\u20B9${diff}`;
+    } else {
+      overDiv.style.background = 'var(--red-light)';
+      overDiv.style.color = 'var(--red-dark)';
+      overDiv.innerHTML = `<strong>Overcharged: +\u20B9${diff}</strong>`;
+    }
+  } else {
+    compDiv.style.display = 'none';
+    overDiv.style.display = 'none';
+  }
+}
+
+function logRide() {
+  const from = document.getElementById('logFrom').value.trim();
+  const to = document.getElementById('logTo').value.trim();
+  const distance = parseFloat(document.getElementById('logDistance').value) || 0;
+  const meterFare = parseFloat(document.getElementById('logMeterFare').value) || 0;
+  const chargedFare = parseFloat(document.getElementById('logChargedFare').value) || 0;
+
+  if (!from || !to || distance <= 0 || meterFare <= 0 || chargedFare <= 0) {
+    showToast('Please fill all fields');
+    return;
+  }
+
+  const diff = chargedFare - meterFare;
+  const isFair = diff <= 0;
+
+  const ride = {
+    id: Date.now(),
+    from, to, distance, meterFare, chargedFare,
+    date: new Date().toISOString().split('T')[0],
+    fair: isFair
+  };
+
+  state.rides.unshift(ride);
+
+  // Update savings
+  if (diff > 0) {
+    // Knowledge of the right fare may save you next time
+  } else {
+    state.totalSaved += Math.abs(diff) || 0;
+  }
+
+  // Recalculate total savings based on knowledge saved
+  recalculateSavings();
+
+  saveState();
+
+  // Clear form
+  document.getElementById('logFrom').value = '';
+  document.getElementById('logTo').value = '';
+  document.getElementById('logDistance').value = '';
+  document.getElementById('logMeterFare').value = '';
+  document.getElementById('logChargedFare').value = '';
+  document.getElementById('fareComparison').style.display = 'none';
+  document.getElementById('overchargeDisplay').style.display = 'none';
+
+  renderRideHistory();
+  updateRideStats();
+
+  if (isFair) {
+    showConfetti();
+    showToast('Fair ride logged! Great job!');
+  } else {
+    showToast('Ride logged. Consider filing a complaint.');
+  }
+}
+
+function recalculateSavings() {
+  let overchargeTotal = 0;
+  state.rides.forEach(r => {
+    const diff = r.chargedFare - r.meterFare;
+    if (diff > 0) overchargeTotal += diff;
+  });
+  // Savings = sum of overcharges identified (knowledge is power)
+  state.totalSaved = overchargeTotal;
+}
+
+function renderRideHistory() {
+  const list = document.getElementById('rideHistoryList');
+  if (state.rides.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <p>No rides logged yet.<br>Start tracking your rides!</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = state.rides.map(ride => {
+    const diff = ride.chargedFare - ride.meterFare;
+    const isFair = diff <= 0;
+    const isSlight = !isFair && (diff / ride.meterFare) < 0.15;
+    const cls = isFair ? '' : (isSlight ? 'slight' : 'overcharged');
+    const iconCls = isFair ? 'fair' : (isSlight ? 'slight-icon' : 'over');
+    const iconSvg = isFair
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    const diffText = isFair
+      ? `<span style="color:var(--green)">Fair \u2713</span>`
+      : `<span style="color:var(--red)">+\u20B9${diff}</span>`;
+
+    return `
+      <div class="ride-history-item ${cls}">
+        <div class="rh-icon ${iconCls}">${iconSvg}</div>
+        <div class="rh-info">
+          <div class="rh-route">${ride.from} \u2192 ${ride.to}</div>
+          <div class="rh-date">${formatDate(ride.date)} \u2022 ${ride.distance} km</div>
+        </div>
+        <div class="rh-amount">
+          <div class="charged" style="color:${isFair ? 'var(--green)' : 'var(--text-primary)'};">\u20B9${ride.chargedFare}</div>
+          <div class="diff">${diffText}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updateRideStats() {
+  const total = state.rides.length;
+  const fair = state.rides.filter(r => r.fair).length;
+  const pct = total > 0 ? Math.round((fair / total) * 100) : 0;
+
+  document.getElementById('statSaved').textContent = `\u20B9${state.totalSaved}`;
+  document.getElementById('statRides').textContent = total;
+  document.getElementById('statFair').textContent = pct + '%';
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+/* ============================================================
+   COMPLAINT SYSTEM
+   ============================================================ */
+function generateComplaint() {
+  const plate = document.getElementById('compPlate').value.trim();
+  const driver = document.getElementById('compDriver').value.trim();
+  const date = document.getElementById('compDate').value;
+  const time = document.getElementById('compTime').value;
+  const from = document.getElementById('compFrom').value.trim();
+  const to = document.getElementById('compTo').value.trim();
+  const meter = document.getElementById('compMeter').value;
+  const charged = document.getElementById('compCharged').value;
+
+  if (!plate || !from || !to || !meter || !charged) {
+    showToast('Please fill required fields');
+    return;
+  }
+
+  const overcharge = parseInt(charged) - parseInt(meter);
+  const formattedDate = date ? new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+  const complaintText = `COMPLAINT: Auto Rickshaw Overcharging
+
+Date: ${formattedDate}
+Time: ${time || 'N/A'}
+
+Auto Number: ${plate.toUpperCase()}
+Driver Description: ${driver || 'N/A'}
+
+Route: ${from} to ${to}
+Meter Fare (as per rules): Rs. ${meter}
+Amount Charged: Rs. ${charged}
+Overcharge Amount: Rs. ${overcharge}
+
+Details:
+I took an auto rickshaw (registration number: ${plate.toUpperCase()}) from ${from} to ${to} on ${formattedDate} at ${time || 'N/A'}. The correct meter fare for this journey should have been Rs. ${meter} as per Bangalore Transport Authority rules. However, the driver charged me Rs. ${charged}, which is an overcharge of Rs. ${overcharge}.
+
+I request appropriate action be taken against the driver for overcharging and violation of Karnataka Motor Vehicle Rules.
+
+Thank you.
+
+---
+Generated via MeterSmart App`;
+
+  document.getElementById('complaintText').textContent = complaintText;
+  document.getElementById('complaintPreviewCard').style.display = 'block';
+
+  // Save complaint
+  const complaint = {
+    id: Date.now(), plate: plate.toUpperCase(), from, to,
+    meter: parseInt(meter), charged: parseInt(charged),
+    overcharge, date, time, text: complaintText
+  };
+  state.complaints.unshift(complaint);
+  saveState();
+  renderComplaints();
+
+  showToast('Complaint generated!');
+}
+
+function copyComplaint() {
+  const text = document.getElementById('complaintText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Complaint copied to clipboard!');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Complaint copied!');
+  });
+}
+
+function renderComplaints() {
+  const list = document.getElementById('recentComplaintsList');
+  if (state.complaints.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state" style="padding:20px">
+        <p style="font-size:0.8rem;">No complaints filed yet.</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = state.complaints.slice(0, 5).map(c => `
+    <div class="ride-history-item overcharged">
+      <div class="rh-icon over">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="rh-info">
+        <div class="rh-route">${c.plate} \u2022 ${c.from} \u2192 ${c.to}</div>
+        <div class="rh-date">${formatDate(c.date)} \u2022 Overcharge: \u20B9${c.overcharge}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   PROFILE
+   ============================================================ */
+function updateProfileStats() {
+  const total = state.rides.length;
+  const fair = state.rides.filter(r => r.fair).length;
+  const pct = total > 0 ? Math.round((fair / total) * 100) : 0;
+
+  document.getElementById('profileTotalRides').textContent = total;
+  document.getElementById('profileTotalSaved').textContent = `\u20B9${state.totalSaved}`;
+  document.getElementById('profileFairRides').textContent = fair;
+
+  // Average overcharge %
+  const overchargedRides = state.rides.filter(r => !r.fair);
+  let avgOvercharge = 0;
+  if (overchargedRides.length > 0) {
+    const totalPct = overchargedRides.reduce((sum, r) => {
+      return sum + ((r.chargedFare - r.meterFare) / r.meterFare * 100);
+    }, 0);
+    avgOvercharge = Math.round(totalPct / overchargedRides.length);
+  }
+  document.getElementById('profileAvgOvercharge').textContent = avgOvercharge + '%';
+
+  // Score ring
+  const circumference = 2 * Math.PI * 34;
+  const offset = circumference - (pct / 100) * circumference;
+  document.getElementById('scoreRing').style.strokeDashoffset = offset;
+  document.getElementById('scoreValue').textContent = pct + '%';
+
+  // Update ride log stats too
+  updateRideStats();
+}
+
+function editLocation(type) {
+  const current = type === 'home' ? state.homeLocation : state.workLocation;
+  const value = prompt(`Enter your ${type} location:`, current);
+  if (value !== null) {
+    if (type === 'home') {
+      state.homeLocation = value;
+      document.getElementById('homeLocation').textContent = value || 'Tap to set home location';
+    } else {
+      state.workLocation = value;
+      document.getElementById('workLocation').textContent = value || 'Tap to set work location';
+    }
+    saveState();
+    showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} location saved!`);
+  }
+}
+
+function toggleDarkMode() {
+  state.darkMode = !state.darkMode;
+  document.documentElement.setAttribute('data-theme', state.darkMode ? 'dark' : '');
+  document.getElementById('darkToggle').classList.toggle('on', state.darkMode);
+  saveState();
+}
+
+function clearAllData() {
+  if (confirm('This will delete all your ride history, complaints, and saved data. Are you sure?')) {
+    localStorage.removeItem('meterSmart');
+    state.rides = [];
+    state.complaints = [];
+    state.totalSaved = 0;
+    state.homeLocation = '';
+    state.workLocation = '';
+    renderRideHistory();
+    renderComplaints();
+    updateProfileStats();
+    document.getElementById('homeLocation').textContent = 'Tap to set home location';
+    document.getElementById('workLocation').textContent = 'Tap to set work location';
+    showToast('All data cleared');
+  }
+}
+
+/* ============================================================
+   TOAST NOTIFICATION
+   ============================================================ */
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+/* ============================================================
+   CONFETTI
+   ============================================================ */
+function showConfetti() {
+  const container = document.getElementById('confettiContainer');
+  const colors = ['#10B981', '#FBBF24', '#3B82F6', '#EF4444', '#8B5CF6', '#F97316'];
+
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.animationDuration = (1.5 + Math.random()) + 's';
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (6 + Math.random() * 8) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    container.appendChild(piece);
+  }
+
+  setTimeout(() => {
+    container.innerHTML = '';
+  }, 3000);
+}
+
+/* ============================================================
+   AUTO-CALCULATE METER FARE IN LOG
+   ============================================================ */
+document.getElementById('logDistance').addEventListener('input', function() {
+  const dist = parseFloat(this.value) || 0;
+  if (dist > 0) {
+    let fare = FARE_RULES.baseFare;
+    if (dist > FARE_RULES.baseKm) {
+      fare += Math.ceil(dist - FARE_RULES.baseKm) * FARE_RULES.perKm;
+    }
+    document.getElementById('logMeterFare').value = fare;
+    updateFareComparison();
+  }
+});
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,3210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D9488">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="NestHub">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>NestHub - Prestige Lakeside Heights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========== CSS CUSTOM PROPERTIES ========== */
+:root {
+  --white: #FFFFFF;
+  --base: #F8FAFC;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --slate: #1E293B;
+  --slate-light: #334155;
+  --teal: #0D9488;
+  --teal-light: #14B8A6;
+  --teal-dark: #0F766E;
+  --teal-50: #F0FDFA;
+  --teal-100: #CCFBF1;
+  --amber: #F59E0B;
+  --amber-light: #FCD34D;
+  --amber-50: #FFFBEB;
+  --red: #EF4444;
+  --red-light: #FCA5A5;
+  --red-50: #FEF2F2;
+  --green: #22C55E;
+  --green-light: #86EFAC;
+  --green-50: #F0FDF4;
+  --blue: #3B82F6;
+  --blue-50: #EFF6FF;
+  --purple: #8B5CF6;
+  --purple-50: #F5F3FF;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-accent: 'Space Grotesk', sans-serif;
+  --nav-height: 68px;
+  --status-bar: 0px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--font-body);
+  background: var(--gray-100);
+  color: var(--slate);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+img { max-width: 100%; display: block; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; font-size: inherit; }
+input, select, textarea { font-family: inherit; font-size: inherit; border: none; outline: none; }
+a { text-decoration: none; color: inherit; }
+
+/* ========== APP SHELL ========== */
+.app-container {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  body { background: #E2E8F0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .app-container {
+    min-height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0,0,0,0.05);
+    overflow-y: auto;
+  }
+}
+
+/* ========== SPLASH SCREEN ========== */
+.splash {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.splash.hide {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+.splash-logo {
+  width: 80px;
+  height: 80px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  animation: splashPulse 1.5s ease infinite;
+  backdrop-filter: blur(10px);
+}
+.splash-logo svg { width: 48px; height: 48px; }
+.splash-title {
+  font-family: var(--font-accent);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+.splash-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+.splash-building {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  opacity: 0.12;
+}
+.splash-building .building-rect {
+  fill: white;
+  animation: buildingRise 1.2s ease-out forwards;
+  transform-origin: bottom;
+  transform: scaleY(0);
+}
+.splash-building .building-rect:nth-child(1) { animation-delay: 0.1s; }
+.splash-building .building-rect:nth-child(2) { animation-delay: 0.2s; }
+.splash-building .building-rect:nth-child(3) { animation-delay: 0.3s; }
+.splash-building .building-rect:nth-child(4) { animation-delay: 0.15s; }
+.splash-building .building-rect:nth-child(5) { animation-delay: 0.25s; }
+.splash-loader {
+  width: 40px; height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  margin-top: 24px;
+  overflow: hidden;
+}
+.splash-loader-bar {
+  width: 0%; height: 100%;
+  background: white;
+  border-radius: 2px;
+  animation: splashLoad 1.4s ease forwards;
+}
+@keyframes splashPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes buildingRise {
+  to { transform: scaleY(1); }
+}
+@keyframes splashLoad {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+/* ========== SCROLLABLE CONTENT ========== */
+.app-content {
+  padding-bottom: calc(var(--nav-height) + 16px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.app-content.visible { opacity: 1; }
+
+/* ========== TAB PAGES ========== */
+.tab-page {
+  display: none;
+  animation: fadeInUp 0.35s ease;
+}
+.tab-page.active { display: block; }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== BOTTOM NAVIGATION ========== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: var(--nav-height);
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item svg {
+  width: 24px; height: 24px;
+  stroke: var(--gray-400);
+  fill: none;
+  stroke-width: 1.8;
+  transition: var(--transition);
+}
+.nav-item span {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--gray-400);
+  transition: var(--transition);
+  letter-spacing: 0.2px;
+}
+.nav-item.active svg { stroke: var(--teal); }
+.nav-item.active span { color: var(--teal); font-weight: 600; }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--teal);
+  border-radius: 0 0 3px 3px;
+}
+.nav-item:active { transform: scale(0.92); }
+.nav-badge {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 2px solid var(--white);
+}
+
+/* ========== HEADER STYLES ========== */
+.page-header {
+  padding: 16px 20px 12px;
+  background: var(--white);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.page-header-title {
+  font-family: var(--font-accent);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--slate);
+  letter-spacing: -0.3px;
+}
+.page-header-subtitle {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+
+/* ========== HOME / DASHBOARD ========== */
+.home-header {
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+  padding: 20px 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.home-header::after {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.home-header::before {
+  content: '';
+  position: absolute;
+  bottom: -20px; left: 40px;
+  width: 80px; height: 80px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.home-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.home-complex-name {
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.home-notif-btn {
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  backdrop-filter: blur(8px);
+  transition: var(--transition);
+}
+.home-notif-btn:active { transform: scale(0.9); }
+.home-notif-btn svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; }
+.home-notif-dot {
+  position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px;
+  background: var(--amber);
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+}
+.home-greeting {
+  font-family: var(--font-accent);
+  font-size: 26px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.home-flat-info {
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.home-flat-info .dot {
+  width: 4px; height: 4px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 16px 20px;
+  margin-top: -12px;
+  position: relative;
+  z-index: 10;
+}
+.quick-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 4px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.quick-action-btn:active { transform: scale(0.94); box-shadow: var(--shadow-sm); }
+.quick-action-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.quick-action-icon svg { width: 22px; height: 22px; }
+.quick-action-icon.complaint { background: var(--amber-50); }
+.quick-action-icon.complaint svg { stroke: var(--amber); fill: none; stroke-width: 2; }
+.quick-action-icon.pay { background: var(--green-50); }
+.quick-action-icon.pay svg { stroke: var(--green); fill: none; stroke-width: 2; }
+.quick-action-icon.book { background: var(--blue-50); }
+.quick-action-icon.book svg { stroke: var(--blue); fill: none; stroke-width: 2; }
+.quick-action-icon.sos { background: var(--red-50); }
+.quick-action-icon.sos svg { stroke: var(--red); fill: none; stroke-width: 2; }
+.quick-action-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--slate);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Section */
+.section { padding: 8px 20px 16px; }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--font-accent);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--slate);
+  letter-spacing: -0.2px;
+}
+.section-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+/* Summary Card */
+.summary-card {
+  background: var(--base);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--gray-200);
+}
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--gray-600);
+}
+.summary-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.summary-icon svg { width: 16px; height: 16px; stroke-width: 2; fill: none; }
+
+/* Announcement Cards */
+.announcement-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  border: 1px solid var(--gray-200);
+  margin-bottom: 10px;
+  transition: var(--transition);
+  animation: slideInLeft 0.4s ease both;
+}
+.announcement-card:nth-child(2) { animation-delay: 0.08s; }
+.announcement-card:nth-child(3) { animation-delay: 0.16s; }
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.announcement-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.announcement-tag.urgent { background: var(--amber-50); color: var(--amber); }
+.announcement-tag.info { background: var(--blue-50); color: var(--blue); }
+.announcement-tag.event { background: var(--purple-50); color: var(--purple); }
+.announcement-tag.security { background: var(--green-50); color: var(--green); }
+.announcement-text {
+  font-size: 14px;
+  color: var(--slate);
+  line-height: 1.45;
+  font-weight: 500;
+}
+.announcement-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+/* Due Card */
+.due-card {
+  background: linear-gradient(135deg, var(--amber-50) 0%, #FFF7ED 100%);
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.due-card.paid {
+  background: linear-gradient(135deg, var(--green-50) 0%, #ECFDF5 100%);
+  border-color: #A7F3D0;
+}
+.due-info { flex: 1; }
+.due-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.due-amount {
+  font-family: var(--font-accent);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--slate);
+  margin: 4px 0;
+}
+.due-status {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.due-status.pending { color: var(--amber); }
+.due-status.paid-status { color: var(--green); }
+.due-btn {
+  padding: 10px 20px;
+  background: var(--amber);
+  color: white;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 13px;
+  transition: var(--transition);
+}
+.due-btn:active { transform: scale(0.95); }
+.due-card.paid .due-btn { background: var(--green); }
+
+/* Event Cards */
+.event-card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 10px;
+  transition: var(--transition);
+}
+.event-date-box {
+  min-width: 48px;
+  text-align: center;
+  padding: 8px 4px;
+  background: var(--teal-50);
+  border-radius: var(--radius-sm);
+}
+.event-date-month {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--teal);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.event-date-day {
+  font-family: var(--font-accent);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  line-height: 1.1;
+}
+.event-details { flex: 1; }
+.event-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slate);
+  margin-bottom: 4px;
+}
+.event-time {
+  font-size: 12px;
+  color: var(--gray-500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ========== VISITORS TAB ========== */
+.visitor-pre-approve {
+  margin: 16px 20px;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+  border-radius: var(--radius-lg);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: var(--transition);
+}
+.visitor-pre-approve:active { transform: scale(0.98); }
+.visitor-pre-approve-text { font-size: 15px; font-weight: 600; }
+.visitor-pre-approve-sub { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+.visitor-pre-approve svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 2; }
+
+/* Quick Approve Row */
+.quick-approve {
+  padding: 0 20px 12px;
+}
+.quick-approve-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.quick-approve-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.quick-approve-row::-webkit-scrollbar { display: none; }
+.quick-approve-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--base);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--slate);
+  transition: var(--transition);
+}
+.quick-approve-chip:active {
+  background: var(--teal-50);
+  border-color: var(--teal);
+  transform: scale(0.96);
+}
+.quick-approve-chip svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Visitor Form Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 5000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.show { display: flex; }
+.modal-sheet {
+  width: 100%;
+  max-width: 430px;
+  max-height: 92vh;
+  background: var(--white);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 12px 20px 32px;
+  overflow-y: auto;
+  animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--gray-300);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-title {
+  font-family: var(--font-accent);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--slate);
+  margin-bottom: 20px;
+}
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--base);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--slate);
+  transition: var(--transition);
+}
+.form-input:focus {
+  border-color: var(--teal);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+}
+.form-select {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--base);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--slate);
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--teal);
+  color: white;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 15px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:active { transform: scale(0.98); background: var(--teal-dark); }
+
+/* Visitor Cards */
+.visitor-card {
+  margin: 0 20px 12px;
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  cursor: pointer;
+}
+.visitor-card:active { background: var(--gray-50); }
+.visitor-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.visitor-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.visitor-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.visitor-avatar.delivery { background: linear-gradient(135deg, #F97316, #EA580C); }
+.visitor-avatar.guest { background: linear-gradient(135deg, var(--teal), var(--teal-dark)); }
+.visitor-avatar.service { background: linear-gradient(135deg, var(--purple), #7C3AED); }
+.visitor-avatar.cab { background: linear-gradient(135deg, var(--blue), #2563EB); }
+.visitor-name { font-size: 14px; font-weight: 600; color: var(--slate); }
+.visitor-purpose { font-size: 12px; color: var(--gray-500); }
+.visitor-status-badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+}
+.visitor-status-badge.active { background: var(--green-50); color: var(--green); }
+.visitor-status-badge.expected { background: var(--blue-50); color: var(--blue); }
+.visitor-status-badge.exited { background: var(--gray-100); color: var(--gray-500); }
+.visitor-card-expand {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.visitor-card.expanded .visitor-card-expand { max-height: 200px; }
+.visitor-qr {
+  margin-top: 12px;
+  padding: 16px;
+  background: var(--base);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.qr-grid {
+  width: 120px; height: 120px;
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  grid-template-rows: repeat(11, 1fr);
+  gap: 1px;
+}
+.qr-cell {
+  border-radius: 1px;
+  transition: background 0.05s ease;
+}
+.qr-cell.filled { background: var(--slate); }
+.qr-cell.empty { background: transparent; }
+.qr-label { font-size: 11px; color: var(--gray-500); font-weight: 500; }
+
+/* Frequent Visitors */
+.frequent-visitor-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin: 0 20px 8px;
+}
+.frequent-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.frequent-avatar {
+  width: 36px; height: 36px;
+  background: var(--teal-50);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.frequent-avatar svg { width: 18px; height: 18px; stroke: var(--teal); fill: none; stroke-width: 2; }
+.frequent-name { font-size: 14px; font-weight: 500; color: var(--slate); }
+.frequent-role { font-size: 11px; color: var(--gray-400); }
+.frequent-approve-btn {
+  padding: 8px 16px;
+  background: var(--teal-50);
+  color: var(--teal);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+.frequent-approve-btn:active { background: var(--teal-100); transform: scale(0.95); }
+
+/* ========== COMMUNITY TAB ========== */
+.community-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.community-tabs::-webkit-scrollbar { display: none; }
+.community-tab-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  border: 1.5px solid transparent;
+  transition: var(--transition);
+}
+.community-tab-btn.active {
+  background: var(--teal-50);
+  color: var(--teal);
+  border-color: var(--teal);
+}
+.community-tab-btn:active { transform: scale(0.96); }
+.community-content { padding: 0 20px; }
+.community-section { display: none; animation: fadeInUp 0.3s ease; }
+.community-section.active { display: block; }
+
+/* Notice Cards */
+.notice-card {
+  padding: 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  animation: slideInLeft 0.4s ease both;
+}
+.notice-card:nth-child(2) { animation-delay: 0.06s; }
+.notice-card:nth-child(3) { animation-delay: 0.12s; }
+.notice-card:nth-child(4) { animation-delay: 0.18s; }
+.notice-from {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+.notice-text {
+  font-size: 14px;
+  color: var(--slate);
+  line-height: 1.5;
+  font-weight: 500;
+}
+.notice-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-100);
+}
+.notice-time { font-size: 11px; color: var(--gray-400); }
+.notice-actions {
+  display: flex;
+  gap: 12px;
+}
+.notice-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-500);
+  transition: var(--transition);
+}
+.notice-action-btn:active { color: var(--teal); }
+.notice-action-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* Marketplace Cards */
+.marketplace-card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+.marketplace-img {
+  width: 80px;
+  height: 80px;
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.marketplace-img svg { width: 32px; height: 32px; stroke: var(--gray-400); fill: none; stroke-width: 1.5; }
+.marketplace-info { flex: 1; min-width: 0; }
+.marketplace-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slate);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.marketplace-price {
+  font-family: var(--font-accent);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--teal);
+}
+.marketplace-price.free { color: var(--green); }
+.marketplace-seller {
+  font-size: 11px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+.marketplace-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: var(--teal-50);
+  color: var(--teal);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 6px;
+  transition: var(--transition);
+}
+
+/* Lost & Found Cards */
+.lost-card {
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lost-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lost-icon svg { width: 20px; height: 20px; stroke-width: 2; fill: none; }
+.lost-icon.keys { background: var(--amber-50); }
+.lost-icon.keys svg { stroke: var(--amber); }
+.lost-icon.phone { background: var(--blue-50); }
+.lost-icon.phone svg { stroke: var(--blue); }
+.lost-icon.pet { background: var(--red-50); }
+.lost-icon.pet svg { stroke: var(--red); }
+.lost-icon.other { background: var(--purple-50); }
+.lost-icon.other svg { stroke: var(--purple); }
+.lost-info { flex: 1; }
+.lost-title { font-size: 14px; font-weight: 600; color: var(--slate); }
+.lost-meta { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.lost-status-tag {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.lost-status-tag.lost { background: var(--red-50); color: var(--red); }
+.lost-status-tag.found { background: var(--green-50); color: var(--green); }
+
+/* Community Event Cards */
+.community-event-card {
+  padding: 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+.community-event-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.community-event-title { font-size: 15px; font-weight: 600; color: var(--slate); }
+.community-event-tag {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.community-event-date {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.community-event-venue {
+  font-size: 12px;
+  color: var(--gray-400);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.community-event-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+.rsvp-btn {
+  padding: 8px 20px;
+  background: var(--teal);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+.rsvp-btn:active { transform: scale(0.95); }
+.rsvp-btn.rsvpd {
+  background: var(--teal-50);
+  color: var(--teal);
+}
+.attendees-count {
+  font-size: 12px;
+  color: var(--gray-400);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 16px);
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: var(--teal);
+  color: white;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg), 0 4px 20px rgba(13,148,136,0.3);
+  z-index: 500;
+  transition: var(--transition-spring);
+}
+.fab:active { transform: scale(0.9); }
+.fab svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 2.5; }
+.fab.visible { display: flex; }
+@media (min-width: 768px) {
+  .fab { right: calc(50% - 215px + 20px); }
+}
+
+/* ========== PAYMENTS TAB ========== */
+.payment-main-card {
+  margin: 16px 20px;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, var(--slate) 0%, var(--slate-light) 100%);
+  border-radius: var(--radius-xl);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.payment-main-card::after {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.payment-main-card::before {
+  content: '';
+  position: absolute;
+  bottom: -20px; left: 30px;
+  width: 80px; height: 80px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 50%;
+}
+.payment-month-label {
+  font-size: 12px;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.payment-amount {
+  font-family: var(--font-accent);
+  font-size: 38px;
+  font-weight: 700;
+  margin: 8px 0;
+  letter-spacing: -1px;
+}
+.payment-due-date {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-bottom: 16px;
+}
+.payment-status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.payment-status-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: statusPulse 2s infinite;
+}
+.payment-status-dot.paid { background: var(--green); animation: none; }
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.payment-status-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+.pay-now-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--teal);
+  color: white;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition);
+  position: relative;
+  z-index: 2;
+}
+.pay-now-btn:active { transform: scale(0.98); }
+.pay-now-btn.paid-btn {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+}
+
+/* Payment History */
+.payment-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--gray-100);
+}
+.payment-hist-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.payment-hist-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.payment-hist-icon.paid-icon { background: var(--green-50); }
+.payment-hist-icon.paid-icon svg { stroke: var(--green); }
+.payment-hist-icon.pending-icon { background: var(--amber-50); }
+.payment-hist-icon.pending-icon svg { stroke: var(--amber); }
+.payment-hist-icon.overdue-icon { background: var(--red-50); }
+.payment-hist-icon.overdue-icon svg { stroke: var(--red); }
+.payment-hist-icon svg { width: 18px; height: 18px; fill: none; stroke-width: 2; }
+.payment-hist-month { font-size: 14px; font-weight: 600; color: var(--slate); }
+.payment-hist-date { font-size: 12px; color: var(--gray-400); }
+.payment-hist-right { text-align: right; }
+.payment-hist-amount { font-size: 14px; font-weight: 700; color: var(--slate); font-family: var(--font-accent); }
+.payment-hist-status {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.payment-hist-status.paid { color: var(--green); }
+.payment-hist-status.pending { color: var(--amber); }
+.payment-hist-status.overdue { color: var(--red); }
+
+/* Pie Chart */
+.pie-chart-container {
+  padding: 16px 20px;
+}
+.pie-chart-box {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.pie-chart-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.pie-chart {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+.pie-chart-svg {
+  width: 130px;
+  height: 130px;
+  transform: rotate(-90deg);
+}
+.pie-segment {
+  fill: none;
+  stroke-width: 30;
+  stroke-dasharray: 0 314.16;
+  transition: stroke-dasharray 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pie-center-label {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-accent);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--slate);
+  text-align: center;
+  line-height: 1.2;
+}
+.pie-center-label span { font-size: 10px; font-weight: 500; color: var(--gray-400); display: block; }
+.pie-legend { flex: 1; }
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--gray-600);
+}
+.pie-legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ========== MORE/PROFILE TAB ========== */
+.profile-header-card {
+  margin: 16px 20px;
+  padding: 20px;
+  background: var(--base);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.profile-avatar {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  font-family: var(--font-accent);
+  flex-shrink: 0;
+}
+.profile-name { font-size: 18px; font-weight: 700; color: var(--slate); }
+.profile-flat { font-size: 13px; color: var(--gray-500); }
+.profile-complex { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+/* SOS Button */
+.sos-section {
+  padding: 0 20px 16px;
+}
+.sos-button {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: white;
+  border-radius: var(--radius-lg);
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.sos-button::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: calc(var(--radius-lg) + 2px);
+  border: 2px solid var(--red);
+  animation: sosPulse 2s infinite;
+  opacity: 0;
+}
+@keyframes sosPulse {
+  0% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.5; }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+.sos-button:active { transform: scale(0.97); }
+.sos-button svg { width: 24px; height: 24px; fill: white; stroke: white; stroke-width: 1; }
+
+/* Menu List */
+.menu-section {
+  padding: 0 20px 12px;
+}
+.menu-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+.menu-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  transition: var(--transition);
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item:active { background: var(--gray-50); }
+.menu-icon {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.menu-icon svg { width: 18px; height: 18px; stroke-width: 2; fill: none; }
+.menu-text { flex: 1; }
+.menu-text-primary { font-size: 14px; font-weight: 500; color: var(--slate); }
+.menu-text-secondary { font-size: 12px; color: var(--gray-400); }
+.menu-arrow { color: var(--gray-300); }
+.menu-arrow svg { width: 18px; height: 18px; stroke: var(--gray-300); fill: none; stroke-width: 2; }
+
+/* Emergency Contacts */
+.emergency-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 20px 16px;
+}
+.emergency-card {
+  padding: 14px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  text-align: center;
+  transition: var(--transition);
+}
+.emergency-card:active { background: var(--gray-50); transform: scale(0.97); }
+.emergency-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+}
+.emergency-icon svg { width: 18px; height: 18px; stroke-width: 2; fill: none; }
+.emergency-name { font-size: 13px; font-weight: 600; color: var(--slate); }
+.emergency-phone { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+/* Complaint Tracker */
+.complaint-card {
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin: 0 20px 10px;
+}
+.complaint-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.complaint-title { font-size: 14px; font-weight: 600; color: var(--slate); }
+.complaint-status {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.complaint-status.open { background: var(--amber-50); color: var(--amber); }
+.complaint-status.in-progress { background: var(--blue-50); color: var(--blue); }
+.complaint-status.resolved { background: var(--green-50); color: var(--green); }
+.complaint-desc { font-size: 13px; color: var(--gray-500); line-height: 1.4; }
+.complaint-date { font-size: 11px; color: var(--gray-400); margin-top: 6px; }
+
+/* ========== TOAST ========== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: 100%;
+  max-width: 390px;
+  padding: 0 20px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--slate);
+  color: white;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-xl);
+  animation: toastIn 0.35s ease, toastOut 0.35s ease 2.5s forwards;
+  pointer-events: auto;
+}
+.toast svg { width: 20px; height: 20px; flex-shrink: 0; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+/* ========== PAYMENT FLOW MODAL ========== */
+.payment-flow {
+  text-align: center;
+  padding: 20px 0;
+}
+.payment-flow-icon {
+  width: 80px; height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.payment-flow-icon.processing {
+  background: var(--teal-50);
+  animation: processingPulse 1s infinite;
+}
+.payment-flow-icon.success { background: var(--green-50); }
+@keyframes processingPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.payment-flow-icon svg { width: 40px; height: 40px; }
+.payment-flow-title {
+  font-family: var(--font-accent);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--slate);
+  margin-bottom: 6px;
+}
+.payment-flow-desc { font-size: 14px; color: var(--gray-500); }
+.payment-flow-amount {
+  font-family: var(--font-accent);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--teal);
+  margin: 16px 0;
+}
+
+/* Progress Ring */
+.progress-ring {
+  width: 60px; height: 60px;
+  position: relative;
+  margin: 0 auto;
+}
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring-circle {
+  fill: none;
+  stroke: var(--gray-200);
+  stroke-width: 4;
+}
+.progress-ring-progress {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 157;
+  stroke-dashoffset: 157;
+  transition: stroke-dashoffset 1.5s ease;
+}
+
+/* ========== UTILITY CLASSES ========== */
+.text-center { text-align: center; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.pb-20 { padding-bottom: 20px; }
+.px-20 { padding-left: 20px; padding-right: 20px; }
+.hidden { display: none !important; }
+.divider {
+  height: 1px;
+  background: var(--gray-100);
+  margin: 8px 20px;
+}
+
+/* Scroll animations */
+.anim-on-scroll {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.anim-on-scroll.visible-anim {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  background: var(--gray-300);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.toggle-switch.active { background: var(--teal); }
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-spring);
+}
+.toggle-switch.active::after { left: 22px; }
+
+/* Download receipt button */
+.download-receipt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--teal);
+  margin-top: 4px;
+  transition: var(--transition);
+}
+.download-receipt-btn:active { opacity: 0.7; }
+.download-receipt-btn svg { width: 14px; height: 14px; stroke: var(--teal); fill: none; stroke-width: 2; }
+
+/* Amenity Booking */
+.amenity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 0 20px 16px;
+}
+.amenity-card {
+  padding: 14px 8px;
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  text-align: center;
+  transition: var(--transition);
+}
+.amenity-card:active { border-color: var(--teal); background: var(--teal-50); transform: scale(0.96); }
+.amenity-icon { margin-bottom: 6px; }
+.amenity-icon svg { width: 28px; height: 28px; stroke: var(--teal); fill: none; stroke-width: 1.5; margin: 0 auto; }
+.amenity-name { font-size: 12px; font-weight: 600; color: var(--slate); }
+.amenity-status { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+/* Directory search */
+.directory-search {
+  margin: 0 20px 12px;
+  position: relative;
+}
+.directory-search input {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  background: var(--base);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--slate);
+}
+.directory-search svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px; height: 18px;
+  stroke: var(--gray-400);
+  fill: none;
+  stroke-width: 2;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== SPLASH SCREEN ========== -->
+<div class="splash" id="splash">
+  <div class="splash-logo">
+    <svg viewBox="0 0 48 48" fill="none">
+      <path d="M24 4L4 18v24a2 2 0 002 2h14V30h8v14h14a2 2 0 002-2V18L24 4z" fill="white" opacity="0.9"/>
+      <path d="M18 22h4v4h-4zm8 0h4v4h-4z" fill="rgba(13,148,136,0.6)"/>
+    </svg>
+  </div>
+  <div class="splash-title">NestHub</div>
+  <div class="splash-subtitle">Prestige Lakeside Heights</div>
+  <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+  <svg class="splash-building" viewBox="0 0 300 200">
+    <rect class="building-rect" x="20" y="80" width="40" height="120" rx="2"/>
+    <rect class="building-rect" x="70" y="40" width="50" height="160" rx="2"/>
+    <rect class="building-rect" x="130" y="60" width="45" height="140" rx="2"/>
+    <rect class="building-rect" x="185" y="30" width="55" height="170" rx="2"/>
+    <rect class="building-rect" x="250" y="70" width="35" height="130" rx="2"/>
+  </svg>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div class="app-container" id="app">
+  <div class="app-content" id="appContent">
+
+    <!-- ======= HOME TAB ======= -->
+    <div class="tab-page active" id="tabHome">
+      <!-- Header -->
+      <div class="home-header">
+        <div class="home-top-bar">
+          <div class="home-complex-name">Prestige Lakeside Heights</div>
+          <button class="home-notif-btn" onclick="showToast('You have 3 new notifications', 'info')">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <div class="home-notif-dot"></div>
+          </button>
+        </div>
+        <div class="home-greeting" id="greeting">Good Morning, Karthik</div>
+        <div class="home-flat-info">
+          <span>Block A, Flat 402</span>
+          <span class="dot"></span>
+          <span>Owner</span>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="quick-action-btn" onclick="showComplaintModal()">
+          <div class="quick-action-icon complaint">
+            <svg viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="quick-action-label">Raise Complaint</div>
+        </button>
+        <button class="quick-action-btn" onclick="switchTab('payments')">
+          <div class="quick-action-icon pay">
+            <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div class="quick-action-label">Pay Maint.</div>
+        </button>
+        <button class="quick-action-btn" onclick="switchTab('more')">
+          <div class="quick-action-icon book">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="quick-action-label">Book Amenity</div>
+        </button>
+        <button class="quick-action-btn" onclick="triggerSOS()">
+          <div class="quick-action-icon sos">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="quick-action-label">SOS</div>
+        </button>
+      </div>
+
+      <!-- Today's Summary -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Today's Summary</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-item">
+            <div class="summary-icon" style="background:var(--blue-50);">
+              <svg viewBox="0 0 24 24" style="stroke:var(--blue);"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            </div>
+            <span><strong>2 visitors</strong> expected today</span>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon" style="background:var(--amber-50);">
+              <svg viewBox="0 0 24 24" style="stroke:var(--amber);"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            </div>
+            <span><strong>1 package</strong> at reception</span>
+          </div>
+          <div class="summary-item">
+            <div class="summary-icon" style="background:var(--purple-50);">
+              <svg viewBox="0 0 24 24" style="stroke:var(--purple);"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span>Next event: <strong>Yoga class 6 PM</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Due This Month -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Due This Month</div>
+          <button class="section-link" onclick="switchTab('payments')">View All</button>
+        </div>
+        <div class="due-card" id="homeDueCard">
+          <div class="due-info">
+            <div class="due-label">April 2025 Maintenance</div>
+            <div class="due-amount" id="homeDueAmount">&#8377;4,500</div>
+            <div class="due-status pending" id="homeDueStatus">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/></svg>
+              Pending - Due Apr 10
+            </div>
+          </div>
+          <button class="due-btn" onclick="switchTab('payments')" id="homeDueBtn">Pay Now</button>
+        </div>
+      </div>
+
+      <!-- What's New -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">What's New</div>
+          <button class="section-link" onclick="switchTab('community')">See All</button>
+        </div>
+        <div class="announcement-card">
+          <div class="announcement-tag urgent">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+            Urgent
+          </div>
+          <div class="announcement-text">Water tank cleaning scheduled for Saturday 10AM-2PM. Please store water in advance.</div>
+          <div class="announcement-meta">
+            <span>Management</span>
+            <span>&middot;</span>
+            <span>2 hours ago</span>
+          </div>
+        </div>
+        <div class="announcement-card">
+          <div class="announcement-tag security">Security</div>
+          <div class="announcement-text">New CCTV cameras installed in Block B parking area. Total 48 cameras now active.</div>
+          <div class="announcement-meta">
+            <span>Security Dept.</span>
+            <span>&middot;</span>
+            <span>Yesterday</span>
+          </div>
+        </div>
+        <div class="announcement-card">
+          <div class="announcement-tag event">Event</div>
+          <div class="announcement-text">Diwali celebration - Oct 20th at clubhouse. RSVP below. Food and cultural program arranged!</div>
+          <div class="announcement-meta">
+            <span>Cultural Committee</span>
+            <span>&middot;</span>
+            <span>3 days ago</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Events -->
+      <div class="section pb-20">
+        <div class="section-header">
+          <div class="section-title">Upcoming Events</div>
+        </div>
+        <div class="event-card">
+          <div class="event-date-box">
+            <div class="event-date-month">Apr</div>
+            <div class="event-date-day">12</div>
+          </div>
+          <div class="event-details">
+            <div class="event-name">Morning Yoga Session</div>
+            <div class="event-time">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              6:00 AM - 7:00 AM &middot; Clubhouse Lawn
+            </div>
+          </div>
+        </div>
+        <div class="event-card">
+          <div class="event-date-box">
+            <div class="event-date-month">Apr</div>
+            <div class="event-date-day">15</div>
+          </div>
+          <div class="event-details">
+            <div class="event-name">Kids Art Workshop</div>
+            <div class="event-time">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              4:00 PM - 6:00 PM &middot; Community Hall
+            </div>
+          </div>
+        </div>
+        <div class="event-card">
+          <div class="event-date-box">
+            <div class="event-date-month">Apr</div>
+            <div class="event-date-day">20</div>
+          </div>
+          <div class="event-details">
+            <div class="event-name">Carrom Tournament</div>
+            <div class="event-time">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              10:00 AM onwards &middot; Recreation Room
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= VISITORS TAB ======= -->
+    <div class="tab-page" id="tabVisitors">
+      <div class="page-header">
+        <div class="page-header-title">Visitors</div>
+        <div class="page-header-subtitle">Manage and pre-approve your visitors</div>
+      </div>
+
+      <!-- Pre-Approve Button -->
+      <button class="visitor-pre-approve" onclick="openVisitorForm()">
+        <div>
+          <div class="visitor-pre-approve-text">Pre-approve a Visitor</div>
+          <div class="visitor-pre-approve-sub">Generate QR pass for easy entry</div>
+        </div>
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+
+      <!-- Quick Approve -->
+      <div class="quick-approve">
+        <div class="quick-approve-title">Quick Approve</div>
+        <div class="quick-approve-row">
+          <button class="quick-approve-chip" onclick="quickApprove('Swiggy/Zomato')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+            Swiggy/Zomato
+          </button>
+          <button class="quick-approve-chip" onclick="quickApprove('Amazon')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            Amazon
+          </button>
+          <button class="quick-approve-chip" onclick="quickApprove('Dunzo')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            Dunzo
+          </button>
+          <button class="quick-approve-chip" onclick="quickApprove('Milk Delivery')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M8 2h8l2 6H6l2-6zM6 8v12a2 2 0 002 2h8a2 2 0 002-2V8"/></svg>
+            Milk Delivery
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Passes -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Active Passes</div>
+          <div class="section-link" id="activePassCount">2 active</div>
+        </div>
+      </div>
+      <div id="activeVisitors">
+        <!-- Dynamically populated -->
+      </div>
+
+      <!-- Visitor Log -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Today's Log</div>
+        </div>
+      </div>
+      <div id="visitorLog">
+        <!-- Dynamically populated -->
+      </div>
+
+      <!-- Frequent Visitors -->
+      <div class="section mt-16">
+        <div class="section-header">
+          <div class="section-title">Frequent Visitors</div>
+        </div>
+      </div>
+      <div id="frequentVisitors" class="pb-20">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+    <!-- ======= COMMUNITY TAB ======= -->
+    <div class="tab-page" id="tabCommunity">
+      <div class="page-header">
+        <div class="page-header-title">Community</div>
+        <div class="page-header-subtitle">Prestige Lakeside Heights</div>
+      </div>
+
+      <!-- Sub Tabs -->
+      <div class="community-tabs">
+        <button class="community-tab-btn active" onclick="switchCommunityTab('notices', this)">Notice Board</button>
+        <button class="community-tab-btn" onclick="switchCommunityTab('marketplace', this)">Marketplace</button>
+        <button class="community-tab-btn" onclick="switchCommunityTab('lostfound', this)">Lost & Found</button>
+        <button class="community-tab-btn" onclick="switchCommunityTab('events', this)">Events</button>
+      </div>
+
+      <!-- Notice Board -->
+      <div class="community-content">
+        <div class="community-section active" id="secNotices">
+          <div class="notice-card">
+            <div class="notice-from">Management Office</div>
+            <div class="announcement-tag urgent" style="margin-bottom:8px">Urgent</div>
+            <div class="notice-text">Water tank cleaning scheduled for Saturday 10AM-2PM. Please store water. Both blocks will be affected.</div>
+            <div class="notice-footer">
+              <div class="notice-time">2 hours ago</div>
+              <div class="notice-actions">
+                <button class="notice-action-btn" onclick="this.querySelector('span').textContent = parseInt(this.querySelector('span').textContent)+1">
+                  <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                  <span>24</span>
+                </button>
+                <button class="notice-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span>8</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="notice-card">
+            <div class="notice-from">Security Department</div>
+            <div class="announcement-tag security" style="margin-bottom:8px">Security</div>
+            <div class="notice-text">New CCTV cameras installed in Block B parking area. 12 additional cameras for enhanced security coverage.</div>
+            <div class="notice-footer">
+              <div class="notice-time">Yesterday, 4:30 PM</div>
+              <div class="notice-actions">
+                <button class="notice-action-btn" onclick="this.querySelector('span').textContent = parseInt(this.querySelector('span').textContent)+1">
+                  <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                  <span>31</span>
+                </button>
+                <button class="notice-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span>5</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="notice-card">
+            <div class="notice-from">Association President</div>
+            <div class="announcement-tag info" style="margin-bottom:8px">Notice</div>
+            <div class="notice-text">Monthly maintenance increased by Rs 500 from May 2025 onwards - approved in AGM held on March 28th. New amount: Rs 5,000/month.</div>
+            <div class="notice-footer">
+              <div class="notice-time">3 days ago</div>
+              <div class="notice-actions">
+                <button class="notice-action-btn" onclick="this.querySelector('span').textContent = parseInt(this.querySelector('span').textContent)+1">
+                  <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                  <span>12</span>
+                </button>
+                <button class="notice-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span>42</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="notice-card">
+            <div class="notice-from">Cultural Committee</div>
+            <div class="announcement-tag event" style="margin-bottom:8px">Event</div>
+            <div class="notice-text">Diwali celebration - Oct 20th at clubhouse. RSVP below. Food and cultural program arranged. Kids fancy dress competition included!</div>
+            <div class="notice-footer">
+              <div class="notice-time">5 days ago</div>
+              <div class="notice-actions">
+                <button class="notice-action-btn" onclick="this.querySelector('span').textContent = parseInt(this.querySelector('span').textContent)+1">
+                  <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                  <span>56</span>
+                </button>
+                <button class="notice-action-btn">
+                  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span>18</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Marketplace -->
+        <div class="community-section" id="secMarketplace">
+          <div class="marketplace-card">
+            <div class="marketplace-img">
+              <svg viewBox="0 0 24 24"><path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11v8a2 2 0 002 2h16a2 2 0 002-2v-8"/><path d="M2 11h20"/><path d="M12 4v7"/></svg>
+            </div>
+            <div class="marketplace-info">
+              <div class="marketplace-title">L-shaped Sofa (3-seater)</div>
+              <div class="marketplace-price">&#8377;15,000</div>
+              <div class="marketplace-seller">Flat B-201 &middot; Bought for &#8377;45,000</div>
+              <button class="marketplace-contact-btn" onclick="showToast('Contact request sent to B-201', 'success')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Contact Seller
+              </button>
+            </div>
+          </div>
+          <div class="marketplace-card">
+            <div class="marketplace-img" style="background: var(--green-50);">
+              <svg viewBox="0 0 24 24" style="stroke: var(--green);"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+            </div>
+            <div class="marketplace-info">
+              <div class="marketplace-title">Kids Bicycle (age 5-8)</div>
+              <div class="marketplace-price free">FREE</div>
+              <div class="marketplace-seller">Flat A-103 &middot; Good condition</div>
+              <button class="marketplace-contact-btn" onclick="showToast('Contact request sent to A-103', 'success')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Contact
+              </button>
+            </div>
+          </div>
+          <div class="marketplace-card">
+            <div class="marketplace-img">
+              <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+            </div>
+            <div class="marketplace-info">
+              <div class="marketplace-title">Samsung 43-inch Smart TV</div>
+              <div class="marketplace-price">&#8377;12,000</div>
+              <div class="marketplace-seller">Flat C-502 &middot; 2 years old</div>
+              <button class="marketplace-contact-btn" onclick="showToast('Contact request sent to C-502', 'success')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Contact Seller
+              </button>
+            </div>
+          </div>
+          <div class="marketplace-card">
+            <div class="marketplace-img">
+              <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+            </div>
+            <div class="marketplace-info">
+              <div class="marketplace-title">Study Table + Chair Set</div>
+              <div class="marketplace-price">&#8377;3,000</div>
+              <div class="marketplace-seller">Flat A-308 &middot; Solid wood</div>
+              <button class="marketplace-contact-btn" onclick="showToast('Contact request sent to A-308', 'success')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Contact Seller
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lost & Found -->
+        <div class="community-section" id="secLostfound">
+          <div class="lost-card">
+            <div class="lost-icon keys">
+              <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            </div>
+            <div class="lost-info">
+              <div class="lost-title">Car keys with BMW keychain</div>
+              <div class="lost-meta">Found near Block A lobby &middot; Apr 8</div>
+            </div>
+            <div class="lost-status-tag found">Found</div>
+          </div>
+          <div class="lost-card">
+            <div class="lost-icon phone">
+              <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div class="lost-info">
+              <div class="lost-title">Samsung Galaxy Buds (white)</div>
+              <div class="lost-meta">Lost in gym area &middot; Apr 6</div>
+            </div>
+            <div class="lost-status-tag lost">Lost</div>
+          </div>
+          <div class="lost-card">
+            <div class="lost-icon pet">
+              <svg viewBox="0 0 24 24"><path d="M12 21c-4-4-8-6.5-8-10a4 4 0 018 0 4 4 0 018 0c0 3.5-4 6-8 10z"/></svg>
+            </div>
+            <div class="lost-info">
+              <div class="lost-title">Orange tabby cat "Muffin"</div>
+              <div class="lost-meta">Missing from Flat C-301 &middot; Apr 5</div>
+            </div>
+            <div class="lost-status-tag lost">Lost</div>
+          </div>
+          <div class="lost-card">
+            <div class="lost-icon other">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="lost-info">
+              <div class="lost-title">Blue umbrella (large)</div>
+              <div class="lost-meta">Found at pool area &middot; Apr 4</div>
+            </div>
+            <div class="lost-status-tag found">Found</div>
+          </div>
+        </div>
+
+        <!-- Events -->
+        <div class="community-section" id="secEvents">
+          <div class="community-event-card">
+            <div class="community-event-top">
+              <div class="community-event-title">Morning Yoga Session</div>
+              <div class="community-event-tag" style="background:var(--green-50);color:var(--green);">Fitness</div>
+            </div>
+            <div class="community-event-date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+              Every Saturday &middot; 6:00 AM - 7:00 AM
+            </div>
+            <div class="community-event-venue">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Clubhouse Lawn
+            </div>
+            <div class="community-event-footer">
+              <button class="rsvp-btn" onclick="toggleRSVP(this)">RSVP</button>
+              <div class="attendees-count">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                18 attending
+              </div>
+            </div>
+          </div>
+          <div class="community-event-card">
+            <div class="community-event-top">
+              <div class="community-event-title">Kids Art Workshop</div>
+              <div class="community-event-tag" style="background:var(--purple-50);color:var(--purple);">Kids</div>
+            </div>
+            <div class="community-event-date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+              April 15, 2025 &middot; 4:00 PM - 6:00 PM
+            </div>
+            <div class="community-event-venue">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Community Hall, Ground Floor
+            </div>
+            <div class="community-event-footer">
+              <button class="rsvp-btn" onclick="toggleRSVP(this)">RSVP</button>
+              <div class="attendees-count">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                12 attending
+              </div>
+            </div>
+          </div>
+          <div class="community-event-card">
+            <div class="community-event-top">
+              <div class="community-event-title">Diwali Grand Celebration</div>
+              <div class="community-event-tag" style="background:var(--amber-50);color:var(--amber);">Festival</div>
+            </div>
+            <div class="community-event-date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+              October 20, 2025 &middot; 5:00 PM onwards
+            </div>
+            <div class="community-event-venue">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Clubhouse + Pool Area
+            </div>
+            <div class="community-event-footer">
+              <button class="rsvp-btn" onclick="toggleRSVP(this)">RSVP</button>
+              <div class="attendees-count">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                47 attending
+              </div>
+            </div>
+          </div>
+          <div class="community-event-card">
+            <div class="community-event-top">
+              <div class="community-event-title">Carrom Tournament</div>
+              <div class="community-event-tag" style="background:var(--blue-50);color:var(--blue);">Sports</div>
+            </div>
+            <div class="community-event-date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+              April 20, 2025 &middot; 10:00 AM onwards
+            </div>
+            <div class="community-event-venue">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Recreation Room, Block A
+            </div>
+            <div class="community-event-footer">
+              <button class="rsvp-btn" onclick="toggleRSVP(this)">RSVP</button>
+              <div class="attendees-count">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                22 attending
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= PAYMENTS TAB ======= -->
+    <div class="tab-page" id="tabPayments">
+      <div class="page-header">
+        <div class="page-header-title">Payments</div>
+        <div class="page-header-subtitle">Maintenance & billing</div>
+      </div>
+
+      <!-- Main Payment Card -->
+      <div class="payment-main-card">
+        <div class="payment-month-label">April 2025 Maintenance</div>
+        <div class="payment-amount" id="paymentAmount">&#8377;4,500</div>
+        <div class="payment-due-date">Due by April 10, 2025</div>
+        <div class="payment-status-line">
+          <div class="payment-status-dot" id="paymentDot"></div>
+          <div class="payment-status-text" id="paymentStatusText">Payment Pending</div>
+        </div>
+        <button class="pay-now-btn" id="payNowBtn" onclick="startPayment()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Pay Now
+        </button>
+      </div>
+
+      <!-- Expense Breakdown -->
+      <div class="pie-chart-container">
+        <div class="section-header" style="padding:0 0 12px;">
+          <div class="section-title">Expense Breakdown</div>
+        </div>
+        <div class="pie-chart-box">
+          <div class="pie-chart-wrapper">
+            <div class="pie-chart" id="pieChart">
+              <svg class="pie-chart-svg" viewBox="0 0 100 100">
+                <circle class="pie-segment" id="seg1" cx="50" cy="50" r="25" stroke="var(--teal)" data-percent="40"/>
+                <circle class="pie-segment" id="seg2" cx="50" cy="50" r="25" stroke="var(--blue)" data-percent="20"/>
+                <circle class="pie-segment" id="seg3" cx="50" cy="50" r="25" stroke="var(--amber)" data-percent="15"/>
+                <circle class="pie-segment" id="seg4" cx="50" cy="50" r="25" stroke="var(--purple)" data-percent="15"/>
+                <circle class="pie-segment" id="seg5" cx="50" cy="50" r="25" stroke="var(--red)" data-percent="10"/>
+              </svg>
+              <div class="pie-center-label">&#8377;4,500<span>per month</span></div>
+            </div>
+            <div class="pie-legend">
+              <div class="pie-legend-item"><div class="pie-legend-dot" style="background:var(--teal)"></div>Maintenance (40%)</div>
+              <div class="pie-legend-item"><div class="pie-legend-dot" style="background:var(--blue)"></div>Sinking Fund (20%)</div>
+              <div class="pie-legend-item"><div class="pie-legend-dot" style="background:var(--amber)"></div>Water (15%)</div>
+              <div class="pie-legend-item"><div class="pie-legend-dot" style="background:var(--purple)"></div>Electricity (15%)</div>
+              <div class="pie-legend-item"><div class="pie-legend-dot" style="background:var(--red)"></div>Staff Salary (10%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment History -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Payment History</div>
+        </div>
+      </div>
+      <div id="paymentHistory" class="pb-20">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+    <!-- ======= MORE/PROFILE TAB ======= -->
+    <div class="tab-page" id="tabMore">
+      <div class="page-header">
+        <div class="page-header-title">Profile & More</div>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="profile-header-card">
+        <div class="profile-avatar">KC</div>
+        <div>
+          <div class="profile-name">Karthik Chandrasekaran</div>
+          <div class="profile-flat">Block A, Flat 402 &middot; Owner</div>
+          <div class="profile-complex">Prestige Lakeside Heights, Bangalore</div>
+        </div>
+      </div>
+
+      <!-- SOS Button -->
+      <div class="sos-section">
+        <button class="sos-button" onclick="triggerSOS()">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          SOS Emergency
+        </button>
+      </div>
+
+      <!-- Emergency Contacts -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Emergency Contacts</div>
+        </div>
+      </div>
+      <div class="emergency-grid">
+        <div class="emergency-card" onclick="showToast('Calling Security...', 'info')">
+          <div class="emergency-icon" style="background:var(--red-50);">
+            <svg viewBox="0 0 24 24" style="stroke:var(--red);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="emergency-name">Security</div>
+          <div class="emergency-phone">+91 98450 12345</div>
+        </div>
+        <div class="emergency-card" onclick="showToast('Calling Plumber...', 'info')">
+          <div class="emergency-icon" style="background:var(--blue-50);">
+            <svg viewBox="0 0 24 24" style="stroke:var(--blue);"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <div class="emergency-name">Plumber</div>
+          <div class="emergency-phone">+91 99003 45678</div>
+        </div>
+        <div class="emergency-card" onclick="showToast('Calling Electrician...', 'info')">
+          <div class="emergency-icon" style="background:var(--amber-50);">
+            <svg viewBox="0 0 24 24" style="stroke:var(--amber);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="emergency-name">Electrician</div>
+          <div class="emergency-phone">+91 98867 11223</div>
+        </div>
+        <div class="emergency-card" onclick="showToast('Calling Management...', 'info')">
+          <div class="emergency-icon" style="background:var(--teal-50);">
+            <svg viewBox="0 0 24 24" style="stroke:var(--teal);"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="emergency-name">Management</div>
+          <div class="emergency-phone">+91 80 4567 8900</div>
+        </div>
+      </div>
+
+      <!-- Amenity Booking -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Book Amenity</div>
+        </div>
+      </div>
+      <div class="amenity-grid">
+        <button class="amenity-card" onclick="showToast('Clubhouse booking opened!', 'success')">
+          <div class="amenity-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="amenity-name">Clubhouse</div>
+          <div class="amenity-status">Available</div>
+        </button>
+        <button class="amenity-card" onclick="showToast('Gym slot booked for 6 AM!', 'success')">
+          <div class="amenity-icon">
+            <svg viewBox="0 0 24 24"><path d="M6.5 6.5h11M6.5 17.5h11"/><rect x="2" y="8.5" width="5" height="7" rx="1"/><rect x="17" y="8.5" width="5" height="7" rx="1"/><line x1="4.5" y1="12" x2="19.5" y2="12"/></svg>
+          </div>
+          <div class="amenity-name">Gym Slot</div>
+          <div class="amenity-status">6 AM slot open</div>
+        </button>
+        <button class="amenity-card" onclick="showToast('Parking spot reserved!', 'success')">
+          <div class="amenity-icon">
+            <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2v-1"/></svg>
+          </div>
+          <div class="amenity-name">Guest Parking</div>
+          <div class="amenity-status">3 spots free</div>
+        </button>
+      </div>
+
+      <!-- Complaints -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Active Complaints</div>
+          <button class="section-link" onclick="showComplaintModal()">+ New</button>
+        </div>
+      </div>
+      <div class="complaint-card">
+        <div class="complaint-top">
+          <div class="complaint-title">Water leakage in bathroom</div>
+          <div class="complaint-status in-progress">In Progress</div>
+        </div>
+        <div class="complaint-desc">Water seeping from ceiling in master bathroom. Plumber visited once, needs follow-up.</div>
+        <div class="complaint-date">Filed: Apr 3, 2025 &middot; ID: #PLB-0042</div>
+      </div>
+      <div class="complaint-card">
+        <div class="complaint-top">
+          <div class="complaint-title">Noisy generator at night</div>
+          <div class="complaint-status open">Open</div>
+        </div>
+        <div class="complaint-desc">Generator near Block A entrance is very loud after 10 PM. Disturbing sleep.</div>
+        <div class="complaint-date">Filed: Apr 7, 2025 &middot; ID: #GEN-0018</div>
+      </div>
+      <div class="complaint-card mb-16">
+        <div class="complaint-top">
+          <div class="complaint-title">Lift breakdown in Block A</div>
+          <div class="complaint-status resolved">Resolved</div>
+        </div>
+        <div class="complaint-desc">Lift #2 was stuck between 3rd and 4th floor. Fixed by elevator team.</div>
+        <div class="complaint-date">Filed: Mar 28, 2025 &middot; Resolved: Mar 29</div>
+      </div>
+
+      <!-- Settings Menu -->
+      <div class="menu-section">
+        <div class="menu-section-title">Settings</div>
+        <div class="menu-card">
+          <div class="menu-item" onclick="toggleSetting(this)">
+            <div class="menu-icon" style="background:var(--teal-50);">
+              <svg viewBox="0 0 24 24" style="stroke:var(--teal);"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-text-primary">Push Notifications</div>
+              <div class="menu-text-secondary">Visitor alerts, payments, notices</div>
+            </div>
+            <div class="toggle-switch active" id="toggleNotif"></div>
+          </div>
+          <div class="menu-item" onclick="showToast('Profile editor opening...', 'info')">
+            <div class="menu-icon" style="background:var(--blue-50);">
+              <svg viewBox="0 0 24 24" style="stroke:var(--blue);"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-text-primary">Edit Profile</div>
+              <div class="menu-text-secondary">Name, phone, email</div>
+            </div>
+            <div class="menu-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="menu-item" onclick="showToast('Opening resident directory...', 'info')">
+            <div class="menu-icon" style="background:var(--purple-50);">
+              <svg viewBox="0 0 24 24" style="stroke:var(--purple);"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-text-primary">Resident Directory</div>
+              <div class="menu-text-secondary">Search by flat number</div>
+            </div>
+            <div class="menu-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-icon" style="background:var(--gray-100);">
+              <svg viewBox="0 0 24 24" style="stroke:var(--gray-500);"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-text-primary">App Settings</div>
+              <div class="menu-text-secondary">Theme, language, privacy</div>
+            </div>
+            <div class="menu-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center; padding:16px 20px 32px; font-size:12px; color:var(--gray-400);">
+        NestHub v1.0.0 &middot; Made for Prestige Lakeside Heights<br>
+        <span style="font-size:11px;">Resident Community Management Platform</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========== BOTTOM NAVIGATION ========== -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" onclick="switchTab('home')" data-tab="home">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('visitors')" data-tab="visitors">
+      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      <span>Visitors</span>
+      <div class="nav-badge"></div>
+    </button>
+    <button class="nav-item" onclick="switchTab('community')" data-tab="community">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <span>Community</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('payments')" data-tab="payments">
+      <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <span>Payments</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('more')" data-tab="more">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      <span>More</span>
+    </button>
+  </nav>
+
+  <!-- FAB for Community Tab -->
+  <button class="fab" id="fab" onclick="showToast('Create post feature coming soon!', 'info')">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</div>
+
+<!-- ========== MODALS ========== -->
+<!-- Visitor Form Modal -->
+<div class="modal-overlay" id="visitorModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Pre-approve Visitor</div>
+    <div class="form-group">
+      <label class="form-label">Visitor Name</label>
+      <input class="form-input" type="text" id="visitorName" placeholder="Enter visitor name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" type="tel" id="visitorPhone" placeholder="+91 XXXXX XXXXX">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Purpose</label>
+      <select class="form-select" id="visitorPurpose">
+        <option value="" disabled selected>Select purpose</option>
+        <option value="delivery">Delivery</option>
+        <option value="guest">Guest</option>
+        <option value="service">Service/Repair</option>
+        <option value="cab">Cab/Taxi</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Expected Date</label>
+      <input class="form-input" type="date" id="visitorDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Expected Time</label>
+      <input class="form-input" type="time" id="visitorTime">
+    </div>
+    <button class="btn-primary" onclick="approveVisitor()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Generate QR Pass
+    </button>
+    <div style="height:8px;"></div>
+    <button class="btn-primary" style="background:var(--gray-200);color:var(--gray-600);" onclick="closeVisitorForm()">Cancel</button>
+  </div>
+</div>
+
+<!-- Complaint Modal -->
+<div class="modal-overlay" id="complaintModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Raise a Complaint</div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="complaintCategory">
+        <option value="" disabled selected>Select category</option>
+        <option value="plumbing">Plumbing</option>
+        <option value="electrical">Electrical</option>
+        <option value="noise">Noise Complaint</option>
+        <option value="parking">Parking Issue</option>
+        <option value="elevator">Elevator</option>
+        <option value="security">Security</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Subject</label>
+      <input class="form-input" type="text" id="complaintSubject" placeholder="Brief description">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Details</label>
+      <textarea class="form-input" id="complaintDetails" rows="4" placeholder="Describe the issue in detail..." style="resize:vertical;min-height:80px;"></textarea>
+    </div>
+    <button class="btn-primary" onclick="submitComplaint()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Submit Complaint
+    </button>
+    <div style="height:8px;"></div>
+    <button class="btn-primary" style="background:var(--gray-200);color:var(--gray-600);" onclick="closeComplaintModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Payment Flow Modal -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="paymentFlowContent">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ========== APP STATE ==========
+const APP_STATE = {
+  currentTab: 'home',
+  currentCommunityTab: 'notices',
+  paymentPaid: false,
+  visitors: [],
+  frequentVisitors: [
+    { name: 'Lakshmi', role: 'Maid', initial: 'L', type: 'service' },
+    { name: 'Raju', role: 'Cook', initial: 'R', type: 'service' },
+    { name: 'Suresh', role: 'Driver', initial: 'S', type: 'cab' }
+  ],
+  activeVisitors: [
+    { id: 1, name: 'Swiggy Delivery', purpose: 'Delivery', type: 'delivery', time: '12:30 PM', status: 'active', initial: 'SD' },
+    { id: 2, name: 'Amazon Package', purpose: 'Delivery', type: 'delivery', time: '2:00 PM - 4:00 PM', status: 'expected', initial: 'AP' }
+  ],
+  visitorLog: [
+    { name: 'Swiggy Delivery', purpose: 'Food Delivery', type: 'delivery', timeIn: '12:30 PM', timeOut: '12:35 PM', status: 'exited', initial: 'SD' },
+    { name: 'Lakshmi', purpose: 'House Help', type: 'service', timeIn: '7:00 AM', timeOut: '9:30 AM', status: 'exited', initial: 'L' },
+    { name: 'Flipkart Delivery', purpose: 'Package Delivery', type: 'delivery', timeIn: 'Yesterday 3:20 PM', timeOut: 'Yesterday 3:25 PM', status: 'exited', initial: 'FD' }
+  ],
+  paymentHistory: [
+    { month: 'March 2025', date: 'Paid Mar 8', amount: '4,500', status: 'paid' },
+    { month: 'February 2025', date: 'Paid Feb 5', amount: '4,500', status: 'paid' },
+    { month: 'January 2025', date: 'Paid Jan 10', amount: '4,500', status: 'paid' },
+    { month: 'December 2024', date: 'Paid Dec 7', amount: '4,500', status: 'paid' },
+    { month: 'November 2024', date: 'Paid Nov 3', amount: '4,500', status: 'paid' },
+    { month: 'October 2024', date: 'Paid Oct 9', amount: '4,000', status: 'paid' }
+  ]
+};
+
+// ========== LOAD FROM LOCALSTORAGE ==========
+function loadState() {
+  try {
+    const saved = localStorage.getItem('nesthub_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.visitors) APP_STATE.visitors = parsed.visitors;
+      if (parsed.paymentPaid !== undefined) APP_STATE.paymentPaid = parsed.paymentPaid;
+      if (parsed.activeVisitors) APP_STATE.activeVisitors = parsed.activeVisitors;
+    }
+  } catch(e) { /* ignore */ }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('nesthub_state', JSON.stringify({
+      visitors: APP_STATE.visitors,
+      paymentPaid: APP_STATE.paymentPaid,
+      activeVisitors: APP_STATE.activeVisitors
+    }));
+  } catch(e) { /* ignore */ }
+}
+
+// ========== SPLASH SCREEN ==========
+window.addEventListener('load', () => {
+  loadState();
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => {
+      document.getElementById('appContent').classList.add('visible');
+      renderVisitors();
+      renderPaymentHistory();
+      animatePieChart();
+      updatePaymentUI();
+      updateGreeting();
+    }, 300);
+  }, 1500);
+});
+
+// ========== GREETING ==========
+function updateGreeting() {
+  const hour = new Date().getHours();
+  let greeting = 'Good Morning';
+  if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
+  else if (hour >= 17) greeting = 'Good Evening';
+  document.getElementById('greeting').textContent = `${greeting}, Karthik`;
+}
+
+// ========== TAB NAVIGATION ==========
+function switchTab(tab) {
+  APP_STATE.currentTab = tab;
+
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.tab === tab);
+  });
+
+  // Update pages
+  const tabMap = { home: 'tabHome', visitors: 'tabVisitors', community: 'tabCommunity', payments: 'tabPayments', more: 'tabMore' };
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(tabMap[tab]).classList.add('active');
+
+  // FAB visibility
+  const fab = document.getElementById('fab');
+  fab.classList.toggle('visible', tab === 'community');
+
+  // Animate pie chart on payments tab
+  if (tab === 'payments') {
+    setTimeout(animatePieChart, 200);
+  }
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ========== COMMUNITY SUB-TABS ==========
+function switchCommunityTab(tab, btn) {
+  APP_STATE.currentCommunityTab = tab;
+  document.querySelectorAll('.community-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.community-section').forEach(s => s.classList.remove('active'));
+  const secMap = { notices: 'secNotices', marketplace: 'secMarketplace', lostfound: 'secLostfound', events: 'secEvents' };
+  document.getElementById(secMap[tab]).classList.add('active');
+}
+
+// ========== VISITOR MANAGEMENT ==========
+function openVisitorForm() {
+  document.getElementById('visitorModal').classList.add('show');
+  // Set default date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('visitorDate').value = today;
+}
+
+function closeVisitorForm() {
+  document.getElementById('visitorModal').classList.remove('show');
+  // Reset form
+  document.getElementById('visitorName').value = '';
+  document.getElementById('visitorPhone').value = '';
+  document.getElementById('visitorPurpose').selectedIndex = 0;
+  document.getElementById('visitorTime').value = '';
+}
+
+function approveVisitor() {
+  const name = document.getElementById('visitorName').value.trim();
+  const phone = document.getElementById('visitorPhone').value.trim();
+  const purpose = document.getElementById('visitorPurpose').value;
+  const date = document.getElementById('visitorDate').value;
+  const time = document.getElementById('visitorTime').value;
+
+  if (!name) { showToast('Please enter visitor name', 'error'); return; }
+  if (!purpose) { showToast('Please select a purpose', 'error'); return; }
+
+  const visitor = {
+    id: Date.now(),
+    name,
+    phone,
+    purpose: purpose.charAt(0).toUpperCase() + purpose.slice(1),
+    type: purpose,
+    date,
+    time: time || 'Anytime',
+    status: 'expected',
+    initial: name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0,2),
+    createdAt: new Date().toISOString()
+  };
+
+  APP_STATE.activeVisitors.push(visitor);
+  saveState();
+  closeVisitorForm();
+  renderVisitors();
+  showToast(`QR pass generated for ${name}!`, 'success');
+}
+
+function quickApprove(service) {
+  const visitor = {
+    id: Date.now(),
+    name: service + ' Delivery',
+    phone: '',
+    purpose: 'Delivery',
+    type: 'delivery',
+    date: new Date().toISOString().split('T')[0],
+    time: 'Next 30 mins',
+    status: 'expected',
+    initial: service[0] + 'D',
+    createdAt: new Date().toISOString()
+  };
+
+  APP_STATE.activeVisitors.push(visitor);
+  saveState();
+  renderVisitors();
+  showToast(`${service} delivery approved! Gate notified.`, 'success');
+}
+
+function toggleVisitorCard(id) {
+  const card = document.getElementById('visitor-' + id);
+  if (card) card.classList.toggle('expanded');
+}
+
+function renderVisitors() {
+  // Active visitors
+  const activeContainer = document.getElementById('activeVisitors');
+  const activeCount = document.getElementById('activePassCount');
+  const active = APP_STATE.activeVisitors;
+  activeCount.textContent = active.length + ' active';
+
+  activeContainer.innerHTML = active.map(v => `
+    <div class="visitor-card" id="visitor-${v.id}" onclick="toggleVisitorCard(${v.id})">
+      <div class="visitor-card-top">
+        <div class="visitor-card-left">
+          <div class="visitor-avatar ${v.type}">${v.initial}</div>
+          <div>
+            <div class="visitor-name">${v.name}</div>
+            <div class="visitor-purpose">${v.purpose} &middot; ${v.time}</div>
+          </div>
+        </div>
+        <div class="visitor-status-badge ${v.status}">${v.status === 'active' ? 'Entered' : v.status === 'expected' ? 'Expected' : 'Exited'}</div>
+      </div>
+      <div class="visitor-card-expand">
+        <div class="visitor-qr">
+          <div class="qr-grid" id="qr-${v.id}"></div>
+          <div class="qr-label">Show this QR to the security guard</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Generate QR patterns
+  active.forEach(v => {
+    generateQR('qr-' + v.id, v.id);
+  });
+
+  // Visitor log
+  const logContainer = document.getElementById('visitorLog');
+  logContainer.innerHTML = APP_STATE.visitorLog.map(v => `
+    <div class="visitor-card" style="cursor:default;">
+      <div class="visitor-card-top">
+        <div class="visitor-card-left">
+          <div class="visitor-avatar ${v.type}">${v.initial}</div>
+          <div>
+            <div class="visitor-name">${v.name}</div>
+            <div class="visitor-purpose">${v.purpose} &middot; In: ${v.timeIn}${v.timeOut ? ' &middot; Out: ' + v.timeOut : ''}</div>
+          </div>
+        </div>
+        <div class="visitor-status-badge ${v.status}">${v.status === 'exited' ? 'Exited' : v.status}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Frequent visitors
+  const freqContainer = document.getElementById('frequentVisitors');
+  freqContainer.innerHTML = APP_STATE.frequentVisitors.map(v => `
+    <div class="frequent-visitor-card">
+      <div class="frequent-left">
+        <div class="frequent-avatar">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <div class="frequent-name">${v.name}</div>
+          <div class="frequent-role">${v.role}</div>
+        </div>
+      </div>
+      <button class="frequent-approve-btn" onclick="quickApproveFrequent('${v.name}', '${v.role}', '${v.type}')">Approve</button>
+    </div>
+  `).join('');
+}
+
+function quickApproveFrequent(name, role, type) {
+  const visitor = {
+    id: Date.now(),
+    name,
+    phone: '',
+    purpose: role,
+    type,
+    date: new Date().toISOString().split('T')[0],
+    time: 'Now',
+    status: 'expected',
+    initial: name[0],
+    createdAt: new Date().toISOString()
+  };
+  APP_STATE.activeVisitors.push(visitor);
+  saveState();
+  renderVisitors();
+  showToast(`${name} (${role}) approved! Gate notified.`, 'success');
+}
+
+// ========== QR CODE GENERATOR ==========
+function generateQR(containerId, seed) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Simple seeded pseudo-random number generator
+  let s = seed || 1;
+  function seededRandom() {
+    s = (s * 16807 + 37) % 2147483647;
+    return (s & 1) === 0;
+  }
+
+  const size = 11;
+  // Create QR-like pattern with fixed corners (like real QR codes)
+  for (let row = 0; row < size; row++) {
+    for (let col = 0; col < size; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'qr-cell';
+
+      // Fixed corner patterns (finder patterns)
+      const inTopLeft = row < 3 && col < 3;
+      const inTopRight = row < 3 && col >= size - 3;
+      const inBottomLeft = row >= size - 3 && col < 3;
+
+      if (inTopLeft || inTopRight || inBottomLeft) {
+        const isEdge = row === 0 || row === 2 || col === 0 || col === 2 ||
+                       (inTopRight && (col === size-1 || col === size-3)) ||
+                       (inBottomLeft && (row === size-1 || row === size-3));
+        const isCenter = (inTopLeft && row === 1 && col === 1) ||
+                        (inTopRight && row === 1 && col === size-2) ||
+                        (inBottomLeft && row === size-2 && col === 1);
+        cell.classList.add((isEdge || isCenter) ? 'filled' : 'empty');
+      } else {
+        cell.classList.add(seededRandom() ? 'filled' : 'empty');
+      }
+
+      // Animate QR generation
+      const delay = (row * size + col) * 8;
+      cell.style.opacity = '0';
+      cell.style.transition = `opacity 0.15s ease ${delay}ms`;
+      setTimeout(() => { cell.style.opacity = '1'; }, 50);
+
+      container.appendChild(cell);
+    }
+  }
+}
+
+// ========== PAYMENTS ==========
+function updatePaymentUI() {
+  const paid = APP_STATE.paymentPaid;
+  const dot = document.getElementById('paymentDot');
+  const statusText = document.getElementById('paymentStatusText');
+  const payBtn = document.getElementById('payNowBtn');
+  const homeDueCard = document.getElementById('homeDueCard');
+  const homeDueStatus = document.getElementById('homeDueStatus');
+  const homeDueBtn = document.getElementById('homeDueBtn');
+
+  if (paid) {
+    dot.classList.add('paid');
+    statusText.textContent = 'Payment Complete';
+    payBtn.textContent = 'Paid';
+    payBtn.classList.add('paid-btn');
+    payBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Paid';
+    homeDueCard.classList.add('paid');
+    homeDueStatus.className = 'due-status paid-status';
+    homeDueStatus.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Paid on Apr 8';
+    homeDueBtn.textContent = 'Paid';
+    homeDueBtn.style.background = 'var(--green)';
+  }
+}
+
+function startPayment() {
+  if (APP_STATE.paymentPaid) {
+    showToast('Payment already completed!', 'info');
+    return;
+  }
+  const modal = document.getElementById('paymentModal');
+  const content = document.getElementById('paymentFlowContent');
+  modal.classList.add('show');
+
+  // Step 1: Confirm
+  content.innerHTML = `
+    <div class="payment-flow">
+      <div class="payment-flow-icon" style="background:var(--teal-50);">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <div class="payment-flow-title">Confirm Payment</div>
+      <div class="payment-flow-desc">April 2025 Maintenance</div>
+      <div class="payment-flow-amount">&#8377;4,500</div>
+      <div style="font-size:13px;color:var(--gray-500);margin-bottom:24px;">Prestige Lakeside Heights &middot; Block A, Flat 402</div>
+      <button class="btn-primary" onclick="processPayment()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Pay &#8377;4,500
+      </button>
+      <div style="height:8px;"></div>
+      <button class="btn-primary" style="background:var(--gray-200);color:var(--gray-600);" onclick="closePaymentModal()">Cancel</button>
+    </div>
+  `;
+}
+
+function processPayment() {
+  const content = document.getElementById('paymentFlowContent');
+
+  // Step 2: Processing
+  content.innerHTML = `
+    <div class="payment-flow">
+      <div class="payment-flow-icon processing">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+      </div>
+      <div class="payment-flow-title">Processing...</div>
+      <div class="payment-flow-desc">Please wait while we process your payment</div>
+    </div>
+  `;
+
+  // Step 3: Success after delay
+  setTimeout(() => {
+    APP_STATE.paymentPaid = true;
+    saveState();
+    updatePaymentUI();
+
+    content.innerHTML = `
+      <div class="payment-flow">
+        <div class="payment-flow-icon success">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="payment-flow-title" style="color:var(--green);">Payment Successful!</div>
+        <div class="payment-flow-desc">Your maintenance payment has been processed</div>
+        <div class="payment-flow-amount" style="color:var(--green);">&#8377;4,500</div>
+        <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px;">Transaction ID: TXN${Date.now().toString().slice(-8)}</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-bottom:24px;">Receipt sent to your registered email</div>
+        <button class="btn-primary" onclick="closePaymentModal()">
+          Done
+        </button>
+      </div>
+    `;
+  }, 2000);
+}
+
+function closePaymentModal() {
+  document.getElementById('paymentModal').classList.remove('show');
+}
+
+function renderPaymentHistory() {
+  const container = document.getElementById('paymentHistory');
+  container.innerHTML = APP_STATE.paymentHistory.map(p => `
+    <div class="payment-history-item">
+      <div class="payment-hist-left">
+        <div class="payment-hist-icon ${p.status}-icon">
+          <svg viewBox="0 0 24 24">${p.status === 'paid' ? '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'}</svg>
+        </div>
+        <div>
+          <div class="payment-hist-month">${p.month}</div>
+          <div class="payment-hist-date">${p.date}</div>
+          ${p.status === 'paid' ? `<button class="download-receipt-btn" onclick="downloadReceipt('${p.month}')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Receipt</button>` : ''}
+        </div>
+      </div>
+      <div class="payment-hist-right">
+        <div class="payment-hist-amount">&#8377;${p.amount}</div>
+        <div class="payment-hist-status ${p.status}">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function downloadReceipt(month) {
+  showToast(`Downloading receipt for ${month}...`, 'success');
+}
+
+// ========== PIE CHART ANIMATION ==========
+function animatePieChart() {
+  const circumference = 2 * Math.PI * 25; // ~157.08
+  const segments = document.querySelectorAll('.pie-segment');
+  const percents = [40, 20, 15, 15, 10];
+  let offset = 0;
+
+  segments.forEach((seg, i) => {
+    const length = (percents[i] / 100) * circumference;
+    const gap = circumference - length;
+    seg.style.strokeDasharray = `0 ${circumference}`;
+    seg.style.strokeDashoffset = -offset;
+
+    setTimeout(() => {
+      seg.style.strokeDasharray = `${length} ${gap}`;
+    }, 300 + i * 150);
+
+    offset += length;
+  });
+}
+
+// ========== COMPLAINT ==========
+function showComplaintModal() {
+  document.getElementById('complaintModal').classList.add('show');
+}
+function closeComplaintModal() {
+  document.getElementById('complaintModal').classList.remove('show');
+}
+function submitComplaint() {
+  const subject = document.getElementById('complaintSubject').value.trim();
+  if (!subject) { showToast('Please enter a subject', 'error'); return; }
+  closeComplaintModal();
+  showToast('Complaint submitted! ID: #' + Math.random().toString(36).substring(2, 8).toUpperCase(), 'success');
+  // Reset form
+  document.getElementById('complaintSubject').value = '';
+  document.getElementById('complaintDetails').value = '';
+  document.getElementById('complaintCategory').selectedIndex = 0;
+}
+
+// ========== RSVP TOGGLE ==========
+function toggleRSVP(btn) {
+  const isRSVPd = btn.classList.toggle('rsvpd');
+  btn.textContent = isRSVPd ? 'Going!' : 'RSVP';
+  const countEl = btn.parentElement.querySelector('.attendees-count');
+  const currentText = countEl.textContent;
+  const num = parseInt(currentText.match(/\d+/)[0]);
+  countEl.innerHTML = countEl.innerHTML.replace(/\d+/, isRSVPd ? num + 1 : num - 1);
+  showToast(isRSVPd ? 'You\'re going! See you there.' : 'RSVP cancelled', isRSVPd ? 'success' : 'info');
+}
+
+// ========== SOS ==========
+function triggerSOS() {
+  if (confirm('This will alert Security and Management immediately. Are you sure?')) {
+    showToast('SOS Alert sent! Security team has been notified.', 'error');
+  }
+}
+
+// ========== SETTINGS TOGGLE ==========
+function toggleSetting(item) {
+  const toggle = item.querySelector('.toggle-switch');
+  if (toggle) {
+    toggle.classList.toggle('active');
+    const isActive = toggle.classList.contains('active');
+    showToast(`Notifications ${isActive ? 'enabled' : 'disabled'}`, 'info');
+  }
+}
+
+// ========== TOAST SYSTEM ==========
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+
+  let iconSvg = '';
+  if (type === 'success') {
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+  } else if (type === 'error') {
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  } else {
+    iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+  }
+
+  toast.innerHTML = iconSvg + message;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    if (toast.parentElement) toast.remove();
+  }, 3000);
+}
+
+// ========== MODAL CLOSE ON OVERLAY ==========
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('show');
+    }
+  });
+});
+
+// ========== SCROLL ANIMATIONS ==========
+function setupScrollAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible-anim');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.anim-on-scroll').forEach(el => observer.observe(el));
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  setupScrollAnimations();
+});
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+
+</body>
+</html>

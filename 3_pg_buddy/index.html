@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#FF6B35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PGBuddy">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>PGBuddy - Find Your Perfect PG in Bangalore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===================== CSS CUSTOM PROPERTIES ===================== */
+:root {
+  --bg: #FFF8F0;
+  --bg-card: #FFFFFF;
+  --primary: #FF6B35;
+  --primary-light: #FF8F65;
+  --primary-dark: #E55A28;
+  --primary-glow: rgba(255,107,53,0.18);
+  --text: #3D2C2E;
+  --text-light: #7A6365;
+  --text-muted: #A89092;
+  --green: #7CB342;
+  --green-light: #AED581;
+  --green-bg: rgba(124,179,66,0.12);
+  --yellow: #FFB300;
+  --red: #E53935;
+  --border: #F0E6E0;
+  --shadow-sm: 0 2px 8px rgba(61,44,46,0.06);
+  --shadow-md: 0 4px 20px rgba(61,44,46,0.10);
+  --shadow-lg: 0 8px 40px rgba(61,44,46,0.15);
+  --shadow-card: 0 2px 16px rgba(61,44,46,0.08);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tab-height: 68px;
+}
+
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: #EDEDED;
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+input, textarea, select, button { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; border: none; background: none; }
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+
+/* ===================== PHONE FRAME ===================== */
+.phone-frame {
+  width: 100%;
+  max-width: 430px;
+  height: 100dvh;
+  max-height: 932px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 500px) {
+  .phone-frame {
+    border-radius: 40px;
+    box-shadow: 0 0 0 10px #1a1a1a, 0 0 0 12px #333, var(--shadow-lg);
+    height: min(95dvh, 932px);
+  }
+  body { padding: 16px; }
+}
+
+/* ===================== SPLASH SCREEN ===================== */
+.splash {
+  position: absolute;
+  inset: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, #FF6B35, #FF8F65, #FFB74D);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.splash.hide {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+.splash-icon {
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  animation: splashPulse 1.5s ease-in-out infinite;
+  backdrop-filter: blur(10px);
+}
+@keyframes splashPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.splash-icon svg { width: 64px; height: 64px; fill: white; }
+.splash h1 {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.5px;
+}
+.splash p {
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+  margin-top: 8px;
+  font-weight: 500;
+}
+.splash-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 40px;
+}
+.splash-dots span {
+  width: 8px; height: 8px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+.splash-dots span:nth-child(2) { animation-delay: 0.2s; }
+.splash-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* ===================== APP HEADER ===================== */
+.app-header {
+  padding: 12px 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  z-index: 10;
+  flex-shrink: 0;
+}
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.app-logo svg { width: 32px; height: 32px; }
+.app-logo span {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--text);
+}
+.app-logo .accent { color: var(--primary); }
+.header-actions { display: flex; gap: 8px; }
+.header-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.header-btn:active { transform: scale(0.92); }
+.header-btn svg { width: 20px; height: 20px; fill: var(--text); }
+
+/* ===================== MAIN CONTENT AREA ===================== */
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.app-content::-webkit-scrollbar { display: none; }
+.tab-panel { display: none; min-height: 100%; }
+.tab-panel.active { display: block; }
+
+/* ===================== BOTTOM NAV ===================== */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: var(--tab-height);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bottom);
+  flex-shrink: 0;
+  z-index: 100;
+  box-shadow: 0 -2px 20px rgba(61,44,46,0.06);
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--text-muted);
+  transition: all 0.25s;
+}
+.nav-item span {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.25s;
+}
+.nav-item.active svg { fill: var(--primary); }
+.nav-item.active span { color: var(--primary); }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 0 0 3px 3px;
+}
+.nav-item:active { transform: scale(0.9); }
+
+/* ===================== SEARCH BAR ===================== */
+.search-section { padding: 4px 20px 12px; }
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--border);
+  transition: border-color 0.2s;
+}
+.search-bar:focus-within { border-color: var(--primary); }
+.search-bar svg { width: 20px; height: 20px; fill: var(--text-muted); flex-shrink: 0; }
+.search-bar input {
+  border: none;
+  outline: none;
+  background: none;
+  width: 100%;
+  font-size: 14px;
+  color: var(--text);
+}
+.search-bar input::placeholder { color: var(--text-muted); }
+
+/* ===================== FILTER CHIPS ===================== */
+.filters-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filters-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--bg-card);
+  color: var(--text-light);
+  border: 1.5px solid var(--border);
+  transition: all 0.25s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip:active { transform: scale(0.95); }
+.chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 2px 12px var(--primary-glow);
+}
+
+/* ===================== SECTION HEADERS ===================== */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px 12px;
+}
+.section-header h2 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.section-header .see-all {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* ===================== PG CARDS ===================== */
+.featured-scroll {
+  display: flex;
+  gap: 14px;
+  padding: 0 20px 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+.featured-scroll::-webkit-scrollbar { display: none; }
+.pg-card-featured {
+  flex-shrink: 0;
+  width: 280px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  scroll-snap-align: start;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+.pg-card-featured:active { transform: scale(0.97); }
+.card-photo {
+  height: 140px;
+  position: relative;
+  overflow: hidden;
+}
+.card-photo-bg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-photo-bg svg { width: 40px; height: 40px; fill: rgba(255,255,255,0.6); }
+.card-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(8px);
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.card-badge svg { width: 12px; height: 12px; fill: var(--green); }
+.card-bookmark {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.card-bookmark svg { width: 18px; height: 18px; fill: none; stroke: var(--text-light); stroke-width: 2; }
+.card-bookmark.saved svg { fill: var(--red); stroke: var(--red); }
+.card-bookmark:active { transform: scale(1.25); }
+.card-info { padding: 14px; }
+.card-info h3 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.card-location {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.card-location svg { width: 13px; height: 13px; fill: var(--text-muted); }
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.card-price {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.card-price small { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.card-rating svg { width: 14px; height: 14px; fill: var(--yellow); }
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.card-tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--green-bg);
+  color: var(--green);
+}
+.card-tag.neutral {
+  background: rgba(61,44,46,0.06);
+  color: var(--text-light);
+}
+
+/* ===================== LISTING CARDS (vertical) ===================== */
+.pg-list { padding: 0 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+.pg-card-list {
+  display: flex;
+  gap: 14px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.pg-card-list:active { transform: scale(0.98); }
+.pg-card-list-photo {
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.pg-card-list-photo svg { width: 28px; height: 28px; fill: rgba(255,255,255,0.5); }
+.pg-card-list-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.pg-card-list-info h3 {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pg-card-list-info .card-location { margin-bottom: 4px; }
+.pg-card-list-info .card-meta { margin-bottom: 4px; }
+
+/* ===================== SWIPE CARDS ===================== */
+.swipe-container {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  padding: 0 20px;
+}
+.swipe-card {
+  position: absolute;
+  width: calc(100% - 40px);
+  max-width: 370px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.4s;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.swipe-card:active { cursor: grabbing; }
+.swipe-card .card-photo { height: 180px; }
+.swipe-card .card-info { padding: 16px; }
+.swipe-card .card-info h3 { font-size: 19px; }
+.swipe-card .card-info .card-location { font-size: 13px; }
+.swipe-card .card-meta { margin-top: 4px; }
+.swipe-card .card-price { font-size: 20px; }
+.swipe-card .card-tags { margin-top: 10px; }
+.swipe-card .card-tag { font-size: 12px; padding: 4px 10px; }
+.swipe-label {
+  position: absolute;
+  top: 20px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 18px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 5;
+  pointer-events: none;
+}
+.swipe-label.like { right: 20px; color: var(--green); border: 3px solid var(--green); transform: rotate(15deg); }
+.swipe-label.nope { left: 20px; color: var(--red); border: 3px solid var(--red); transform: rotate(-15deg); }
+.swipe-actions {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 20px 8px;
+}
+.swipe-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.2s;
+}
+.swipe-btn:active { transform: scale(0.9); }
+.swipe-btn.skip { background: white; }
+.swipe-btn.skip svg { width: 24px; height: 24px; fill: var(--red); }
+.swipe-btn.save { background: white; }
+.swipe-btn.save svg { width: 24px; height: 24px; fill: var(--green); }
+.swipe-btn.info { background: white; }
+.swipe-btn.info svg { width: 22px; height: 22px; fill: var(--primary); }
+
+/* ===================== PG DETAIL MODAL ===================== */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.detail-modal {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 92%;
+  background: var(--bg);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.32,0.72,0,1);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.detail-modal.open { transform: translateY(0); }
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 10px auto 6px;
+  flex-shrink: 0;
+}
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+.modal-close svg { width: 18px; height: 18px; fill: var(--text); }
+.modal-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 100px;
+}
+.modal-scroll::-webkit-scrollbar { display: none; }
+.detail-hero {
+  height: 200px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+}
+.detail-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 40%, rgba(0,0,0,0.5));
+}
+.detail-hero h1 {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.detail-quick-info {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  margin: -10px 16px 16px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  z-index: 3;
+}
+.quick-item { text-align: center; }
+.quick-item .val {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--primary);
+}
+.quick-item .lbl { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+/* Rating Breakdown */
+.detail-section { padding: 0 20px 20px; }
+.detail-section h2 {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.rating-row .r-label { width: 100px; font-size: 13px; color: var(--text-light); font-weight: 500; }
+.rating-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.rating-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+  width: 0;
+}
+.rating-bar-fill.animated { /* width set by JS */ }
+.rating-row .r-val { width: 28px; text-align: right; font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* Reviews in detail */
+.review-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.review-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  flex-shrink: 0;
+}
+.review-name { font-weight: 600; font-size: 14px; }
+.review-date { font-size: 11px; color: var(--text-muted); }
+.review-stars { display: flex; gap: 2px; margin-bottom: 6px; }
+.review-stars svg { width: 14px; height: 14px; }
+.review-text { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+/* Amenities Grid */
+.amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.amenity-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+.amenity-item svg { width: 24px; height: 24px; }
+.amenity-item span { font-size: 11px; font-weight: 500; color: var(--text-light); text-align: center; }
+.amenity-item.available svg { fill: var(--green); }
+.amenity-item.unavailable { opacity: 0.4; }
+.amenity-item.unavailable svg { fill: var(--text-muted); }
+
+/* Food Menu */
+.menu-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.menu-scroll::-webkit-scrollbar { display: none; }
+.menu-day {
+  flex-shrink: 0;
+  width: 120px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+.menu-day .day {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--primary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.menu-day .meal { font-size: 12px; color: var(--text-light); line-height: 1.5; }
+
+/* Rules */
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rule-item:last-child { border-bottom: none; }
+.rule-item svg { width: 18px; height: 18px; fill: var(--primary); flex-shrink: 0; margin-top: 2px; }
+.rule-item .rule-text { font-size: 13px; color: var(--text-light); }
+.rule-item .rule-label { font-weight: 600; color: var(--text); }
+
+/* Detail CTA Buttons */
+.detail-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+  padding-bottom: calc(16px + var(--safe-bottom));
+  background: linear-gradient(transparent, var(--bg) 20%);
+  display: flex;
+  gap: 12px;
+  z-index: 5;
+}
+.btn-primary {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: white;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  text-align: center;
+  box-shadow: 0 4px 16px var(--primary-glow);
+  transition: all 0.2s;
+}
+.btn-primary:active { transform: scale(0.97); background: var(--primary-dark); }
+.btn-secondary {
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  border: 1.5px solid var(--border);
+  transition: all 0.2s;
+}
+.btn-secondary:active { transform: scale(0.97); }
+
+/* ===================== REVIEWS TAB ===================== */
+.review-form-section { padding: 20px; }
+.form-group { margin-bottom: 20px; }
+.form-label {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg-card);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--primary); }
+.form-input::placeholder { color: var(--text-muted); }
+textarea.form-input { resize: vertical; min-height: 80px; }
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg-card);
+  color: var(--text);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23A89092'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+}
+.star-rating-input {
+  display: flex;
+  gap: 6px;
+}
+.star-rating-input .star-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.star-rating-input .star-btn:active { transform: scale(1.2); }
+.star-rating-input .star-btn svg { width: 28px; height: 28px; transition: fill 0.2s; }
+.rating-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.rating-group .r-label { font-size: 13px; color: var(--text-light); font-weight: 500; }
+
+/* Photo upload placeholder */
+.photo-upload-area {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.photo-upload-box {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+.photo-upload-box:hover { border-color: var(--primary); }
+.photo-upload-box svg { width: 24px; height: 24px; fill: var(--text-muted); margin-bottom: 4px; }
+.photo-upload-box span { font-size: 10px; color: var(--text-muted); }
+.photo-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.photo-preview svg { width: 28px; height: 28px; fill: rgba(255,255,255,0.7); }
+
+/* Toggle */
+.toggle-row {
+  display: flex;
+  gap: 10px;
+}
+.toggle-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-light);
+  transition: all 0.25s;
+}
+.toggle-btn.active-yes {
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: var(--green);
+}
+.toggle-btn.active-no {
+  background: rgba(229,57,53,0.08);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Your Reviews */
+.your-reviews { padding: 0 20px 80px; }
+
+/* ===================== COMPARE TAB ===================== */
+.compare-section { padding: 20px; }
+.compare-select-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.compare-select-row select { flex: 1; }
+.compare-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--primary);
+  margin: 0 -4px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.compare-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 16px;
+}
+.compare-card h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.compare-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.compare-bar-left {
+  flex: 1;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 6px;
+}
+.compare-bar-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.compare-cat {
+  width: 70px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+.compare-fill {
+  height: 8px;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.compare-fill.left { background: var(--primary); }
+.compare-fill.right { background: var(--green); }
+.compare-val {
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 24px;
+}
+.compare-val.left { text-align: right; color: var(--primary); }
+.compare-val.right { color: var(--green); }
+.winner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 50px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.winner-badge.left { background: var(--primary-glow); color: var(--primary); }
+.winner-badge.right { background: var(--green-bg); color: var(--green); }
+.compare-amenity-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.compare-amenity-row:last-child { border-bottom: none; }
+.compare-amenity-row .amenity-name {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.compare-amenity-row .check {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+}
+.compare-names {
+  display: flex;
+  margin-bottom: 12px;
+}
+.compare-names span {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+}
+.compare-names span:first-child { color: var(--primary); }
+.compare-names span:last-child { color: var(--green); }
+.overall-pick {
+  text-align: center;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--primary-glow), var(--green-bg));
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+}
+.overall-pick .pick-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.overall-pick .pick-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text);
+}
+
+/* ===================== SAVED / PROFILE TAB ===================== */
+.profile-section { padding: 20px; }
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 22px;
+  color: white;
+}
+.profile-info h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 18px;
+}
+.profile-info p { font-size: 13px; color: var(--text-muted); }
+
+.pref-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 16px;
+}
+.pref-card h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.budget-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  outline: none;
+}
+.budget-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 2px 8px var(--primary-glow);
+  cursor: pointer;
+}
+.budget-value {
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--primary);
+  margin-top: 8px;
+}
+.area-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Checklist */
+.checklist-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 16px;
+}
+.checklist-card h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checklist-card h3 svg { width: 20px; height: 20px; fill: var(--primary); }
+.checklist-progress {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.checklist-progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 3px;
+  transition: width 0.4s;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.check-item:last-child { border-bottom: none; }
+.check-box {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.check-item.checked .check-box {
+  background: var(--green);
+  border-color: var(--green);
+}
+.check-box svg { width: 14px; height: 14px; fill: white; opacity: 0; transition: opacity 0.2s; }
+.check-item.checked .check-box svg { opacity: 1; }
+.check-item .check-text { font-size: 14px; color: var(--text-light); transition: all 0.2s; }
+.check-item.checked .check-text { color: var(--text-muted); text-decoration: line-through; }
+
+/* Saved PGs */
+.saved-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ===================== TOAST ===================== */
+.toast-container {
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+  pointer-events: auto;
+}
+.toast.success { background: var(--green); color: white; }
+.toast.info { background: var(--text); color: white; }
+.toast.warning { background: var(--yellow); color: var(--text); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+/* ===================== GRADIENT BACKGROUNDS ===================== */
+.grad-1 { background: linear-gradient(135deg, #FF9A76, #FECF71); }
+.grad-2 { background: linear-gradient(135deg, #667EEA, #764BA2); }
+.grad-3 { background: linear-gradient(135deg, #F093FB, #F5576C); }
+.grad-4 { background: linear-gradient(135deg, #4FACFE, #00F2FE); }
+.grad-5 { background: linear-gradient(135deg, #43E97B, #38F9D7); }
+.grad-6 { background: linear-gradient(135deg, #FA709A, #FEE140); }
+.grad-7 { background: linear-gradient(135deg, #A18CD1, #FBC2EB); }
+.grad-8 { background: linear-gradient(135deg, #FCCB90, #D57EEB); }
+
+/* ===================== ANIMATIONS ===================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.4s ease forwards; }
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+
+/* ===================== EMPTY STATE ===================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+.empty-state svg { width: 80px; height: 80px; fill: var(--border); margin-bottom: 16px; }
+.empty-state h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.empty-state p { font-size: 13px; color: var(--text-muted); }
+
+/* ===================== TAB TITLE ===================== */
+.tab-title {
+  padding: 16px 20px 8px;
+}
+.tab-title h1 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 26px;
+}
+.tab-title p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ===================== SWIPE HINT ===================== */
+.swipe-hint {
+  text-align: center;
+  padding: 4px 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.swipe-hint span { display: flex; align-items: center; gap: 4px; }
+.swipe-hint svg { width: 14px; height: 14px; }
+
+/* ===================== VIEW MODE TOGGLE ===================== */
+.view-toggle {
+  display: flex;
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 3px;
+  margin: 0 20px 12px;
+  box-shadow: var(--shadow-sm);
+}
+.view-toggle button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.view-toggle button svg { width: 16px; height: 16px; fill: var(--text-muted); }
+.view-toggle button.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+.view-toggle button.active svg { fill: white; }
+
+/* ===================== MISC ===================== */
+.pb-safe { padding-bottom: calc(20px + var(--safe-bottom)); }
+.divider { height: 8px; background: rgba(0,0,0,0.02); }
+</style>
+</head>
+<body>
+
+<div class="phone-frame" id="app">
+  <!-- SPLASH SCREEN -->
+  <div class="splash" id="splash">
+    <div class="splash-icon">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </div>
+    <h1>PGBuddy</h1>
+    <p>Find your perfect PG in Bangalore</p>
+    <div class="splash-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- APP HEADER -->
+  <header class="app-header" id="appHeader">
+    <div class="app-logo">
+      <svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#FF6B35"/><path d="M16 6L6 14h3v10h5v-6h4v6h5V14h3L16 6z" fill="white"/><circle cx="16" cy="14" r="2" fill="#FFB74D"/></svg>
+      <span>PG<span class="accent">Buddy</span></span>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="showToast('Notifications coming soon!','info')">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="app-content" id="appContent">
+
+    <!-- ========== EXPLORE TAB ========== -->
+    <div class="tab-panel active" id="tabExplore">
+      <!-- Search -->
+      <div class="search-section">
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input type="text" placeholder="Search PGs in Bangalore..." id="searchInput" oninput="filterPGs()">
+        </div>
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="filters-row" id="filtersRow">
+        <button class="chip" data-filter="all" onclick="toggleFilter(this)">All</button>
+        <button class="chip" data-filter="veg" onclick="toggleFilter(this)">🥬 Veg Only</button>
+        <button class="chip" data-filter="under10k" onclick="toggleFilter(this)">Under 10K</button>
+        <button class="chip" data-filter="ac" onclick="toggleFilter(this)">❄️ AC</button>
+        <button class="chip" data-filter="wifi" onclick="toggleFilter(this)">📶 WiFi</button>
+        <button class="chip" data-filter="single" onclick="toggleFilter(this)">Single Room</button>
+        <button class="chip" data-filter="metro" onclick="toggleFilter(this)">🚇 Near Metro</button>
+        <button class="chip" data-filter="women" onclick="toggleFilter(this)">👩 Women Only</button>
+      </div>
+
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button class="active" onclick="setViewMode('swipe',this)">
+          <svg viewBox="0 0 24 24"><path d="M21 4H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H3V6h18v12z"/></svg>
+          Swipe
+        </button>
+        <button onclick="setViewMode('list',this)">
+          <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          List
+        </button>
+      </div>
+
+      <!-- Swipe View -->
+      <div id="swipeView">
+        <div class="swipe-hint">
+          <span><svg viewBox="0 0 24 24" style="fill:var(--red)"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Skip</span>
+          <span><svg viewBox="0 0 24 24" style="fill:var(--green)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Save</span>
+        </div>
+        <div class="swipe-container" id="swipeContainer"></div>
+        <div class="swipe-actions">
+          <button class="swipe-btn skip" onclick="swipeAction('left')">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+          <button class="swipe-btn info" onclick="openDetailFromSwipe()">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          </button>
+          <button class="swipe-btn save" onclick="swipeAction('right')">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- List View -->
+      <div id="listView" style="display:none;">
+        <!-- Featured PGs -->
+        <div class="section-header">
+          <h2>Featured PGs ✨</h2>
+          <button class="see-all" onclick="showToast('Showing all PGs','info')">See all</button>
+        </div>
+        <div class="featured-scroll" id="featuredScroll"></div>
+
+        <!-- Recently Reviewed -->
+        <div class="section-header">
+          <h2>Recently Reviewed</h2>
+          <button class="see-all" onclick="showToast('Showing all reviews','info')">See all</button>
+        </div>
+        <div class="pg-list" id="recentList"></div>
+      </div>
+
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- ========== REVIEWS TAB ========== -->
+    <div class="tab-panel" id="tabReviews">
+      <div class="tab-title">
+        <h1>Write a Review ✍️</h1>
+        <p>Help fellow PG hunters make better choices</p>
+      </div>
+      <div class="review-form-section">
+        <div class="form-group">
+          <label class="form-label">Select PG</label>
+          <select class="form-select" id="reviewPgSelect">
+            <option value="">Choose a PG...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rate your experience</label>
+          <div class="rating-group">
+            <span class="r-label">Food Quality</span>
+            <div class="star-rating-input" data-category="food" id="ratingFood"></div>
+          </div>
+          <div class="rating-group">
+            <span class="r-label">Cleanliness</span>
+            <div class="star-rating-input" data-category="cleanliness" id="ratingClean"></div>
+          </div>
+          <div class="rating-group">
+            <span class="r-label">WiFi Speed</span>
+            <div class="star-rating-input" data-category="wifi" id="ratingWifi"></div>
+          </div>
+          <div class="rating-group">
+            <span class="r-label">Location</span>
+            <div class="star-rating-input" data-category="location" id="ratingLocation"></div>
+          </div>
+          <div class="rating-group">
+            <span class="r-label">Value for Money</span>
+            <div class="star-rating-input" data-category="value" id="ratingValue"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Add Photos</label>
+          <div class="photo-upload-area">
+            <div class="photo-upload-box" onclick="simulatePhotoUpload(this)">
+              <svg viewBox="0 0 24 24"><path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/></svg>
+              <span>Add</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Best thing about this PG</label>
+          <textarea class="form-input" id="reviewBest" placeholder="e.g., The sambar rice on Mondays is absolutely amazing!"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Worst thing about this PG</label>
+          <textarea class="form-input" id="reviewWorst" placeholder="e.g., Hot water availability is inconsistent"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Monthly rent you pay</label>
+          <input type="text" class="form-input" id="reviewRent" placeholder="e.g., 8500">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Duration of stay</label>
+          <select class="form-select" id="reviewDuration">
+            <option value="">Select duration...</option>
+            <option>Less than 3 months</option>
+            <option>3-6 months</option>
+            <option>6-12 months</option>
+            <option>More than 1 year</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Would you recommend this PG?</label>
+          <div class="toggle-row">
+            <button class="toggle-btn" id="toggleYes" onclick="setRecommend(true)">👍 Yes!</button>
+            <button class="toggle-btn" id="toggleNo" onclick="setRecommend(false)">👎 No</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" style="width:100%;margin-top:8px;" onclick="submitReview()">Submit Review</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-header">
+        <h2>Your Reviews</h2>
+      </div>
+      <div class="your-reviews" id="yourReviews">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+          <h3>No reviews yet</h3>
+          <p>Be the first to share your PG experience!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== COMPARE TAB ========== -->
+    <div class="tab-panel" id="tabCompare">
+      <div class="tab-title">
+        <h1>Compare PGs ⚖️</h1>
+        <p>Pick two PGs and see how they stack up</p>
+      </div>
+      <div class="compare-section">
+        <div class="compare-select-row">
+          <select class="form-select" id="compareA" onchange="runComparison()">
+            <option value="">Select PG 1...</option>
+          </select>
+          <div class="compare-vs">VS</div>
+          <select class="form-select" id="compareB" onchange="runComparison()">
+            <option value="">Select PG 2...</option>
+          </select>
+        </div>
+        <div id="comparisonResult"></div>
+      </div>
+    </div>
+
+    <!-- ========== SAVED / PROFILE TAB ========== -->
+    <div class="tab-panel" id="tabProfile">
+      <div class="profile-section">
+        <div class="profile-header">
+          <div class="profile-avatar">R</div>
+          <div class="profile-info">
+            <h3>Rahul Kumar</h3>
+            <p>PG Hunter since Dec 2024</p>
+          </div>
+        </div>
+
+        <div class="pref-card">
+          <h3>💰 Budget Range</h3>
+          <input type="range" class="budget-slider" min="5000" max="20000" step="500" value="10000" id="budgetSlider" oninput="updateBudget()">
+          <div class="budget-value" id="budgetValue">₹10,000/mo</div>
+        </div>
+
+        <div class="pref-card">
+          <h3>📍 Preferred Areas</h3>
+          <div class="area-chips" id="areaChips">
+            <button class="chip active" onclick="toggleAreaPref(this)" data-area="Koramangala">Koramangala</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="HSR Layout">HSR Layout</button>
+            <button class="chip active" onclick="toggleAreaPref(this)" data-area="BTM Layout">BTM Layout</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="Indiranagar">Indiranagar</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="Whitefield">Whitefield</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="Electronic City">Electronic City</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="JP Nagar">JP Nagar</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="Marathahalli">Marathahalli</button>
+          </div>
+        </div>
+
+        <div class="checklist-card">
+          <h3>
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            PG Hunting Checklist
+          </h3>
+          <div class="checklist-progress"><div class="checklist-progress-fill" id="checklistProgress" style="width:0%"></div></div>
+          <div id="checklistItems"></div>
+        </div>
+
+        <div class="section-header" style="padding-left:0;">
+          <h2>Saved PGs ❤️</h2>
+        </div>
+        <div class="saved-list" id="savedList">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg>
+            <h3>No saved PGs yet</h3>
+            <p>Swipe right or tap the heart to save PGs</p>
+          </div>
+        </div>
+      </div>
+      <div style="height:40px;"></div>
+    </div>
+  </main>
+
+  <!-- PG DETAIL MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeDetail()"></div>
+  <div class="detail-modal" id="detailModal">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <div class="modal-scroll" id="modalScroll"></div>
+    <div class="detail-actions">
+      <button class="btn-secondary" onclick="closeDetail();switchTab('tabReviews')">✍️ Review</button>
+      <button class="btn-primary" onclick="showToast('Contact details copied!','success')">📞 Contact PG</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('tabExplore')" data-tab="tabExplore">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <span>Explore</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('tabReviews')" data-tab="tabReviews">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+      <span>Reviews</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('tabCompare')" data-tab="tabCompare">
+      <svg viewBox="0 0 24 24"><path d="M10 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h5v2h2V1h-2v2zm0 15H5l5-6v6zm9-15h-5v2h5v13l-5-6v9h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      <span>Compare</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('tabProfile')" data-tab="tabProfile">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const pgData = [
+  {
+    id: 1,
+    name: "Sri Lakshmi PG",
+    area: "Koramangala",
+    price: 8500,
+    priceRange: "₹7,500 - ₹9,500",
+    rating: 4.2,
+    tags: ["Home-style Food", "Veg Only", "Clean"],
+    grad: "grad-1",
+    verified: true,
+    type: "veg",
+    amenities: { wifi: true, ac: false, laundry: true, parking: false, gym: false, powerBackup: true },
+    filters: ["veg", "under10k", "wifi"],
+    ratings: { food: 4.5, cleanliness: 4.0, wifi: 3.8, location: 4.2, value: 4.5 },
+    rules: [
+      { label: "Gate Closing", text: "10:30 PM (weekdays), 11:30 PM (weekends)" },
+      { label: "Guests", text: "Allowed in common area till 8 PM" },
+      { label: "Food Timing", text: "Breakfast 7:30-9:30 AM, Lunch 12:30-2:30 PM, Dinner 7:30-10 PM" },
+      { label: "Deposit", text: "2 months rent, refundable" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Idli, Sambar\nRice, Dal\nChapati, Paneer" },
+      { day: "Tue", meal: "Dosa, Chutney\nPulao, Raita\nRice, Sambar" },
+      { day: "Wed", meal: "Poha, Tea\nLemon Rice\nChapati, Gobi" },
+      { day: "Thu", meal: "Upma, Vada\nCurd Rice\nDosa, Chutney" },
+      { day: "Fri", meal: "Pongal\nBisibele Bath\nChapati, Dal" },
+      { day: "Sat", meal: "Poori, Kurma\nFried Rice\nParatha, Curd" },
+      { day: "Sun", meal: "Masala Dosa\nBiryani ✨\nNoodles, Soup" }
+    ],
+    reviews: [
+      { name: "Priya Sharma", initials: "PS", color: "#E91E63", date: "2 weeks ago", rating: 4, text: "Aunty cooks amazing South Indian food! The sambar is to die for. Rooms are basic but clean. WiFi works fine for WFH.", best: "Home-cooked food", worst: "No AC in summer is tough" },
+      { name: "Karthik R", initials: "KR", color: "#2196F3", date: "1 month ago", rating: 5, text: "Best PG food in Koramangala hands down. I've stayed in 3 PGs before this. The Sunday biryani special is legendary among residents.", best: "Sunday special biryani", worst: "Parking space is limited" },
+      { name: "Sneha Patel", initials: "SP", color: "#9C27B0", date: "3 months ago", rating: 4, text: "Very homely atmosphere. Landlady is like a mother figure. Food quality has been consistent for the 8 months I've been here. Would recommend for vegetarians.", best: "Consistent food quality", worst: "Gate timing is strict" }
+    ]
+  },
+  {
+    id: 2,
+    name: "Zolo Stays HSR",
+    area: "HSR Layout",
+    price: 12000,
+    priceRange: "₹10,000 - ₹14,000",
+    rating: 3.8,
+    tags: ["Great WiFi", "AC Available", "Modern"],
+    grad: "grad-2",
+    verified: true,
+    type: "both",
+    amenities: { wifi: true, ac: true, laundry: true, parking: true, gym: true, powerBackup: true },
+    filters: ["ac", "wifi", "single"],
+    ratings: { food: 3.2, cleanliness: 4.2, wifi: 4.5, location: 4.0, value: 3.3 },
+    rules: [
+      { label: "Gate Closing", text: "No curfew (biometric access)" },
+      { label: "Guests", text: "Allowed with prior registration" },
+      { label: "Food Timing", text: "Breakfast 7-10 AM, Lunch 12-3 PM, Dinner 7-10:30 PM" },
+      { label: "Deposit", text: "1 month rent + ₹5,000 security" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Bread, Eggs\nDal Rice\nChapati, Mix Veg" },
+      { day: "Tue", meal: "Cornflakes\nRajma Rice\nFried Rice" },
+      { day: "Wed", meal: "Sandwich\nChole Rice\nPasta" },
+      { day: "Thu", meal: "Poha\nDal Fry\nChapati, Paneer" },
+      { day: "Fri", meal: "Upma\nBiryani\nNoodles" }
+    ],
+    reviews: [
+      { name: "Arjun Mehta", initials: "AM", color: "#FF5722", date: "1 week ago", rating: 4, text: "Great amenities and facilities. WiFi is blazing fast - perfect for my coding sessions. Food is average cafeteria style but the convenience makes up for it.", best: "Fast WiFi & modern rooms", worst: "Food lacks homely taste" },
+      { name: "Deepika S", initials: "DS", color: "#4CAF50", date: "3 weeks ago", rating: 3, text: "Nice place but overpriced for what you get. The food has gone downhill in the last 2 months. They keep changing cooks. AC rooms are worth the extra money though.", best: "No curfew policy", worst: "Frequent cook changes" }
+    ]
+  },
+  {
+    id: 3,
+    name: "Sai Comfort PG",
+    area: "BTM Layout",
+    price: 7000,
+    priceRange: "₹6,000 - ₹8,000",
+    rating: 4.5,
+    tags: ["Best Food", "Veg Only", "Budget"],
+    grad: "grad-3",
+    verified: true,
+    type: "veg",
+    amenities: { wifi: true, ac: false, laundry: true, parking: false, gym: false, powerBackup: true },
+    filters: ["veg", "under10k", "wifi", "metro"],
+    ratings: { food: 4.9, cleanliness: 4.3, wifi: 3.5, location: 4.5, value: 4.8 },
+    rules: [
+      { label: "Gate Closing", text: "10 PM sharp" },
+      { label: "Guests", text: "Not allowed inside rooms" },
+      { label: "Food Timing", text: "Breakfast 7-9 AM, Lunch 12:30-2 PM, Dinner 7:30-9:30 PM" },
+      { label: "Deposit", text: "2 months rent" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Rava Idli\nSambar Rice\nChapati, Dal" },
+      { day: "Tue", meal: "Masala Dosa\nLemon Rice\nRice, Rasam" },
+      { day: "Wed", meal: "Pongal, Vada\nPulao\nChapati, Palak" },
+      { day: "Thu", meal: "Poori, Sagu\nCurd Rice\nDosa, Chutney" },
+      { day: "Fri", meal: "Upma\nBisibele Bath\nParatha, Curd" },
+      { day: "Sat", meal: "Idli, Vada\nJeera Rice\nChapati, Curry" },
+      { day: "Sun", meal: "Set Dosa\nVeg Biryani ✨\nPulao, Raita" }
+    ],
+    reviews: [
+      { name: "Rajesh Kumar", initials: "RK", color: "#FF9800", date: "5 days ago", rating: 5, text: "If you're looking for authentic Karnataka-style home food, this is THE place. Amma (the landlady) makes everything fresh. The bisibele bath on Fridays is outstanding. BTM metro is 5 min walk.", best: "Authentic home-cooked food", worst: "Strict gate timing at 10 PM" },
+      { name: "Ananya M", initials: "AN", color: "#E91E63", date: "2 weeks ago", rating: 5, text: "Best food I've ever had in any PG in Bangalore. Period. Worth every rupee. My colleagues from other PGs come here for Sunday lunch sometimes 😄", best: "Everything about the food", worst: "WiFi could be faster" },
+      { name: "Vikram B", initials: "VB", color: "#3F51B5", date: "1 month ago", rating: 4, text: "Excellent food and great value. Only downside is no AC and the rooms are on the smaller side. But for ₹7000, you can't complain. Been here 6 months and very happy.", best: "Value for money", worst: "Small rooms, no AC" }
+    ]
+  },
+  {
+    id: 4,
+    name: "CoLive Indiranagar",
+    area: "Indiranagar",
+    price: 15000,
+    priceRange: "₹13,000 - ₹18,000",
+    rating: 4.0,
+    tags: ["Premium", "AC", "Gym"],
+    grad: "grad-4",
+    verified: true,
+    type: "both",
+    amenities: { wifi: true, ac: true, laundry: true, parking: true, gym: true, powerBackup: true },
+    filters: ["ac", "wifi", "single"],
+    ratings: { food: 3.5, cleanliness: 4.5, wifi: 4.3, location: 4.8, value: 3.0 },
+    rules: [
+      { label: "Gate Closing", text: "No curfew (smart lock)" },
+      { label: "Guests", text: "Allowed 24/7 with registration" },
+      { label: "Food Timing", text: "Breakfast 7-10:30 AM, Dinner 7-10:30 PM (No lunch)" },
+      { label: "Deposit", text: "₹20,000 refundable" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Continental\nN/A\nPasta, Garlic Bread" },
+      { day: "Tue", meal: "South Indian\nN/A\nNorth Indian" },
+      { day: "Wed", meal: "Sandwiches\nN/A\nChinese" },
+      { day: "Thu", meal: "Pancakes\nN/A\nBiryani" }
+    ],
+    reviews: [
+      { name: "Nikhil Joshi", initials: "NJ", color: "#009688", date: "1 week ago", rating: 4, text: "Great location in the heart of Indiranagar. Gym is well-maintained. Food is decent but not great for the price. You're basically paying for the address and amenities.", best: "Location & Amenities", worst: "Overpriced food quality" },
+      { name: "Meera T", initials: "MT", color: "#673AB7", date: "1 month ago", rating: 4, text: "Love the co-living vibe. Met some amazing people here. The rooftop hangout space is great. WiFi is reliable for video calls. No lunch is a bummer though.", best: "Community & networking", worst: "No lunch, expensive" }
+    ]
+  },
+  {
+    id: 5,
+    name: "Green View PG",
+    area: "Marathahalli",
+    price: 6500,
+    priceRange: "₹5,500 - ₹7,500",
+    rating: 3.5,
+    tags: ["Budget", "Near IT Parks", "Basic"],
+    grad: "grad-5",
+    verified: false,
+    type: "both",
+    amenities: { wifi: true, ac: false, laundry: false, parking: true, gym: false, powerBackup: false },
+    filters: ["under10k", "wifi"],
+    ratings: { food: 3.0, cleanliness: 3.3, wifi: 3.5, location: 4.0, value: 4.2 },
+    rules: [
+      { label: "Gate Closing", text: "11 PM" },
+      { label: "Guests", text: "Allowed on weekends only" },
+      { label: "Food Timing", text: "Breakfast 7:30-9 AM, Dinner 8-10 PM (No lunch)" },
+      { label: "Deposit", text: "1 month rent" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Idli\nN/A\nRice, Dal" },
+      { day: "Tue", meal: "Dosa\nN/A\nChapati" },
+      { day: "Wed", meal: "Upma\nN/A\nRice, Sambar" }
+    ],
+    reviews: [
+      { name: "Ravi Teja", initials: "RT", color: "#795548", date: "3 days ago", rating: 3, text: "It's basic and gets the job done. Close to Marthahalli junction and IT parks. Food is simple but filling. Don't expect luxury. Good for freshers starting out.", best: "Cheap and near office", worst: "No power backup, basic food" },
+      { name: "Aditya N", initials: "AN", color: "#607D8B", date: "3 weeks ago", rating: 4, text: "For ₹6500, this is a steal. Owner is a nice guy. Food is simple dal-rice type but hygienic. Walking distance to RMZ Ecospace. WiFi works for basic browsing and calls.", best: "Budget friendly", worst: "No laundry service" }
+    ]
+  },
+  {
+    id: 6,
+    name: "Nest PG for Women",
+    area: "JP Nagar",
+    price: 9000,
+    priceRange: "₹8,000 - ₹10,000",
+    rating: 4.7,
+    tags: ["Women Only", "Safest", "Great Food"],
+    grad: "grad-6",
+    verified: true,
+    type: "veg",
+    amenities: { wifi: true, ac: true, laundry: true, parking: false, gym: false, powerBackup: true },
+    filters: ["veg", "under10k", "wifi", "ac", "women"],
+    ratings: { food: 4.6, cleanliness: 4.8, wifi: 4.2, location: 4.5, value: 4.5 },
+    rules: [
+      { label: "Gate Closing", text: "10 PM (inform warden for late entry)" },
+      { label: "Guests", text: "Female visitors only, till 7 PM" },
+      { label: "Food Timing", text: "Breakfast 7-9:30 AM, Lunch 12:30-2:30 PM, Dinner 7:30-9:30 PM" },
+      { label: "Deposit", text: "2 months rent" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Idli, Sambar\nRice, Rasam\nChapati, Paneer" },
+      { day: "Tue", meal: "Dosa\nPulao, Raita\nRice, Dal Fry" },
+      { day: "Wed", meal: "Poha\nLemon Rice\nParatha, Curd" },
+      { day: "Thu", meal: "Upma, Vada\nSambar Rice\nDosa, Chutney" },
+      { day: "Fri", meal: "Pongal\nBisibele Bath\nChapati, Palak" },
+      { day: "Sat", meal: "Rava Dosa\nCurd Rice\nPasta, Soup" },
+      { day: "Sun", meal: "Masala Dosa\nBiryani ✨\nFried Rice" }
+    ],
+    reviews: [
+      { name: "Kavya Reddy", initials: "KR", color: "#E91E63", date: "4 days ago", rating: 5, text: "This is hands down the safest and cleanest PG I've lived in. Warden aunty is strict but caring. Food is excellent and they even take dietary preferences into account. CCTV everywhere for safety.", best: "Safety and cleanliness", worst: "Strict visitor policy" },
+      { name: "Swathi K", initials: "SK", color: "#9C27B0", date: "2 weeks ago", rating: 5, text: "As a woman who moved to Bangalore alone, this PG gave me so much peace of mind. The other residents are very friendly. Food reminds me of home. Highly recommend to all women!", best: "Homely and safe environment", worst: "No gym facility" },
+      { name: "Divya Nair", initials: "DN", color: "#FF5722", date: "1 month ago", rating: 4, text: "Great PG overall. The 3-meal system is a blessing. Food is consistently good - the cook has been with them for 5 years. JP Nagar metro is nearby.", best: "Consistent 3 meals", worst: "10 PM curfew" }
+    ]
+  },
+  {
+    id: 7,
+    name: "Tech Haven PG",
+    area: "Whitefield",
+    price: 11000,
+    priceRange: "₹9,000 - ₹13,000",
+    rating: 4.1,
+    tags: ["Fast WiFi", "Techie Hub", "Clean"],
+    grad: "grad-7",
+    verified: true,
+    type: "both",
+    amenities: { wifi: true, ac: true, laundry: true, parking: true, gym: false, powerBackup: true },
+    filters: ["wifi", "ac", "single"],
+    ratings: { food: 3.8, cleanliness: 4.3, wifi: 4.8, location: 3.5, value: 3.9 },
+    rules: [
+      { label: "Gate Closing", text: "12 AM" },
+      { label: "Guests", text: "Allowed till 9 PM" },
+      { label: "Food Timing", text: "Breakfast 7-10 AM, Lunch 12:30-2:30 PM, Dinner 7:30-10 PM" },
+      { label: "Deposit", text: "2 months rent" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Dosa, Egg\nDal Rice\nChapati, Chicken" },
+      { day: "Tue", meal: "Idli, Vada\nPulao\nFried Rice, Manchurian" },
+      { day: "Wed", meal: "Poha\nRajma Rice\nChapati, Egg Curry" },
+      { day: "Thu", meal: "Bread, Omelette\nCurd Rice\nBiryani" },
+      { day: "Fri", meal: "Upma\nSambar Rice\nNoodles, Soup" }
+    ],
+    reviews: [
+      { name: "Suresh P", initials: "SP", color: "#00BCD4", date: "1 week ago", rating: 4, text: "The WiFi here is a game-changer. 100 Mbps dedicated line. Perfect for WFH and gaming. Food is decent - both veg and non-veg options. Most residents are IT folks so good community.", best: "Blazing fast WiFi", worst: "Whitefield traffic is terrible" },
+      { name: "Manish G", initials: "MG", color: "#4CAF50", date: "3 weeks ago", rating: 4, text: "Good PG with all modern amenities. The owner is tech-savvy and has set up an app for food feedback and complaints. WiFi rarely goes down. Food has improved a lot recently.", best: "Tech-forward management", worst: "Far from city center" }
+    ]
+  },
+  {
+    id: 8,
+    name: "Bengaluru Boys PG",
+    area: "Electronic City",
+    price: 7500,
+    priceRange: "₹6,500 - ₹8,500",
+    rating: 3.3,
+    tags: ["Decent", "Budget", "Men Only"],
+    grad: "grad-8",
+    verified: false,
+    type: "both",
+    amenities: { wifi: true, ac: false, laundry: false, parking: true, gym: false, powerBackup: false },
+    filters: ["under10k", "wifi"],
+    ratings: { food: 3.0, cleanliness: 2.8, wifi: 3.5, location: 3.5, value: 3.8 },
+    rules: [
+      { label: "Gate Closing", text: "11:30 PM" },
+      { label: "Guests", text: "Allowed on weekends" },
+      { label: "Food Timing", text: "Breakfast 7:30-9 AM, Dinner 8-10 PM" },
+      { label: "Deposit", text: "1 month rent" }
+    ],
+    menu: [
+      { day: "Mon", meal: "Dosa\nN/A\nRice, Dal" },
+      { day: "Tue", meal: "Idli\nN/A\nChapati, Curry" },
+      { day: "Wed", meal: "Upma\nN/A\nRice, Chicken" }
+    ],
+    reviews: [
+      { name: "Harish V", initials: "HV", color: "#FF5722", date: "2 days ago", rating: 3, text: "It's okay for the price. Food is basic but they serve non-veg twice a week which is a plus. Cleanliness could be much better - the bathrooms need attention. Near Infosys campus.", best: "Non-veg food available", worst: "Bathroom cleanliness" },
+      { name: "Siddharth M", initials: "SM", color: "#795548", date: "2 weeks ago", rating: 3, text: "Average PG. Nothing great, nothing terrible. The owner is responsive to complaints. WiFi works for basic stuff. If you're on a tight budget and work in ECity, it's fine.", best: "Responsive owner", worst: "No power backup during outages" },
+      { name: "Ganesh T", initials: "GT", color: "#607D8B", date: "2 months ago", rating: 4, text: "Improved a lot since I first moved in. New cook joined and food quality went up. Still needs work on cleanliness. Good enough for a temporary stay while apartment hunting.", best: "Improving food quality", worst: "Needs regular cleaning" }
+    ]
+  }
+];
+
+const checklistItems = [
+  "Visited in person",
+  "Checked food quality (ate a meal there)",
+  "Tested WiFi speed",
+  "Met existing residents",
+  "Verified deposit & refund terms",
+  "Checked water supply timing",
+  "Confirmed electricity bill charges",
+];
+
+/* ===================== STATE ===================== */
+let currentTab = 'tabExplore';
+let viewMode = 'swipe';
+let swipeIndex = 0;
+let activeFilters = new Set();
+let savedPGs = JSON.parse(localStorage.getItem('pgbuddy_saved') || '[]');
+let userReviews = JSON.parse(localStorage.getItem('pgbuddy_reviews') || '[]');
+let checkedItems = JSON.parse(localStorage.getItem('pgbuddy_checklist') || '[]');
+let reviewRatings = { food: 0, cleanliness: 0, wifi: 0, location: 0, value: 0 };
+let recommend = null;
+let filteredPGs = [...pgData];
+let touchStartX = 0, touchStartY = 0, currentCard = null, isDragging = false;
+
+/* ===================== INIT ===================== */
+document.addEventListener('DOMContentLoaded', () => {
+  // Splash screen
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
+  }, 1800);
+
+  initStarInputs();
+  populateSelects();
+  renderSwipeCards();
+  renderFeatured();
+  renderRecentList();
+  renderChecklist();
+  renderSavedList();
+  renderUserReviews();
+  updateBudget();
+});
+
+/* ===================== TAB NAVIGATION ===================== */
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  currentTab = tabId;
+  document.getElementById('appContent').scrollTop = 0;
+
+  if (tabId === 'tabCompare') runComparison();
+  if (tabId === 'tabProfile') { renderSavedList(); renderUserReviews(); }
+}
+
+/* ===================== VIEW MODE ===================== */
+function setViewMode(mode, btn) {
+  viewMode = mode;
+  document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('swipeView').style.display = mode === 'swipe' ? '' : 'none';
+  document.getElementById('listView').style.display = mode === 'list' ? '' : 'none';
+  if (mode === 'list') { renderFeatured(); renderRecentList(); }
+  if (mode === 'swipe') renderSwipeCards();
+}
+
+/* ===================== FILTERS ===================== */
+function toggleFilter(btn) {
+  const f = btn.dataset.filter;
+  if (f === 'all') {
+    activeFilters.clear();
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    document.querySelector('.chip[data-filter="all"]').classList.remove('active');
+    btn.classList.toggle('active');
+    if (activeFilters.has(f)) activeFilters.delete(f); else activeFilters.add(f);
+    if (activeFilters.size === 0) document.querySelector('.chip[data-filter="all"]').classList.add('active');
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  filteredPGs = pgData.filter(pg => {
+    const matchSearch = !query || pg.name.toLowerCase().includes(query) || pg.area.toLowerCase().includes(query);
+    const matchFilter = activeFilters.size === 0 || [...activeFilters].every(f => pg.filters.includes(f));
+    return matchSearch && matchFilter;
+  });
+  swipeIndex = 0;
+  renderSwipeCards();
+  renderFeatured();
+  renderRecentList();
+}
+
+function filterPGs() { applyFilters(); }
+
+/* ===================== SWIPE CARDS ===================== */
+function renderSwipeCards() {
+  const container = document.getElementById('swipeContainer');
+  container.innerHTML = '';
+  const cards = filteredPGs.slice(swipeIndex, swipeIndex + 3).reverse();
+  if (cards.length === 0) {
+    container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><h3>No PGs found</h3><p>Try adjusting your filters</p></div>`;
+    return;
+  }
+  cards.forEach((pg, i) => {
+    const isTop = i === cards.length - 1;
+    const offset = (cards.length - 1 - i) * 6;
+    const scale = 1 - (cards.length - 1 - i) * 0.04;
+    const card = document.createElement('div');
+    card.className = 'swipe-card';
+    card.dataset.pgId = pg.id;
+    card.style.transform = `translateY(${offset}px) scale(${scale})`;
+    card.style.zIndex = i + 1;
+    card.innerHTML = `
+      <div class="swipe-label like">SAVE ❤️</div>
+      <div class="swipe-label nope">SKIP ✕</div>
+      <div class="card-photo">
+        <div class="card-photo-bg ${pg.grad}">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        </div>
+        ${pg.verified ? '<div class="card-badge"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</div>' : ''}
+        <button class="card-bookmark ${savedPGs.includes(pg.id) ? 'saved' : ''}" onclick="event.stopPropagation();toggleSave(${pg.id},this)">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </button>
+      </div>
+      <div class="card-info">
+        <h3>${pg.name}</h3>
+        <div class="card-location">
+          <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          ${pg.area}
+        </div>
+        <div class="card-meta">
+          <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
+          <div class="card-rating">
+            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            ${pg.rating}
+          </div>
+        </div>
+        <div class="card-tags">
+          ${pg.tags.map((t,i) => `<span class="card-tag ${i > 0 ? 'neutral' : ''}">${t}</span>`).join('')}
+        </div>
+      </div>
+    `;
+    if (isTop) {
+      card.addEventListener('mousedown', onDragStart);
+      card.addEventListener('touchstart', onDragStart, { passive: true });
+      card.addEventListener('click', (e) => {
+        if (!isDragging) openDetail(pg.id);
+      });
+    }
+    container.appendChild(card);
+  });
+}
+
+function onDragStart(e) {
+  const card = e.currentTarget;
+  currentCard = card;
+  const point = e.touches ? e.touches[0] : e;
+  touchStartX = point.clientX;
+  touchStartY = point.clientY;
+  isDragging = false;
+  card.style.transition = 'none';
+
+  const onMove = (ev) => {
+    const p = ev.touches ? ev.touches[0] : ev;
+    const dx = p.clientX - touchStartX;
+    const dy = p.clientY - touchStartY;
+    if (Math.abs(dx) > 5) isDragging = true;
+    const rot = dx * 0.08;
+    card.style.transform = `translate(${dx}px, ${dy * 0.3}px) rotate(${rot}deg)`;
+    const likeLabel = card.querySelector('.swipe-label.like');
+    const nopeLabel = card.querySelector('.swipe-label.nope');
+    if (dx > 40) likeLabel.style.opacity = Math.min((dx - 40) / 60, 1);
+    else likeLabel.style.opacity = 0;
+    if (dx < -40) nopeLabel.style.opacity = Math.min((-dx - 40) / 60, 1);
+    else nopeLabel.style.opacity = 0;
+  };
+  const onEnd = (ev) => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    const p = ev.changedTouches ? ev.changedTouches[0] : ev;
+    const dx = p.clientX - touchStartX;
+    card.style.transition = 'transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.4s';
+    if (dx > 100) {
+      card.style.transform = `translate(400px, -50px) rotate(30deg)`;
+      card.style.opacity = '0';
+      const pgId = parseInt(card.dataset.pgId);
+      if (!savedPGs.includes(pgId)) { savedPGs.push(pgId); localStorage.setItem('pgbuddy_saved', JSON.stringify(savedPGs)); }
+      showToast('Saved to favorites! ❤️', 'success');
+      setTimeout(() => { swipeIndex++; renderSwipeCards(); }, 350);
+    } else if (dx < -100) {
+      card.style.transform = `translate(-400px, -50px) rotate(-30deg)`;
+      card.style.opacity = '0';
+      showToast('Skipped', 'info');
+      setTimeout(() => { swipeIndex++; renderSwipeCards(); }, 350);
+    } else {
+      card.style.transform = '';
+      card.querySelector('.swipe-label.like').style.opacity = 0;
+      card.querySelector('.swipe-label.nope').style.opacity = 0;
+    }
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchmove', onMove, { passive: true });
+  document.addEventListener('touchend', onEnd);
+}
+
+function swipeAction(dir) {
+  const container = document.getElementById('swipeContainer');
+  const cards = container.querySelectorAll('.swipe-card');
+  if (!cards.length) return;
+  const card = cards[cards.length - 1];
+  card.style.transition = 'transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.5s';
+  if (dir === 'right') {
+    card.style.transform = 'translate(400px, -50px) rotate(30deg)';
+    card.style.opacity = '0';
+    const pgId = parseInt(card.dataset.pgId);
+    if (!savedPGs.includes(pgId)) { savedPGs.push(pgId); localStorage.setItem('pgbuddy_saved', JSON.stringify(savedPGs)); }
+    showToast('Saved to favorites! ❤️', 'success');
+  } else {
+    card.style.transform = 'translate(-400px, -50px) rotate(-30deg)';
+    card.style.opacity = '0';
+    showToast('Skipped', 'info');
+  }
+  setTimeout(() => { swipeIndex++; renderSwipeCards(); }, 400);
+}
+
+function openDetailFromSwipe() {
+  const container = document.getElementById('swipeContainer');
+  const cards = container.querySelectorAll('.swipe-card');
+  if (!cards.length) return;
+  const topCard = cards[cards.length - 1];
+  openDetail(parseInt(topCard.dataset.pgId));
+}
+
+/* ===================== FEATURED & LIST ===================== */
+function renderFeatured() {
+  const el = document.getElementById('featuredScroll');
+  const featured = filteredPGs.filter(p => p.verified);
+  el.innerHTML = featured.map(pg => `
+    <div class="pg-card-featured" onclick="openDetail(${pg.id})">
+      <div class="card-photo">
+        <div class="card-photo-bg ${pg.grad}">
+          <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        </div>
+        ${pg.verified ? '<div class="card-badge"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</div>' : ''}
+        <button class="card-bookmark ${savedPGs.includes(pg.id) ? 'saved' : ''}" onclick="event.stopPropagation();toggleSave(${pg.id},this)">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </button>
+      </div>
+      <div class="card-info">
+        <h3>${pg.name}</h3>
+        <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${pg.area}</div>
+        <div class="card-meta">
+          <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
+          <div class="card-rating"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#FFB300"/></svg> ${pg.rating}</div>
+        </div>
+        <div class="card-tags">${pg.tags.slice(0,2).map((t,i) => `<span class="card-tag ${i>0?'neutral':''}">${t}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRecentList() {
+  const el = document.getElementById('recentList');
+  const list = filteredPGs.slice(0, 6);
+  el.innerHTML = list.map(pg => `
+    <div class="pg-card-list" onclick="openDetail(${pg.id})">
+      <div class="pg-card-list-photo ${pg.grad}">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="rgba(255,255,255,0.5)"/></svg>
+      </div>
+      <div class="pg-card-list-info">
+        <h3>${pg.name}</h3>
+        <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${pg.area}</div>
+        <div class="card-meta">
+          <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
+          <div class="card-rating"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#FFB300"/></svg> ${pg.rating}</div>
+        </div>
+        <div class="card-tags">${pg.tags.slice(0,2).map((t,i) => `<span class="card-tag ${i>0?'neutral':''}">${t}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ===================== SAVE / BOOKMARK ===================== */
+function toggleSave(pgId, btn) {
+  if (savedPGs.includes(pgId)) {
+    savedPGs = savedPGs.filter(id => id !== pgId);
+    if (btn) btn.classList.remove('saved');
+    showToast('Removed from saved', 'info');
+  } else {
+    savedPGs.push(pgId);
+    if (btn) btn.classList.add('saved');
+    showToast('Saved! ❤️', 'success');
+  }
+  localStorage.setItem('pgbuddy_saved', JSON.stringify(savedPGs));
+}
+
+/* ===================== PG DETAIL MODAL ===================== */
+function openDetail(pgId) {
+  const pg = pgData.find(p => p.id === pgId);
+  if (!pg) return;
+
+  const ratingColor = (val) => {
+    if (val >= 4) return 'var(--green)';
+    if (val >= 3) return 'var(--yellow)';
+    return 'var(--red)';
+  };
+
+  const amenityIcon = (key) => {
+    const icons = {
+      wifi: '<svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>',
+      ac: '<svg viewBox="0 0 24 24"><path d="M22 11h-4.17l3.24-3.24-1.41-1.42L15 11h-2V9l4.66-4.66-1.42-1.41L13 6.17V2h-2v4.17L7.76 2.93 6.34 4.34 11 9v2H9L4.34 6.34 2.93 7.76 6.17 11H2v2h4.17l-3.24 3.24 1.41 1.42L9 13h2v2l-4.66 4.66 1.42 1.41L11 17.83V22h2v-4.17l3.24 3.24 1.42-1.41L13 15v-2h2l4.66 4.66 1.41-1.42L17.83 13H22z"/></svg>',
+      laundry: '<svg viewBox="0 0 24 24"><path d="M18 2.01L6 2c-1.11 0-2 .89-2 2v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V4c0-1.11-.89-1.99-2-1.99zM18 20H6L6 4h12v16zm-6-7.5c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm3 5.5c-.55 0-1.08-.1-1.57-.28.72-.53 1.2-1.39 1.2-2.36 0-.21-.02-.42-.07-.62.6.46.99 1.17.99 1.97A2.55 2.55 0 0115 18zM9.5 6C9.5 5.45 9.95 5 10.5 5s1 .45 1 1-.45 1-1 1-1-.45-1-1zM8 5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1z"/></svg>',
+      parking: '<svg viewBox="0 0 24 24"><path d="M13 3H6v18h4v-6h3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm.2 8H10V7h3.2c1.1 0 2 .9 2 2s-.9 2-2 2z"/></svg>',
+      gym: '<svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/></svg>',
+      powerBackup: '<svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>'
+    };
+    return icons[key] || '';
+  };
+  const amenityLabel = { wifi: 'WiFi', ac: 'AC', laundry: 'Laundry', parking: 'Parking', gym: 'Gym', powerBackup: 'Power Backup' };
+
+  const modalScroll = document.getElementById('modalScroll');
+  modalScroll.innerHTML = `
+    <div class="detail-hero ${pg.grad}">
+      <div class="detail-hero-overlay"></div>
+      <h1>${pg.name}</h1>
+    </div>
+    <div class="detail-quick-info">
+      <div class="quick-item">
+        <div class="val">${pg.rating} ⭐</div>
+        <div class="lbl">Rating</div>
+      </div>
+      <div class="quick-item">
+        <div class="val">₹${pg.price.toLocaleString()}</div>
+        <div class="lbl">per month</div>
+      </div>
+      <div class="quick-item">
+        <div class="val">${pg.area}</div>
+        <div class="lbl">Location</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2>Rating Breakdown</h2>
+      ${Object.entries(pg.ratings).map(([key, val]) => `
+        <div class="rating-row">
+          <span class="r-label">${key.charAt(0).toUpperCase() + key.slice(1)}</span>
+          <div class="rating-bar-bg">
+            <div class="rating-bar-fill" data-width="${val * 20}" style="background:${ratingColor(val)};"></div>
+          </div>
+          <span class="r-val">${val}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="detail-section">
+      <h2>What Residents Say</h2>
+      ${pg.reviews.map(r => `
+        <div class="review-card fade-in-up">
+          <div class="review-header">
+            <div class="review-avatar" style="background:${r.color}">${r.initials}</div>
+            <div>
+              <div class="review-name">${r.name}</div>
+              <div class="review-date">${r.date}</div>
+            </div>
+          </div>
+          <div class="review-stars">${renderStars(r.rating)}</div>
+          <div class="review-text">${r.text}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${pg.menu && pg.menu.length ? `
+    <div class="detail-section">
+      <h2>🍽️ Weekly Menu Preview</h2>
+      <div class="menu-scroll">
+        ${pg.menu.map(m => `
+          <div class="menu-day">
+            <div class="day">${m.day}</div>
+            <div class="meal">${m.meal.replace(/\n/g, '<br>')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>` : ''}
+
+    <div class="detail-section">
+      <h2>Amenities</h2>
+      <div class="amenities-grid">
+        ${Object.entries(pg.amenities).map(([key, avail]) => `
+          <div class="amenity-item ${avail ? 'available' : 'unavailable'}">
+            ${amenityIcon(key)}
+            <span>${amenityLabel[key]}${avail ? '' : ' ✕'}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2>Rules & Info</h2>
+      ${pg.rules.map(r => `
+        <div class="rule-item">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          <div class="rule-text"><span class="rule-label">${r.label}:</span> ${r.text}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="height:40px;"></div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('detailModal').classList.add('open');
+
+  // Animate rating bars
+  setTimeout(() => {
+    document.querySelectorAll('.rating-bar-fill[data-width]').forEach(bar => {
+      bar.style.width = bar.dataset.width + '%';
+    });
+  }, 300);
+}
+
+function closeDetail() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('detailModal').classList.remove('open');
+}
+
+function renderStars(rating) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    if (i <= rating) {
+      html += '<svg viewBox="0 0 24 24" fill="#FFB300"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';
+    } else {
+      html += '<svg viewBox="0 0 24 24" fill="#E0D6D0"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';
+    }
+  }
+  return html;
+}
+
+/* ===================== REVIEW FORM ===================== */
+function initStarInputs() {
+  ['ratingFood', 'ratingClean', 'ratingWifi', 'ratingLocation', 'ratingValue'].forEach(id => {
+    const el = document.getElementById(id);
+    const cat = el.dataset.category;
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'star-btn';
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="#E0D6D0"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+      btn.onclick = () => setStarRating(cat, i, el);
+      el.appendChild(btn);
+    }
+  });
+}
+
+function setStarRating(cat, val, container) {
+  reviewRatings[cat] = val;
+  container.querySelectorAll('.star-btn svg').forEach((svg, i) => {
+    svg.setAttribute('fill', i < val ? '#FFB300' : '#E0D6D0');
+  });
+}
+
+function populateSelects() {
+  const opts = pgData.map(pg => `<option value="${pg.id}">${pg.name} - ${pg.area}</option>`).join('');
+  document.getElementById('reviewPgSelect').innerHTML = '<option value="">Choose a PG...</option>' + opts;
+  document.getElementById('compareA').innerHTML = '<option value="">Select PG 1...</option>' + opts;
+  document.getElementById('compareB').innerHTML = '<option value="">Select PG 2...</option>' + opts;
+}
+
+function setRecommend(val) {
+  recommend = val;
+  document.getElementById('toggleYes').className = 'toggle-btn' + (val === true ? ' active-yes' : '');
+  document.getElementById('toggleNo').className = 'toggle-btn' + (val === false ? ' active-no' : '');
+}
+
+function simulatePhotoUpload(box) {
+  const preview = document.createElement('div');
+  const grads = ['grad-1','grad-2','grad-3','grad-4','grad-5','grad-6'];
+  const randGrad = grads[Math.floor(Math.random()*grads.length)];
+  preview.className = `photo-preview ${randGrad}`;
+  preview.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>';
+  box.parentElement.insertBefore(preview, box);
+  showToast('Photo added! 📸', 'success');
+}
+
+function submitReview() {
+  const pgId = document.getElementById('reviewPgSelect').value;
+  if (!pgId) { showToast('Please select a PG', 'warning'); return; }
+  const hasRating = Object.values(reviewRatings).some(v => v > 0);
+  if (!hasRating) { showToast('Please add at least one rating', 'warning'); return; }
+
+  const pg = pgData.find(p => p.id === parseInt(pgId));
+  const review = {
+    pgId: parseInt(pgId),
+    pgName: pg.name,
+    ratings: { ...reviewRatings },
+    best: document.getElementById('reviewBest').value,
+    worst: document.getElementById('reviewWorst').value,
+    rent: document.getElementById('reviewRent').value,
+    duration: document.getElementById('reviewDuration').value,
+    recommend,
+    date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  };
+  userReviews.push(review);
+  localStorage.setItem('pgbuddy_reviews', JSON.stringify(userReviews));
+
+  // Reset form
+  document.getElementById('reviewPgSelect').value = '';
+  reviewRatings = { food: 0, cleanliness: 0, wifi: 0, location: 0, value: 0 };
+  document.querySelectorAll('.star-rating-input .star-btn svg').forEach(svg => svg.setAttribute('fill', '#E0D6D0'));
+  document.getElementById('reviewBest').value = '';
+  document.getElementById('reviewWorst').value = '';
+  document.getElementById('reviewRent').value = '';
+  document.getElementById('reviewDuration').value = '';
+  recommend = null;
+  document.getElementById('toggleYes').className = 'toggle-btn';
+  document.getElementById('toggleNo').className = 'toggle-btn';
+
+  showToast('Review submitted! Thank you! 🎉', 'success');
+  renderUserReviews();
+}
+
+function renderUserReviews() {
+  const el = document.getElementById('yourReviews');
+  if (userReviews.length === 0) {
+    el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg><h3>No reviews yet</h3><p>Be the first to share your PG experience!</p></div>`;
+    return;
+  }
+  el.innerHTML = userReviews.map(r => {
+    const avg = Object.values(r.ratings).filter(v => v > 0);
+    const avgRating = avg.length ? (avg.reduce((a,b) => a+b, 0) / avg.length).toFixed(1) : 'N/A';
+    return `
+      <div class="review-card" style="margin-bottom:10px;">
+        <div class="review-header">
+          <div class="review-avatar" style="background:var(--primary)">R</div>
+          <div>
+            <div class="review-name">${r.pgName}</div>
+            <div class="review-date">${r.date} &bull; Avg: ${avgRating} ⭐</div>
+          </div>
+        </div>
+        ${r.best ? `<div class="review-text" style="margin-bottom:4px;">👍 <strong>Best:</strong> ${r.best}</div>` : ''}
+        ${r.worst ? `<div class="review-text">👎 <strong>Worst:</strong> ${r.worst}</div>` : ''}
+        ${r.recommend !== null ? `<div style="margin-top:6px;"><span class="card-tag ${r.recommend ? '' : 'neutral'}">${r.recommend ? '✅ Recommended' : '❌ Not recommended'}</span></div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+/* ===================== COMPARE TAB ===================== */
+function runComparison() {
+  const aId = parseInt(document.getElementById('compareA').value);
+  const bId = parseInt(document.getElementById('compareB').value);
+  const el = document.getElementById('comparisonResult');
+
+  if (!aId || !bId) {
+    el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M10 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h5v2h2V1h-2v2zm0 15H5l5-6v6zm9-15h-5v2h5v13l-5-6v9h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg><h3>Select two PGs to compare</h3><p>See detailed side-by-side comparison</p></div>`;
+    return;
+  }
+  if (aId === bId) {
+    el.innerHTML = `<div class="empty-state"><h3>Pick two different PGs!</h3><p>Can't compare a PG with itself 😄</p></div>`;
+    return;
+  }
+
+  const a = pgData.find(p => p.id === aId);
+  const b = pgData.find(p => p.id === bId);
+
+  const categories = [
+    { key: 'food', label: 'Food' },
+    { key: 'cleanliness', label: 'Clean' },
+    { key: 'wifi', label: 'WiFi' },
+    { key: 'location', label: 'Location' },
+    { key: 'value', label: 'Value' }
+  ];
+
+  let aWins = 0, bWins = 0;
+
+  const amenities = ['wifi','ac','laundry','parking','gym','powerBackup'];
+  const amenityLabels = { wifi: 'WiFi', ac: 'AC', laundry: 'Laundry', parking: 'Parking', gym: 'Gym', powerBackup: 'Power Backup' };
+
+  el.innerHTML = `
+    <div class="compare-card">
+      <div class="compare-names">
+        <span>${a.name}</span>
+        <span>${b.name}</span>
+      </div>
+      <h3>Ratings Comparison</h3>
+      ${categories.map(cat => {
+        const aVal = a.ratings[cat.key];
+        const bVal = b.ratings[cat.key];
+        const aW = aVal > bVal;
+        const bW = bVal > aVal;
+        if (aW) aWins++; if (bW) bWins++;
+        return `
+        <div class="compare-row">
+          <div class="compare-bar-left">
+            <div class="compare-fill left" style="width:${aVal * 20}%;${aW ? 'opacity:1;' : 'opacity:0.5;'}"></div>
+            <span class="compare-val left">${aVal}${aW ? ' 🏆' : ''}</span>
+          </div>
+          <div class="compare-cat">${cat.label}</div>
+          <div class="compare-bar-right">
+            <div class="compare-fill right" style="width:${bVal * 20}%;${bW ? 'opacity:1;' : 'opacity:0.5;'}"></div>
+            <span class="compare-val right">${bVal}${bW ? ' 🏆' : ''}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="compare-card">
+      <h3>💰 Price Comparison</h3>
+      <div class="compare-names">
+        <span>₹${a.price.toLocaleString()}/mo</span>
+        <span>₹${b.price.toLocaleString()}/mo</span>
+      </div>
+      <div style="text-align:center;margin-top:8px;">
+        <span class="winner-badge ${a.price <= b.price ? 'left' : 'right'}">💰 ${a.price <= b.price ? a.name : b.name} is cheaper${a.price === b.price ? ' (same)' : ''}</span>
+      </div>
+    </div>
+
+    <div class="compare-card">
+      <h3>🏠 Amenities</h3>
+      <div class="compare-names">
+        <span>${a.name}</span>
+        <span>${b.name}</span>
+      </div>
+      ${amenities.map(am => `
+        <div class="compare-amenity-row">
+          <div class="check">${a.amenities[am] ? '✅' : '❌'}</div>
+          <div class="amenity-name">${amenityLabels[am]}</div>
+          <div class="check">${b.amenities[am] ? '✅' : '❌'}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="overall-pick">
+      <div class="pick-label">⭐ Overall Pick</div>
+      <div class="pick-name">${aWins > bWins ? a.name : bWins > aWins ? b.name : "It's a tie!"}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${aWins > bWins ? `Wins ${aWins} of 5 categories` : bWins > aWins ? `Wins ${bWins} of 5 categories` : 'Both PGs are equally matched'}</div>
+    </div>
+  `;
+}
+
+/* ===================== CHECKLIST ===================== */
+function renderChecklist() {
+  const el = document.getElementById('checklistItems');
+  el.innerHTML = checklistItems.map((item, i) => `
+    <div class="check-item ${checkedItems.includes(i) ? 'checked' : ''}" onclick="toggleCheck(${i})">
+      <div class="check-box">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <span class="check-text">${item}</span>
+    </div>
+  `).join('');
+  updateChecklistProgress();
+}
+
+function toggleCheck(i) {
+  if (checkedItems.includes(i)) {
+    checkedItems = checkedItems.filter(x => x !== i);
+  } else {
+    checkedItems.push(i);
+  }
+  localStorage.setItem('pgbuddy_checklist', JSON.stringify(checkedItems));
+  renderChecklist();
+}
+
+function updateChecklistProgress() {
+  const pct = (checkedItems.length / checklistItems.length * 100);
+  document.getElementById('checklistProgress').style.width = pct + '%';
+}
+
+/* ===================== SAVED LIST ===================== */
+function renderSavedList() {
+  const el = document.getElementById('savedList');
+  if (savedPGs.length === 0) {
+    el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg><h3>No saved PGs yet</h3><p>Swipe right or tap the heart to save PGs</p></div>`;
+    return;
+  }
+  el.innerHTML = savedPGs.map(id => {
+    const pg = pgData.find(p => p.id === id);
+    if (!pg) return '';
+    return `
+      <div class="pg-card-list" onclick="openDetail(${pg.id})">
+        <div class="pg-card-list-photo ${pg.grad}">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="rgba(255,255,255,0.5)"/></svg>
+        </div>
+        <div class="pg-card-list-info">
+          <h3>${pg.name}</h3>
+          <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${pg.area}</div>
+          <div class="card-meta">
+            <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
+            <div class="card-rating"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#FFB300"/></svg> ${pg.rating}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ===================== PROFILE ===================== */
+function updateBudget() {
+  const val = document.getElementById('budgetSlider').value;
+  document.getElementById('budgetValue').textContent = `₹${parseInt(val).toLocaleString()}/mo`;
+}
+
+function toggleAreaPref(btn) {
+  btn.classList.toggle('active');
+}
+
+/* ===================== TOAST ===================== */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "PowerPulse - Outage Tracker",
+  "short_name": "PowerPulse",
+  "description": "Real-time BESCOM & BWSSB outage tracker for Bangalore. Crowdsourced power and water outage reports.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0A1628",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait",
+  "categories": ["utilities", "weather"],
+  "icons": [
+    {"src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"},
+    {"src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml"}
+  ]
+}

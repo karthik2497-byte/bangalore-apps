@@ -1,0 +1,3001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3B82F6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PowerPulse">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>PowerPulse - Bangalore Outage Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   CSS CUSTOM PROPERTIES / THEME
+   ============================================ */
+:root {
+  /* Dark theme (default) */
+  --bg-primary: #0A1628;
+  --bg-secondary: #0F1D32;
+  --bg-card: rgba(15, 29, 50, 0.7);
+  --bg-card-solid: #0F1D32;
+  --bg-glass: rgba(15, 29, 50, 0.5);
+  --bg-glass-border: rgba(59, 130, 246, 0.15);
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent-blue: #3B82F6;
+  --accent-blue-light: #60A5FA;
+  --accent-blue-glow: rgba(59, 130, 246, 0.3);
+  --accent-amber: #F59E0B;
+  --accent-amber-light: #FBBF24;
+  --accent-amber-glow: rgba(245, 158, 11, 0.3);
+  --accent-green: #10B981;
+  --accent-green-glow: rgba(16, 185, 129, 0.3);
+  --accent-red: #EF4444;
+  --accent-red-glow: rgba(239, 68, 68, 0.3);
+  --accent-purple: #8B5CF6;
+  --gradient-blue: linear-gradient(135deg, #3B82F6, #2563EB);
+  --gradient-amber: linear-gradient(135deg, #F59E0B, #D97706);
+  --gradient-green: linear-gradient(135deg, #10B981, #059669);
+  --gradient-red: linear-gradient(135deg, #EF4444, #DC2626);
+  --gradient-hero: linear-gradient(180deg, rgba(59,130,246,0.08) 0%, transparent 60%);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-glow-blue: 0 4px 20px rgba(59,130,246,0.25);
+  --shadow-glow-amber: 0 4px 20px rgba(245,158,11,0.25);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --nav-height: 68px;
+  --header-height: 56px;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-accent: 'Space Grotesk', 'Inter', sans-serif;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg-primary: #F0F4F8;
+  --bg-secondary: #FFFFFF;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-solid: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.6);
+  --bg-glass-border: rgba(59, 130, 246, 0.2);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --gradient-hero: linear-gradient(180deg, rgba(59,130,246,0.06) 0%, transparent 60%);
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* ============================================
+   SPLASH SCREEN
+   ============================================ */
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #0A1628;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#splash-screen.hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.splash-logo {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 24px;
+  animation: splash-pulse 1.5s ease-in-out infinite;
+}
+
+.splash-title {
+  font-family: var(--font-accent);
+  font-size: 28px;
+  font-weight: 700;
+  color: #F1F5F9;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.splash-subtitle {
+  font-size: 13px;
+  color: #64748B;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+.splash-loader {
+  width: 120px;
+  height: 3px;
+  background: rgba(59,130,246,0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.splash-loader-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3B82F6, #60A5FA);
+  border-radius: 3px;
+  animation: splash-load 1.4s ease-in-out forwards;
+}
+
+@keyframes splash-load {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+@keyframes splash-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+/* ============================================
+   APP SHELL
+   ============================================ */
+#app {
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  transition: background 0.4s ease;
+}
+
+/* Desktop phone frame */
+@media (min-width: 500px) {
+  body {
+    background: #050D1A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #app {
+    height: 90vh;
+    max-height: 900px;
+    border-radius: 32px;
+    border: 2px solid rgba(59,130,246,0.15);
+    box-shadow: 0 0 80px rgba(59,130,246,0.08), 0 20px 60px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  [data-theme="light"] #app {
+    border-color: rgba(0,0,0,0.1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.app-header {
+  position: relative;
+  z-index: 100;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.4s ease;
+}
+
+[data-theme="light"] .app-header {
+  border-bottom-color: rgba(0,0,0,0.06);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.header-title {
+  font-family: var(--font-accent);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.header-title span {
+  color: var(--accent-blue);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--bg-glass);
+  border: 1px solid var(--bg-glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.header-btn:active {
+  transform: scale(0.92);
+}
+
+.header-btn svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+}
+
+/* Bangalore skyline silhouette */
+.skyline {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  opacity: 0.04;
+  overflow: hidden;
+}
+
+.skyline svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================
+   CONTENT AREA
+   ============================================ */
+.content-area {
+  height: calc(100vh - var(--header-height) - var(--nav-height));
+  height: calc(100dvh - var(--header-height) - var(--nav-height));
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-content {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  opacity: 0;
+  transform: translateX(20px);
+  visibility: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+  padding-bottom: 20px;
+}
+
+.tab-content.active {
+  opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.tab-content::-webkit-scrollbar { width: 0; }
+
+/* Pull to refresh */
+.ptr-indicator {
+  text-align: center;
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  opacity: 0;
+  transform: translateY(-30px);
+  transition: all 0.3s ease;
+}
+
+.ptr-indicator.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   BOTTOM NAVIGATION
+   ============================================ */
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: var(--bg-secondary);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: background 0.4s ease;
+}
+
+[data-theme="light"] .bottom-nav {
+  border-top-color: rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.9);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  border: none;
+  background: none;
+  min-width: 56px;
+}
+
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.nav-item span {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+  letter-spacing: 0.2px;
+}
+
+.nav-item.active svg {
+  color: var(--accent-blue);
+}
+
+.nav-item.active span {
+  color: var(--accent-blue);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--accent-blue);
+  border-radius: var(--radius-full);
+}
+
+.nav-item:active {
+  transform: scale(0.9);
+}
+
+/* ============================================
+   HOME / DASHBOARD TAB
+   ============================================ */
+.hero-section {
+  padding: 24px 20px 20px;
+  background: var(--gradient-hero);
+  position: relative;
+}
+
+.status-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-pulse-ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.status-pulse-ring::before,
+.status-pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+.status-pulse-ring::after {
+  animation-delay: 0.5s;
+}
+
+.status-pulse-ring.clear { background: rgba(16,185,129,0.15); }
+.status-pulse-ring.clear::before,
+.status-pulse-ring.clear::after { border: 2px solid rgba(16,185,129,0.3); }
+
+.status-pulse-ring.alert { background: rgba(239,68,68,0.15); }
+.status-pulse-ring.alert::before,
+.status-pulse-ring.alert::after { border: 2px solid rgba(239,68,68,0.3); }
+
+@keyframes status-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.status-icon {
+  width: 32px;
+  height: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.status-text {
+  font-family: var(--font-accent);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.status-subtext {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.status-meta {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+[data-theme="light"] .status-meta {
+  border-top-color: rgba(0,0,0,0.06);
+}
+
+.status-meta-item {
+  text-align: center;
+}
+
+.status-meta-value {
+  font-family: var(--font-accent);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.status-meta-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* Quick filter pills */
+.filter-pills {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-pills::-webkit-scrollbar { display: none; }
+
+.filter-pill {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme="light"] .filter-pill {
+  border-color: rgba(0,0,0,0.08);
+}
+
+.filter-pill.active {
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.filter-pill:active {
+  transform: scale(0.95);
+}
+
+/* Section headers */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+}
+
+.section-title {
+  font-family: var(--font-accent);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-action {
+  font-size: 13px;
+  color: var(--accent-blue);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 4px 8px;
+}
+
+/* Outage cards */
+.outage-cards {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.outage-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.outage-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+}
+
+.outage-card.power::before { background: var(--accent-amber); }
+.outage-card.water::before { background: var(--accent-blue); }
+
+.outage-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-md);
+}
+
+.outage-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.outage-card-info {
+  flex: 1;
+}
+
+.outage-area {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.outage-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.outage-type-badge.power {
+  background: rgba(245,158,11,0.12);
+  color: var(--accent-amber);
+}
+
+.outage-type-badge.water {
+  background: rgba(59,130,246,0.12);
+  color: var(--accent-blue-light);
+}
+
+.outage-type-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.outage-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  animation: dot-pulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.outage-status-dot.resolved {
+  background: var(--accent-green);
+  animation: none;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+
+.outage-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.outage-reports {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.outage-reports svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
+.outage-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Floating Action Button */
+.fab {
+  position: absolute;
+  bottom: calc(var(--nav-height) + 20px);
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gradient-blue);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 90;
+  box-shadow: var(--shadow-glow-blue), var(--shadow-md);
+  transition: all var(--transition-normal);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fab svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fab:active {
+  transform: scale(0.9);
+}
+
+.fab:active svg {
+  transform: rotate(90deg);
+}
+
+.fab.hidden {
+  transform: scale(0) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ============================================
+   MAP TAB
+   ============================================ */
+.map-header {
+  padding: 20px 20px 16px;
+}
+
+.map-title {
+  font-family: var(--font-accent);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.map-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.map-legend {
+  display: flex;
+  gap: 16px;
+  padding: 0 20px 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legend-dot.green { background: var(--accent-green); }
+.legend-dot.yellow { background: var(--accent-amber); }
+.legend-dot.red { background: var(--accent-red); }
+
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 20px 20px;
+}
+
+.map-tile {
+  aspect-ratio: 1.3;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.08;
+  background: radial-gradient(circle at 30% 30%, white, transparent);
+}
+
+.map-tile:active {
+  transform: scale(0.95);
+}
+
+.map-tile.clear {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.2);
+}
+
+.map-tile.warning {
+  background: rgba(245,158,11,0.12);
+  border-color: rgba(245,158,11,0.2);
+}
+
+.map-tile.danger {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.2);
+  animation: tile-glow 2s ease-in-out infinite;
+}
+
+@keyframes tile-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  50% { box-shadow: 0 0 12px 2px rgba(239,68,68,0.15); }
+}
+
+.map-tile-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.2;
+  padding: 0 4px;
+}
+
+.map-tile-count {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.map-tile-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Area detail modal */
+.area-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.area-detail-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.area-detail-sheet {
+  width: 100%;
+  max-width: 430px;
+  max-height: 70vh;
+  background: var(--bg-card-solid);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 12px 20px 32px;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  overflow-y: auto;
+}
+
+.area-detail-overlay.show .area-detail-sheet {
+  transform: translateY(0);
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: var(--radius-full);
+  margin: 0 auto 20px;
+}
+
+[data-theme="light"] .sheet-handle {
+  background: rgba(0,0,0,0.15);
+}
+
+.sheet-area-name {
+  font-family: var(--font-accent);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.sheet-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.sheet-stat {
+  background: var(--bg-glass);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  border: 1px solid var(--bg-glass-border);
+}
+
+.sheet-stat-value {
+  font-family: var(--font-accent);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.sheet-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.sheet-outages-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.sheet-outage-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+[data-theme="light"] .sheet-outage-item {
+  border-bottom-color: rgba(0,0,0,0.06);
+}
+
+.sheet-outage-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sheet-outage-icon.power { background: rgba(245,158,11,0.12); }
+.sheet-outage-icon.water { background: rgba(59,130,246,0.12); }
+
+.sheet-outage-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sheet-outage-info { flex: 1; }
+
+.sheet-outage-type {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sheet-outage-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   REPORT TAB
+   ============================================ */
+.report-header {
+  padding: 24px 20px 8px;
+}
+
+.report-title {
+  font-family: var(--font-accent);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.report-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.report-form {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-select-wrapper {
+  position: relative;
+}
+
+.form-select {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-glass);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color var(--transition-fast);
+  outline: none;
+}
+
+.form-select:focus {
+  border-color: var(--accent-blue);
+}
+
+.form-select option {
+  background: var(--bg-card-solid);
+  color: var(--text-primary);
+}
+
+.form-select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+/* Type toggle */
+.type-toggle {
+  display: flex;
+  gap: 12px;
+}
+
+.type-toggle-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--bg-glass-border);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.type-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.type-toggle-btn.active.power {
+  background: rgba(245,158,11,0.12);
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+.type-toggle-btn.active.water {
+  background: rgba(59,130,246,0.12);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue-light);
+}
+
+.type-toggle-btn:active {
+  transform: scale(0.97);
+}
+
+/* Textarea */
+.form-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-glass);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  resize: none;
+  height: 100px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.form-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.form-textarea:focus {
+  border-color: var(--accent-blue);
+}
+
+/* Severity slider */
+.severity-slider-container {
+  padding: 4px 0;
+}
+
+.severity-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.severity-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.severity-label.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.severity-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+  outline: none;
+  transition: background 0.2s;
+}
+
+[data-theme="light"] .severity-slider {
+  background: rgba(0,0,0,0.08);
+}
+
+.severity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+  transition: transform 0.15s ease;
+}
+
+.severity-slider::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+}
+
+.severity-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+}
+
+/* Submit button */
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--gradient-blue);
+  color: white;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+.submit-btn.loading {
+  color: transparent;
+  pointer-events: none;
+}
+
+.submit-btn-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  opacity: 0;
+}
+
+.submit-btn.loading .submit-btn-spinner {
+  opacity: 1;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ============================================
+   PATTERNS TAB
+   ============================================ */
+.patterns-header {
+  padding: 24px 20px 8px;
+}
+
+.patterns-title {
+  font-family: var(--font-accent);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.patterns-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.patterns-area-select {
+  padding: 16px 20px 0;
+}
+
+.area-chip-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.area-chip-scroll::-webkit-scrollbar { display: none; }
+
+.area-chip {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-theme="light"] .area-chip {
+  border-color: rgba(0,0,0,0.08);
+}
+
+.area-chip.active {
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+}
+
+/* Weekly chart */
+.chart-section {
+  padding: 20px;
+}
+
+.chart-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.chart-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  height: 120px;
+  padding-bottom: 28px;
+  position: relative;
+}
+
+.bar-chart::before {
+  content: '';
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.05);
+}
+
+[data-theme="light"] .bar-chart::before {
+  background: rgba(0,0,0,0.06);
+}
+
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.bar {
+  width: 100%;
+  max-width: 28px;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--gradient-blue);
+  transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  min-height: 4px;
+}
+
+.bar.highlight {
+  background: var(--gradient-amber);
+  box-shadow: var(--shadow-glow-amber);
+}
+
+.bar-label {
+  position: absolute;
+  bottom: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Predicted windows */
+.predicted-section {
+  padding: 0 20px 20px;
+}
+
+.predicted-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.predicted-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.predicted-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: rgba(245,158,11,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.predicted-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-amber);
+}
+
+.predicted-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.predicted-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.predicted-windows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.predicted-window {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(245,158,11,0.06);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent-amber);
+}
+
+.pw-day {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 36px;
+}
+
+.pw-time {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pw-type {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pw-type.power { color: var(--accent-amber); }
+.pw-type.water { color: var(--accent-blue-light); }
+
+/* History */
+.history-section {
+  padding: 0 20px 20px;
+}
+
+.history-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+[data-theme="light"] .history-item {
+  border-bottom-color: rgba(0,0,0,0.06);
+}
+
+.history-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.history-dot.power { background: var(--accent-amber); }
+.history-dot.water { background: var(--accent-blue); }
+
+.history-info { flex: 1; }
+
+.history-type {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.history-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.history-duration {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ============================================
+   PROFILE TAB
+   ============================================ */
+.profile-header {
+  padding: 24px 20px 20px;
+  text-align: center;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--gradient-blue);
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-avatar svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.profile-name {
+  font-family: var(--font-accent);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-area {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.settings-section {
+  padding: 0 20px 20px;
+}
+
+.settings-group {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.settings-group-title {
+  padding: 14px 16px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+[data-theme="light"] .setting-item {
+  border-bottom-color: rgba(0,0,0,0.04);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setting-icon.blue { background: rgba(59,130,246,0.12); }
+.setting-icon.amber { background: rgba(245,158,11,0.12); }
+.setting-icon.green { background: rgba(16,185,129,0.12); }
+.setting-icon.purple { background: rgba(139,92,246,0.12); }
+.setting-icon.red { background: rgba(239,68,68,0.12); }
+
+.setting-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.setting-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.setting-value {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Toggle switch */
+.toggle-switch {
+  width: 48px;
+  height: 28px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 3px;
+  cursor: pointer;
+  transition: background var(--transition-normal);
+  position: relative;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-theme="light"] .toggle-switch {
+  background: rgba(0,0,0,0.1);
+}
+
+.toggle-switch.on {
+  background: var(--accent-blue);
+}
+
+.toggle-knob {
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-normal);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.toggle-switch.on .toggle-knob {
+  transform: translateX(20px);
+}
+
+/* Profile select */
+.profile-select {
+  padding: 8px 12px;
+  background: var(--bg-glass);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.profile-select option {
+  background: var(--bg-card-solid);
+}
+
+/* App info */
+.app-info {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.app-info-name {
+  font-family: var(--font-accent);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+/* ============================================
+   TOAST NOTIFICATION
+   ============================================ */
+.toast {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 24px);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--bg-card-solid);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-width: calc(100% - 40px);
+  width: max-content;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-icon.success { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+.toast-icon.error { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+.toast-icon.info { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+
+.toast-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.toast-msg {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="light"] .skeleton {
+  background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  height: 90px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+
+.skeleton-hero {
+  height: 200px;
+  border-radius: var(--radius-xl);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-in {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.delay-1 { animation-delay: 0.05s; opacity: 0; }
+.delay-2 { animation-delay: 0.1s; opacity: 0; }
+.delay-3 { animation-delay: 0.15s; opacity: 0; }
+.delay-4 { animation-delay: 0.2s; opacity: 0; }
+.delay-5 { animation-delay: 0.25s; opacity: 0; }
+
+/* ============================================
+   SCROLLBAR (desktop)
+   ============================================ */
+@media (min-width: 500px) {
+  .tab-content::-webkit-scrollbar {
+    width: 4px;
+  }
+  .tab-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .tab-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+  }
+}
+
+/* Utility */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+}
+</style>
+</head>
+<body>
+<!-- ============================================
+     SPLASH SCREEN
+     ============================================ -->
+<div id="splash-screen">
+  <svg class="splash-logo" viewBox="0 0 80 80" fill="none">
+    <rect width="80" height="80" rx="20" fill="#0F1D32"/>
+    <path d="M44.5 16L28 44h12.5L36.5 64 56 34H42.5L44.5 16z" fill="url(#splash-bolt)"/>
+    <circle cx="40" cy="40" r="28" stroke="#3B82F6" stroke-width="1.5" opacity="0.2"/>
+    <defs>
+      <linearGradient id="splash-bolt" x1="36" y1="16" x2="44" y2="64" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#60A5FA"/>
+        <stop offset="1" stop-color="#3B82F6"/>
+      </linearGradient>
+    </defs>
+  </svg>
+  <div class="splash-title">PowerPulse</div>
+  <div class="splash-subtitle">Bangalore Outage Tracker</div>
+  <div class="splash-loader">
+    <div class="splash-loader-bar"></div>
+  </div>
+</div>
+
+<!-- ============================================
+     APP SHELL
+     ============================================ -->
+<div id="app">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-brand">
+      <svg class="header-logo" viewBox="0 0 28 28" fill="none">
+        <path d="M15.5 3L8 16h5.5L11 25l11-14h-6l2-8z" fill="url(#hd-bolt)" stroke="url(#hd-bolt)" stroke-width="0.5"/>
+        <defs>
+          <linearGradient id="hd-bolt" x1="12" y1="3" x2="16" y2="25" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#60A5FA"/>
+            <stop offset="1" stop-color="#3B82F6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="header-title">Power<span>Pulse</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" id="notif-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </button>
+    </div>
+    <!-- Bangalore skyline silhouette -->
+    <div class="skyline">
+      <svg viewBox="0 0 430 20" preserveAspectRatio="none" fill="currentColor">
+        <path d="M0,20 L0,16 L15,16 L15,12 L20,12 L20,8 L25,8 L25,6 L28,6 L28,3 L30,3 L30,6 L33,6 L33,8 L36,8 L36,12 L40,12 L40,16 L55,16 L55,13 L58,13 L58,10 L62,10 L62,7 L65,5 L68,7 L68,10 L72,10 L72,13 L75,13 L75,16 L100,16 L100,14 L103,14 L103,9 L105,7 L107,5 L109,5 L111,7 L113,9 L113,14 L116,14 L116,16 L140,16 L140,11 L145,11 L145,7 L147,4 L149,4 L151,7 L151,11 L156,11 L156,16 L180,16 L180,14 L183,14 L183,10 L186,10 L186,13 L189,13 L189,8 L192,6 L195,8 L195,13 L198,13 L198,16 L220,16 L220,12 L225,12 L225,9 L228,9 L228,5 L230,3 L232,3 L232,5 L235,5 L235,9 L238,9 L238,12 L243,12 L243,16 L270,16 L270,14 L275,14 L275,10 L278,8 L281,10 L281,14 L286,14 L286,16 L310,16 L310,13 L313,13 L313,9 L316,7 L319,9 L319,13 L322,13 L322,16 L350,16 L350,14 L353,14 L353,11 L356,11 L356,8 L358,6 L360,4 L362,6 L362,8 L365,8 L365,11 L368,11 L368,14 L371,14 L371,16 L400,16 L400,13 L405,13 L405,10 L408,8 L411,10 L411,13 L416,13 L416,16 L430,16 L430,20 Z"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="content-area">
+    <!-- ===================== HOME TAB ===================== -->
+    <div class="tab-content active" id="tab-home">
+      <div class="ptr-indicator" id="ptr">Pull to refresh...</div>
+      <div class="hero-section">
+        <div class="status-card animate-in">
+          <div class="status-pulse-ring alert" id="status-ring">
+            <svg class="status-icon" viewBox="0 0 32 32" fill="none" id="status-icon-svg">
+              <path d="M17 4L8 18h6l-2 10 10-14h-6.5L17 4z" fill="#EF4444"/>
+            </svg>
+          </div>
+          <div class="status-text" id="status-text">4 Outages Reported</div>
+          <div class="status-subtext" id="status-subtext">Across Bangalore right now</div>
+          <div class="status-meta">
+            <div class="status-meta-item">
+              <div class="status-meta-value" id="meta-power">3</div>
+              <div class="status-meta-label">Power</div>
+            </div>
+            <div class="status-meta-item">
+              <div class="status-meta-value" id="meta-water">1</div>
+              <div class="status-meta-label">Water</div>
+            </div>
+            <div class="status-meta-item">
+              <div class="status-meta-value" id="meta-areas">4</div>
+              <div class="status-meta-label">Areas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-pills">
+        <button class="filter-pill active" data-filter="all">All Outages</button>
+        <button class="filter-pill" data-filter="power">
+          <span style="color: var(--accent-amber);">&#9889;</span> Power
+        </button>
+        <button class="filter-pill" data-filter="water">
+          <span style="color: var(--accent-blue);">&#128167;</span> Water
+        </button>
+        <button class="filter-pill" data-filter="my-area">My Area</button>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Active Outages</div>
+        <button class="section-action" id="refresh-btn">Refresh</button>
+      </div>
+
+      <div class="outage-cards" id="outage-list">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="section-header" style="margin-top: 8px;">
+        <div class="section-title">Recently Resolved</div>
+      </div>
+      <div class="outage-cards" id="resolved-list">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- ===================== MAP TAB ===================== -->
+    <div class="tab-content" id="tab-map">
+      <div class="map-header">
+        <div class="map-title">Area Status Map</div>
+        <div class="map-subtitle">Tap an area for details</div>
+      </div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot green"></div>Clear</div>
+        <div class="legend-item"><div class="legend-dot yellow"></div>Some Reports</div>
+        <div class="legend-item"><div class="legend-dot red"></div>Active Outage</div>
+      </div>
+      <div class="map-grid" id="map-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- ===================== REPORT TAB ===================== -->
+    <div class="tab-content" id="tab-report">
+      <div class="report-header">
+        <div class="report-title">Report an Outage</div>
+        <div class="report-subtitle">Help your community stay informed</div>
+      </div>
+      <form class="report-form" id="report-form" autocomplete="off">
+        <div class="form-group">
+          <label class="form-label">Area</label>
+          <div class="form-select-wrapper">
+            <select class="form-select" id="report-area" required>
+              <option value="">Select your area...</option>
+            </select>
+            <div class="form-select-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Outage Type</label>
+          <div class="type-toggle">
+            <button type="button" class="type-toggle-btn power active" data-type="power">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Power
+            </button>
+            <button type="button" class="type-toggle-btn water" data-type="water">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              Water
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description (Optional)</label>
+          <textarea class="form-textarea" id="report-desc" placeholder="e.g. Power went off suddenly, no BESCOM notice..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Severity</label>
+          <div class="severity-slider-container">
+            <div class="severity-labels">
+              <span class="severity-label" data-sev="1">Mild</span>
+              <span class="severity-label" data-sev="2">Moderate</span>
+              <span class="severity-label active" data-sev="3">Severe</span>
+            </div>
+            <input type="range" class="severity-slider" id="severity-slider" min="1" max="3" value="2">
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="submit-btn">
+          Submit Report
+          <div class="submit-btn-spinner"></div>
+        </button>
+      </form>
+    </div>
+
+    <!-- ===================== PATTERNS TAB ===================== -->
+    <div class="tab-content" id="tab-patterns">
+      <div class="patterns-header">
+        <div class="patterns-title">Your Area Insights</div>
+        <div class="patterns-subtitle">Outage patterns &amp; predictions</div>
+      </div>
+      <div class="patterns-area-select">
+        <div class="area-chip-scroll" id="pattern-area-chips">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-card">
+          <div class="chart-title">Weekly Outage Frequency</div>
+          <div class="chart-subtitle" id="chart-subtitle">Power outages in Koramangala</div>
+          <div class="bar-chart" id="bar-chart">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="predicted-section">
+        <div class="predicted-card">
+          <div class="predicted-header">
+            <div class="predicted-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div>
+              <div class="predicted-title">Predicted Outage Windows</div>
+              <div class="predicted-subtitle">Based on historical patterns</div>
+            </div>
+          </div>
+          <div class="predicted-windows" id="predicted-windows">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="history-section">
+        <div class="history-title">Past Outages</div>
+        <div id="history-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PROFILE TAB ===================== -->
+    <div class="tab-content" id="tab-profile">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="profile-name">Bangalore Resident</div>
+        <div class="profile-area" id="profile-area-text">Koramangala</div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-group">
+          <div class="settings-group-title">Your Area</div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <span class="setting-label">Home Area</span>
+            </div>
+            <select class="profile-select" id="profile-area-select">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Notifications</div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <span class="setting-label">Power Outage Alerts</span>
+            </div>
+            <button class="toggle-switch on" id="toggle-power" aria-label="Toggle power alerts">
+              <div class="toggle-knob"></div>
+            </button>
+          </div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+              <span class="setting-label">Water Outage Alerts</span>
+            </div>
+            <button class="toggle-switch on" id="toggle-water" aria-label="Toggle water alerts">
+              <div class="toggle-knob"></div>
+            </button>
+          </div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+              </div>
+              <span class="setting-label">Resolved Notifications</span>
+            </div>
+            <button class="toggle-switch" id="toggle-resolved" aria-label="Toggle resolved notifications">
+              <div class="toggle-knob"></div>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">Appearance</div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              </div>
+              <span class="setting-label">Dark Mode</span>
+            </div>
+            <button class="toggle-switch on" id="toggle-theme" aria-label="Toggle dark mode">
+              <div class="toggle-knob"></div>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">About</div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              </div>
+              <span class="setting-label">App Version</span>
+            </div>
+            <span class="setting-value">1.0.0</span>
+          </div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </div>
+              <span class="setting-label">BESCOM Helpline</span>
+            </div>
+            <span class="setting-value">1912</span>
+          </div>
+          <div class="setting-item">
+            <div class="setting-left">
+              <div class="setting-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </div>
+              <span class="setting-label">BWSSB Helpline</span>
+            </div>
+            <span class="setting-value">1916</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-info">
+        <div class="app-info-name">PowerPulse v1.0</div>
+        <p>Community-powered outage tracker for Bangalore</p>
+        <p style="margin-top: 4px;">BESCOM &amp; BWSSB service monitoring</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- FAB -->
+  <button class="fab" id="fab" aria-label="Report an outage">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="home" aria-label="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-tab="map" aria-label="Map">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span>Map</span>
+    </button>
+    <button class="nav-item" data-tab="report" aria-label="Report">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Report</span>
+    </button>
+    <button class="nav-item" data-tab="patterns" aria-label="Patterns">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Patterns</span>
+    </button>
+    <button class="nav-item" data-tab="profile" aria-label="Profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Area Detail Bottom Sheet -->
+<div class="area-detail-overlay" id="area-detail-overlay">
+  <div class="area-detail-sheet" id="area-detail-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-area-name" id="sheet-area-name">Koramangala</div>
+    <div class="sheet-stats" id="sheet-stats"></div>
+    <div class="sheet-outages-title">Current Outages</div>
+    <div id="sheet-outages"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-icon success" id="toast-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <span class="toast-msg" id="toast-msg">Report submitted!</span>
+</div>
+
+<!-- ============================================
+     JAVASCRIPT
+     ============================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // ============================================
+  // DATA
+  // ============================================
+  const AREAS = [
+    'Koramangala', 'Indiranagar', 'HSR Layout', 'Whitefield', 'Electronic City',
+    'Marathahalli', 'Jayanagar', 'BTM Layout', 'Hebbal', 'Yelahanka',
+    'Banashankari', 'JP Nagar', 'Malleshwaram', 'Rajajinagar', 'Basavanagudi'
+  ];
+
+  const now = Date.now();
+  const mins = m => m * 60 * 1000;
+
+  let activeOutages = [
+    {
+      id: 1, area: 'Koramangala', type: 'power', reports: 23,
+      firstReported: now - mins(47), severity: 3,
+      description: 'Complete power cut, no BESCOM notice posted'
+    },
+    {
+      id: 2, area: 'HSR Layout', type: 'water', reports: 15,
+      firstReported: now - mins(120), severity: 2,
+      description: 'Low pressure / no water supply since morning'
+    },
+    {
+      id: 3, area: 'Whitefield', type: 'power', reports: 31,
+      firstReported: now - mins(35), severity: 3,
+      description: 'Sudden power cut, transformer area sparking reported'
+    },
+    {
+      id: 4, area: 'Marathahalli', type: 'power', reports: 8,
+      firstReported: now - mins(15), severity: 1,
+      description: 'Intermittent power fluctuations'
+    }
+  ];
+
+  let resolvedOutages = [
+    {
+      id: 101, area: 'Indiranagar', type: 'power', reports: 42,
+      firstReported: now - mins(240), resolvedAt: now - mins(60),
+      description: 'Scheduled maintenance completed'
+    },
+    {
+      id: 102, area: 'Jayanagar', type: 'water', reports: 19,
+      firstReported: now - mins(360), resolvedAt: now - mins(180),
+      description: 'Pipeline repair finished'
+    }
+  ];
+
+  // Area status derived from outage data
+  function getAreaStatus(areaName) {
+    const areaOutages = activeOutages.filter(o => o.area === areaName);
+    const totalReports = areaOutages.reduce((s, o) => s + o.reports, 0);
+    if (totalReports === 0) return { status: 'clear', count: 0, outages: [] };
+    if (totalReports < 10) return { status: 'warning', count: totalReports, outages: areaOutages };
+    return { status: 'danger', count: totalReports, outages: areaOutages };
+  }
+
+  // Pattern data (per area)
+  const patternData = {
+    'Koramangala': {
+      weekly: [3, 1, 5, 2, 4, 1, 0],
+      predictions: [
+        { day: 'Tue', time: '2:00 PM - 5:00 PM', type: 'power' },
+        { day: 'Wed', time: '10:00 AM - 12:00 PM', type: 'power' },
+        { day: 'Fri', time: '6:00 AM - 8:00 AM', type: 'water' }
+      ],
+      history: [
+        { type: 'power', date: 'Dec 15, 2024', duration: '3h 20m' },
+        { type: 'water', date: 'Dec 12, 2024', duration: '5h 45m' },
+        { type: 'power', date: 'Dec 10, 2024', duration: '1h 10m' },
+        { type: 'power', date: 'Dec 8, 2024', duration: '2h 30m' },
+        { type: 'water', date: 'Dec 3, 2024', duration: '4h 15m' }
+      ]
+    },
+    'Indiranagar': {
+      weekly: [2, 3, 1, 4, 2, 0, 1],
+      predictions: [
+        { day: 'Thu', time: '1:00 PM - 4:00 PM', type: 'power' },
+        { day: 'Sat', time: '7:00 AM - 9:00 AM', type: 'water' }
+      ],
+      history: [
+        { type: 'power', date: 'Dec 16, 2024', duration: '4h 00m' },
+        { type: 'power', date: 'Dec 13, 2024', duration: '2h 15m' },
+        { type: 'water', date: 'Dec 9, 2024', duration: '6h 30m' },
+        { type: 'power', date: 'Dec 5, 2024', duration: '1h 45m' }
+      ]
+    },
+    'HSR Layout': {
+      weekly: [1, 2, 3, 1, 2, 4, 1],
+      predictions: [
+        { day: 'Wed', time: '9:00 AM - 11:00 AM', type: 'water' },
+        { day: 'Sat', time: '2:00 PM - 6:00 PM', type: 'power' }
+      ],
+      history: [
+        { type: 'water', date: 'Dec 17, 2024', duration: '2h 00m' },
+        { type: 'power', date: 'Dec 14, 2024', duration: '3h 30m' },
+        { type: 'water', date: 'Dec 11, 2024', duration: '4h 00m' },
+        { type: 'power', date: 'Dec 7, 2024', duration: '1h 20m' }
+      ]
+    },
+    'Whitefield': {
+      weekly: [4, 2, 3, 5, 1, 2, 0],
+      predictions: [
+        { day: 'Mon', time: '10:00 AM - 2:00 PM', type: 'power' },
+        { day: 'Thu', time: '3:00 PM - 6:00 PM', type: 'power' },
+        { day: 'Sat', time: '6:00 AM - 8:00 AM', type: 'water' }
+      ],
+      history: [
+        { type: 'power', date: 'Dec 17, 2024', duration: '35m ongoing' },
+        { type: 'power', date: 'Dec 15, 2024', duration: '4h 10m' },
+        { type: 'power', date: 'Dec 12, 2024', duration: '2h 45m' },
+        { type: 'water', date: 'Dec 8, 2024', duration: '3h 00m' }
+      ]
+    }
+  };
+
+  // Default patterns for areas without specific data
+  const defaultPattern = {
+    weekly: [1, 1, 2, 1, 1, 0, 0],
+    predictions: [
+      { day: 'Wed', time: '11:00 AM - 1:00 PM', type: 'power' }
+    ],
+    history: [
+      { type: 'power', date: 'Dec 14, 2024', duration: '2h 00m' },
+      { type: 'water', date: 'Dec 10, 2024', duration: '3h 15m' }
+    ]
+  };
+
+  function getPatternData(area) {
+    return patternData[area] || defaultPattern;
+  }
+
+  // ============================================
+  // STATE
+  // ============================================
+  let currentTab = 'home';
+  let currentFilter = 'all';
+  let selectedReportType = 'power';
+  let selectedPatternArea = null;
+  let userArea = localStorage.getItem('pp_userArea') || 'Koramangala';
+  let darkMode = localStorage.getItem('pp_darkMode') !== 'false'; // default true
+  let notifPower = localStorage.getItem('pp_notifPower') !== 'false';
+  let notifWater = localStorage.getItem('pp_notifWater') !== 'false';
+  let notifResolved = localStorage.getItem('pp_notifResolved') === 'true';
+
+  // ============================================
+  // DOM REFS
+  // ============================================
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
+
+  // ============================================
+  // SPLASH SCREEN
+  // ============================================
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      $('#splash-screen').classList.add('hide');
+      setTimeout(() => { $('#splash-screen').style.display = 'none'; }, 500);
+    }, 1500);
+  });
+
+  // ============================================
+  // THEME
+  // ============================================
+  function applyTheme() {
+    if (darkMode) {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+    const toggle = $('#toggle-theme');
+    if (toggle) {
+      if (darkMode) toggle.classList.add('on');
+      else toggle.classList.remove('on');
+    }
+  }
+  applyTheme();
+
+  // ============================================
+  // UTILITY
+  // ============================================
+  function timeAgo(ts) {
+    const diff = Date.now() - ts;
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'Just now';
+    if (m < 60) return m + 'm ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ' + (m % 60) + 'm ago';
+    return Math.floor(h / 24) + 'd ago';
+  }
+
+  function showToast(msg, type = 'success') {
+    const toast = $('#toast');
+    const toastMsg = $('#toast-msg');
+    const toastIcon = $('#toast-icon');
+    toastMsg.textContent = msg;
+    toastIcon.className = 'toast-icon ' + type;
+    // Update icon svg based on type
+    if (type === 'success') {
+      toastIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    } else if (type === 'error') {
+      toastIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    } else {
+      toastIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+    }
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // Power / Water icons as HTML
+  const powerIconSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+  const waterIconSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>';
+  const peopleIconSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+
+  // ============================================
+  // TAB NAVIGATION
+  // ============================================
+  function switchTab(tab) {
+    if (tab === currentTab) return;
+    currentTab = tab;
+
+    // Update nav
+    $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+
+    // Update content
+    $$('.tab-content').forEach(c => c.classList.remove('active'));
+    const target = $(`#tab-${tab}`);
+    if (target) target.classList.add('active');
+
+    // FAB visibility
+    const fab = $('#fab');
+    if (tab === 'home' || tab === 'map') {
+      fab.classList.remove('hidden');
+    } else {
+      fab.classList.add('hidden');
+    }
+  }
+
+  $$('.nav-item').forEach(nav => {
+    nav.addEventListener('click', () => switchTab(nav.dataset.tab));
+  });
+
+  // FAB opens report tab
+  $('#fab').addEventListener('click', () => switchTab('report'));
+
+  // ============================================
+  // RENDER HOME
+  // ============================================
+  function renderHome() {
+    // Status
+    const total = activeOutages.length;
+    const powerCount = activeOutages.filter(o => o.type === 'power').length;
+    const waterCount = activeOutages.filter(o => o.type === 'water').length;
+    const areasAffected = new Set(activeOutages.map(o => o.area)).size;
+
+    const ring = $('#status-ring');
+    const icon = $('#status-icon-svg');
+    const statusText = $('#status-text');
+    const statusSub = $('#status-subtext');
+
+    if (total === 0) {
+      ring.className = 'status-pulse-ring clear';
+      icon.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"/><polyline points="22 4 12 14.01 9 11.01" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+      statusText.textContent = 'All Clear';
+      statusText.style.color = 'var(--accent-green)';
+      statusSub.textContent = 'No outages reported in Bangalore';
+    } else {
+      ring.className = 'status-pulse-ring alert';
+      icon.innerHTML = '<path d="M17 4L8 18h6l-2 10 10-14h-6.5L17 4z" fill="#EF4444"/>';
+      statusText.textContent = total + ' Outage' + (total > 1 ? 's' : '') + ' Reported';
+      statusText.style.color = 'var(--accent-red)';
+      statusSub.textContent = 'Across Bangalore right now';
+    }
+
+    $('#meta-power').textContent = powerCount;
+    $('#meta-water').textContent = waterCount;
+    $('#meta-areas').textContent = areasAffected;
+
+    // Active outage cards
+    let filtered = [...activeOutages];
+    if (currentFilter === 'power') filtered = filtered.filter(o => o.type === 'power');
+    else if (currentFilter === 'water') filtered = filtered.filter(o => o.type === 'water');
+    else if (currentFilter === 'my-area') filtered = filtered.filter(o => o.area === userArea);
+
+    const list = $('#outage-list');
+    if (filtered.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px;">No active outages matching filter</div>';
+    } else {
+      list.innerHTML = filtered.map((o, i) => `
+        <div class="outage-card ${o.type} animate-in delay-${i + 1}" data-id="${o.id}">
+          <div class="outage-card-top">
+            <div class="outage-card-info">
+              <div class="outage-area">${o.area}</div>
+              <span class="outage-type-badge ${o.type}">
+                ${o.type === 'power' ? powerIconSVG : waterIconSVG}
+                ${o.type === 'power' ? 'BESCOM' : 'BWSSB'} - ${o.type}
+              </span>
+            </div>
+            <div class="outage-status-dot"></div>
+          </div>
+          <div class="outage-card-bottom">
+            <div class="outage-reports">
+              ${peopleIconSVG}
+              ${o.reports} people reported
+            </div>
+            <div class="outage-time">${timeAgo(o.firstReported)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Resolved
+    const resList = $('#resolved-list');
+    resList.innerHTML = resolvedOutages.map((o, i) => `
+      <div class="outage-card ${o.type} animate-in delay-${i + 1}" data-id="${o.id}">
+        <div class="outage-card-top">
+          <div class="outage-card-info">
+            <div class="outage-area">${o.area}</div>
+            <span class="outage-type-badge ${o.type}">
+              ${o.type === 'power' ? powerIconSVG : waterIconSVG}
+              ${o.type === 'power' ? 'BESCOM' : 'BWSSB'} - ${o.type}
+            </span>
+          </div>
+          <div class="outage-status-dot resolved"></div>
+        </div>
+        <div class="outage-card-bottom">
+          <div class="outage-reports">
+            ${peopleIconSVG}
+            ${o.reports} people reported
+          </div>
+          <div class="outage-time">Resolved ${timeAgo(o.resolvedAt)}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Filter pills
+  $$('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      $$('.filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentFilter = pill.dataset.filter;
+      renderHome();
+    });
+  });
+
+  // Pull to refresh simulation
+  let touchStartY = 0;
+  const homeTab = $('#tab-home');
+  homeTab.addEventListener('touchstart', e => {
+    if (homeTab.scrollTop === 0) touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  homeTab.addEventListener('touchmove', e => {
+    if (homeTab.scrollTop === 0 && e.touches[0].clientY - touchStartY > 60) {
+      $('#ptr').classList.add('visible');
+    }
+  }, { passive: true });
+  homeTab.addEventListener('touchend', () => {
+    if ($('#ptr').classList.contains('visible')) {
+      $('#ptr').textContent = 'Refreshing...';
+      setTimeout(() => {
+        renderHome();
+        $('#ptr').classList.remove('visible');
+        $('#ptr').textContent = 'Pull to refresh...';
+        showToast('Data refreshed!', 'info');
+      }, 1000);
+    }
+  });
+
+  // Refresh button
+  $('#refresh-btn').addEventListener('click', () => {
+    showToast('Data refreshed!', 'info');
+    renderHome();
+  });
+
+  // ============================================
+  // RENDER MAP
+  // ============================================
+  function renderMap() {
+    const grid = $('#map-grid');
+    grid.innerHTML = AREAS.map(area => {
+      const info = getAreaStatus(area);
+      const statusClass = info.status;
+      let icon = '';
+      if (statusClass === 'danger') {
+        icon = '<svg class="map-tile-icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+      } else if (statusClass === 'warning') {
+        icon = '<svg class="map-tile-icon" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      } else {
+        icon = '<svg class="map-tile-icon" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      }
+      return `
+        <div class="map-tile ${statusClass}" data-area="${area}">
+          ${icon}
+          <div class="map-tile-name">${area}</div>
+          ${info.count > 0 ? `<div class="map-tile-count">${info.count} reports</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    // Click handlers
+    grid.querySelectorAll('.map-tile').forEach(tile => {
+      tile.addEventListener('click', () => openAreaDetail(tile.dataset.area));
+    });
+  }
+
+  function openAreaDetail(area) {
+    const overlay = $('#area-detail-overlay');
+    const info = getAreaStatus(area);
+    const patterns = getPatternData(area);
+
+    $('#sheet-area-name').textContent = area;
+
+    // Stats
+    const powerO = info.outages.filter(o => o.type === 'power');
+    const waterO = info.outages.filter(o => o.type === 'water');
+    $('#sheet-stats').innerHTML = `
+      <div class="sheet-stat">
+        <div class="sheet-stat-value" style="color: ${info.status === 'clear' ? 'var(--accent-green)' : 'var(--accent-red)'}">
+          ${info.count}
+        </div>
+        <div class="sheet-stat-label">Reports</div>
+      </div>
+      <div class="sheet-stat">
+        <div class="sheet-stat-value" style="color: var(--accent-amber)">${powerO.length}</div>
+        <div class="sheet-stat-label">Power</div>
+      </div>
+      <div class="sheet-stat">
+        <div class="sheet-stat-value" style="color: var(--accent-blue)">${waterO.length}</div>
+        <div class="sheet-stat-label">Water</div>
+      </div>
+    `;
+
+    // Outages list
+    if (info.outages.length === 0) {
+      $('#sheet-outages').innerHTML = '<div style="padding:16px 0;color:var(--text-muted);font-size:13px;">No active outages. All clear!</div>';
+    } else {
+      $('#sheet-outages').innerHTML = info.outages.map(o => `
+        <div class="sheet-outage-item">
+          <div class="sheet-outage-icon ${o.type}">
+            ${o.type === 'power' ? '<svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'}
+          </div>
+          <div class="sheet-outage-info">
+            <div class="sheet-outage-type">${o.type === 'power' ? 'Power Outage' : 'Water Supply Issue'}</div>
+            <div class="sheet-outage-time">${o.reports} reports &middot; ${timeAgo(o.firstReported)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    overlay.classList.add('show');
+  }
+
+  $('#area-detail-overlay').addEventListener('click', e => {
+    if (e.target === $('#area-detail-overlay')) {
+      $('#area-detail-overlay').classList.remove('show');
+    }
+  });
+
+  // ============================================
+  // RENDER REPORT FORM
+  // ============================================
+  function populateAreaSelects() {
+    const reportSelect = $('#report-area');
+    const profileSelect = $('#profile-area-select');
+
+    AREAS.forEach(area => {
+      const opt1 = document.createElement('option');
+      opt1.value = area;
+      opt1.textContent = area;
+      if (area === userArea) opt1.selected = true;
+      reportSelect.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = area;
+      opt2.textContent = area;
+      if (area === userArea) opt2.selected = true;
+      profileSelect.appendChild(opt2);
+    });
+  }
+
+  // Type toggle
+  $$('.type-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.type-toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedReportType = btn.dataset.type;
+    });
+  });
+
+  // Severity slider labels
+  const sevSlider = $('#severity-slider');
+  sevSlider.addEventListener('input', () => {
+    const val = parseInt(sevSlider.value);
+    $$('.severity-label').forEach(l => {
+      l.classList.toggle('active', parseInt(l.dataset.sev) === val);
+    });
+  });
+
+  // Form submit
+  $('#report-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const area = $('#report-area').value;
+    if (!area) {
+      showToast('Please select an area', 'error');
+      return;
+    }
+
+    const btn = $('#submit-btn');
+    btn.classList.add('loading');
+
+    setTimeout(() => {
+      // Add new outage
+      const newOutage = {
+        id: Date.now(),
+        area: area,
+        type: selectedReportType,
+        reports: 1,
+        firstReported: Date.now(),
+        severity: parseInt(sevSlider.value),
+        description: $('#report-desc').value || 'Community report'
+      };
+
+      // Check if there's already an active outage for this area + type
+      const existing = activeOutages.find(o => o.area === area && o.type === selectedReportType);
+      if (existing) {
+        existing.reports += 1;
+      } else {
+        activeOutages.push(newOutage);
+      }
+
+      btn.classList.remove('loading');
+      showToast('Report submitted! Thank you for helping your community.', 'success');
+
+      // Reset form
+      $('#report-desc').value = '';
+      sevSlider.value = 2;
+      $$('.severity-label').forEach(l => l.classList.toggle('active', parseInt(l.dataset.sev) === 2));
+
+      // Refresh home
+      renderHome();
+      renderMap();
+
+      // Switch to home after delay
+      setTimeout(() => switchTab('home'), 800);
+    }, 1500);
+  });
+
+  // ============================================
+  // RENDER PATTERNS
+  // ============================================
+  function renderPatterns(area) {
+    selectedPatternArea = area || userArea;
+    const data = getPatternData(selectedPatternArea);
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const maxVal = Math.max(...data.weekly, 1);
+
+    // Area chips
+    const chips = $('#pattern-area-chips');
+    chips.innerHTML = AREAS.map(a => `
+      <button class="area-chip ${a === selectedPatternArea ? 'active' : ''}" data-area="${a}">${a}</button>
+    `).join('');
+
+    chips.querySelectorAll('.area-chip').forEach(c => {
+      c.addEventListener('click', () => renderPatterns(c.dataset.area));
+    });
+
+    // Chart subtitle
+    $('#chart-subtitle').textContent = `Outages per day in ${selectedPatternArea}`;
+
+    // Bar chart
+    const chart = $('#bar-chart');
+    chart.innerHTML = data.weekly.map((val, i) => {
+      const height = Math.max((val / maxVal) * 90, 4);
+      const isHighlight = val === Math.max(...data.weekly) && val > 0;
+      return `
+        <div class="bar-col">
+          <div class="bar ${isHighlight ? 'highlight' : ''}" style="height: ${height}px;"></div>
+          <div class="bar-label">${days[i]}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Animate bars after a tick
+    requestAnimationFrame(() => {
+      chart.querySelectorAll('.bar').forEach(bar => {
+        const h = bar.style.height;
+        bar.style.height = '4px';
+        requestAnimationFrame(() => { bar.style.height = h; });
+      });
+    });
+
+    // Predictions
+    const pw = $('#predicted-windows');
+    pw.innerHTML = data.predictions.map(p => `
+      <div class="predicted-window">
+        <div class="pw-day">${p.day}</div>
+        <div class="pw-time">${p.time}</div>
+        <div class="pw-type ${p.type}">${p.type}</div>
+      </div>
+    `).join('');
+
+    // History
+    const hl = $('#history-list');
+    hl.innerHTML = data.history.map(h => `
+      <div class="history-item">
+        <div class="history-dot ${h.type}"></div>
+        <div class="history-info">
+          <div class="history-type">${h.type === 'power' ? 'Power Outage' : 'Water Issue'}</div>
+          <div class="history-meta">${h.date}</div>
+        </div>
+        <div class="history-duration">${h.duration}</div>
+      </div>
+    `).join('');
+  }
+
+  // ============================================
+  // PROFILE / SETTINGS
+  // ============================================
+  function updateProfileArea() {
+    $('#profile-area-text').textContent = userArea;
+  }
+
+  $('#profile-area-select').addEventListener('change', e => {
+    userArea = e.target.value;
+    localStorage.setItem('pp_userArea', userArea);
+    updateProfileArea();
+    renderHome();
+    renderPatterns(userArea);
+    showToast('Home area updated to ' + userArea, 'info');
+  });
+
+  // Toggles
+  function setupToggle(id, getter, setter, key) {
+    const el = $(id);
+    if (getter()) el.classList.add('on');
+    else el.classList.remove('on');
+    el.addEventListener('click', () => {
+      const newVal = !el.classList.contains('on');
+      el.classList.toggle('on', newVal);
+      setter(newVal);
+      localStorage.setItem(key, String(newVal));
+    });
+  }
+
+  function initToggles() {
+    setupToggle('#toggle-power', () => notifPower, v => notifPower = v, 'pp_notifPower');
+    setupToggle('#toggle-water', () => notifWater, v => notifWater = v, 'pp_notifWater');
+    setupToggle('#toggle-resolved', () => notifResolved, v => notifResolved = v, 'pp_notifResolved');
+
+    // Theme toggle is special
+    const themeToggle = $('#toggle-theme');
+    if (darkMode) themeToggle.classList.add('on');
+    else themeToggle.classList.remove('on');
+    themeToggle.addEventListener('click', () => {
+      darkMode = !darkMode;
+      themeToggle.classList.toggle('on', darkMode);
+      localStorage.setItem('pp_darkMode', String(darkMode));
+      applyTheme();
+    });
+  }
+
+  // ============================================
+  // NOTIFICATION BUTTON (just show toast)
+  // ============================================
+  $('#notif-btn').addEventListener('click', () => {
+    const userOutages = activeOutages.filter(o => o.area === userArea);
+    if (userOutages.length > 0) {
+      showToast(`${userOutages.length} active outage(s) in ${userArea}`, 'info');
+    } else {
+      showToast(`No outages in ${userArea}`, 'success');
+    }
+  });
+
+  // ============================================
+  // INITIALIZE
+  // ============================================
+  function init() {
+    populateAreaSelects();
+    renderHome();
+    renderMap();
+    renderPatterns(userArea);
+    updateProfileArea();
+    initToggles();
+
+    // Simulate live update every 30s - add random reports
+    setInterval(() => {
+      if (activeOutages.length > 0) {
+        const randomOutage = activeOutages[Math.floor(Math.random() * activeOutages.length)];
+        randomOutage.reports += Math.floor(Math.random() * 3) + 1;
+        if (currentTab === 'home') renderHome();
+      }
+    }, 30000);
+  }
+
+  init();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

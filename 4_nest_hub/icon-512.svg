@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Teal circle background -->
+  <circle cx="256" cy="256" r="256" fill="#0D9488"/>
+  <!-- Subtle inner shadow ring -->
+  <circle cx="256" cy="256" r="234" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"/>
+  <!-- Building base/ground -->
+  <rect x="96" y="394" width="320" height="10" rx="5" fill="rgba(255,255,255,0.3)"/>
+  <!-- Main building - center tall tower -->
+  <rect x="181" y="138" width="150" height="256" rx="6" fill="white"/>
+  <!-- Left wing -->
+  <rect x="106" y="202" width="86" height="192" rx="6" fill="rgba(255,255,255,0.85)"/>
+  <!-- Right wing -->
+  <rect x="320" y="202" width="86" height="192" rx="6" fill="rgba(255,255,255,0.85)"/>
+  <!-- Center tower windows - row 1 -->
+  <rect x="202" y="160" width="26" height="26" rx="4" fill="#0D9488" opacity="0.5"/>
+  <rect x="243" y="160" width="26" height="26" rx="4" fill="#0D9488" opacity="0.5"/>
+  <rect x="284" y="160" width="26" height="26" rx="4" fill="#0D9488" opacity="0.5"/>
+  <!-- Center tower windows - row 2 -->
+  <rect x="202" y="202" width="26" height="26" rx="4" fill="#0D9488" opacity="0.4"/>
+  <rect x="243" y="202" width="26" height="26" rx="4" fill="#0D9488" opacity="0.4"/>
+  <rect x="284" y="202" width="26" height="26" rx="4" fill="#0D9488" opacity="0.4"/>
+  <!-- Center tower windows - row 3 -->
+  <rect x="202" y="244" width="26" height="26" rx="4" fill="#0D9488" opacity="0.35"/>
+  <rect x="243" y="244" width="26" height="26" rx="4" fill="#0D9488" opacity="0.35"/>
+  <rect x="284" y="244" width="26" height="26" rx="4" fill="#0D9488" opacity="0.35"/>
+  <!-- Center tower windows - row 4 -->
+  <rect x="202" y="286" width="26" height="26" rx="4" fill="#0D9488" opacity="0.3"/>
+  <rect x="243" y="286" width="26" height="26" rx="4" fill="#0D9488" opacity="0.3"/>
+  <rect x="284" y="286" width="26" height="26" rx="4" fill="#0D9488" opacity="0.3"/>
+  <!-- Center entrance door -->
+  <rect x="234" y="340" width="44" height="54" rx="22" fill="#0D9488" opacity="0.4"/>
+  <!-- Left wing windows - row 1 -->
+  <rect x="122" y="222" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.4"/>
+  <rect x="154" y="222" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.4"/>
+  <!-- Left wing windows - row 2 -->
+  <rect x="122" y="260" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.35"/>
+  <rect x="154" y="260" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.35"/>
+  <!-- Left wing windows - row 3 -->
+  <rect x="122" y="298" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.3"/>
+  <rect x="154" y="298" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.3"/>
+  <!-- Left wing windows - row 4 -->
+  <rect x="122" y="336" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.25"/>
+  <rect x="154" y="336" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.25"/>
+  <!-- Right wing windows - row 1 -->
+  <rect x="336" y="222" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.4"/>
+  <rect x="368" y="222" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.4"/>
+  <!-- Right wing windows - row 2 -->
+  <rect x="336" y="260" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.35"/>
+  <rect x="368" y="260" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.35"/>
+  <!-- Right wing windows - row 3 -->
+  <rect x="336" y="298" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.3"/>
+  <rect x="368" y="298" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.3"/>
+  <!-- Right wing windows - row 4 -->
+  <rect x="336" y="336" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.25"/>
+  <rect x="368" y="336" width="22" height="22" rx="3.5" fill="#0D9488" opacity="0.25"/>
+  <!-- Shield/checkmark accent (security trust indicator) -->
+  <g transform="translate(346, 100)">
+    <!-- Shield shape -->
+    <path d="M44 10 L76 24 L76 48 C76 66 60 80 44 86 C28 80 12 66 12 48 L12 24 Z" fill="white"/>
+    <!-- Checkmark inside shield -->
+    <polyline points="27,48 38,59 61,35" fill="none" stroke="#0D9488" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

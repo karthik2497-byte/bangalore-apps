@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangalore Apps - Local Solutions for Namma Bengaluru</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0F172A;
+            --surface: #1E293B;
+            --border: #334155;
+            --text: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --accent: #818CF8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 24px 40px;
+            background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 50%, #164E63 100%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(129, 140, 248, 0.15);
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #E0E7FF, #818CF8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 32px 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 640px) {
+            .apps-grid { grid-template-columns: 1fr 1fr; }
+            .app-card:last-child { grid-column: 1 / -1; max-width: 380px; margin: 0 auto; width: 100%; }
+        }
+
+        .app-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .app-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(129, 140, 248, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-card[data-app="power"]::before { background: linear-gradient(90deg, #3B82F6, #F59E0B); }
+        .app-card[data-app="meter"]::before { background: linear-gradient(90deg, #FBBF24, #10B981); }
+        .app-card[data-app="pg"]::before { background: linear-gradient(90deg, #FF6B35, #7CB342); }
+        .app-card[data-app="nest"]::before { background: linear-gradient(90deg, #0D9488, #F59E0B); }
+        .app-card[data-app="lingo"]::before { background: linear-gradient(90deg, #7C3AED, #F59E0B); }
+
+        .app-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .app-card[data-app="power"] .app-number { background: rgba(59, 130, 246, 0.2); color: #60A5FA; }
+        .app-card[data-app="meter"] .app-number { background: rgba(251, 191, 36, 0.2); color: #FBBF24; }
+        .app-card[data-app="pg"] .app-number { background: rgba(255, 107, 53, 0.2); color: #FF6B35; }
+        .app-card[data-app="nest"] .app-number { background: rgba(13, 148, 136, 0.2); color: #2DD4BF; }
+        .app-card[data-app="lingo"] .app-number { background: rgba(124, 58, 237, 0.2); color: #A78BFA; }
+
+        .app-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .app-card .tagline {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .app-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .app-tag {
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .app-card .open-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .open-label svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.2s;
+        }
+
+        .app-card:hover .open-label svg {
+            transform: translateX(3px);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .tech-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-badge">5 Apps for Namma Bengaluru</div>
+        <h1>Bangalore Apps</h1>
+        <p>Local solutions for everyday problems. Built as mobile-first PWAs. No servers, no sign-ups, works offline.</p>
+    </div>
+
+    <div class="apps-grid">
+        <a href="1_power_pulse/index.html" class="app-card" data-app="power">
+            <div class="app-number">1</div>
+            <h2>PowerPulse</h2>
+            <div class="tagline">Real-time BESCOM & BWSSB outage tracker. Crowdsourced reports, area heat map, pattern prediction.</div>
+            <div class="app-tags">
+                <span class="app-tag">Utilities</span>
+                <span class="app-tag">BESCOM</span>
+                <span class="app-tag">BWSSB</span>
+                <span class="app-tag">Crowdsourced</span>
+            </div>
+            <div class="open-label">
+                Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <a href="2_meter_smart/index.html" class="app-card" data-app="meter">
+            <div class="app-number">2</div>
+            <h2>MeterSmart</h2>
+            <div class="tagline">Auto rickshaw fare calculator with official Karnataka rates. Log rides, catch overcharges, file complaints.</div>
+            <div class="app-tags">
+                <span class="app-tag">Travel</span>
+                <span class="app-tag">Auto Fare</span>
+                <span class="app-tag">Complaint</span>
+                <span class="app-tag">Calculator</span>
+            </div>
+            <div class="open-label">
+                Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <a href="3_pg_buddy/index.html" class="app-card" data-app="pg">
+            <div class="app-number">3</div>
+            <h2>PGBuddy</h2>
+            <div class="tagline">PG accommodation reviews for Bangalore. Swipe through listings, rate food quality, compare PGs side by side.</div>
+            <div class="app-tags">
+                <span class="app-tag">Lifestyle</span>
+                <span class="app-tag">PG Reviews</span>
+                <span class="app-tag">Food Rating</span>
+                <span class="app-tag">Compare</span>
+            </div>
+            <div class="open-label">
+                Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <a href="4_nest_hub/index.html" class="app-card" data-app="nest">
+            <div class="app-number">4</div>
+            <h2>NestHub</h2>
+            <div class="tagline">Apartment community management. QR visitor passes, maintenance payments, marketplace, emergency SOS.</div>
+            <div class="app-tags">
+                <span class="app-tag">Community</span>
+                <span class="app-tag">Visitors</span>
+                <span class="app-tag">Payments</span>
+                <span class="app-tag">Marketplace</span>
+            </div>
+            <div class="open-label">
+                Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <a href="5_lingo_local/index.html" class="app-card" data-app="lingo">
+            <div class="app-number">5</div>
+            <h2>LingoLocal</h2>
+            <div class="tagline">Kannada phrasebook for Bangalore newcomers. 16 real-life scenarios, 91 phrases, flashcards, quiz & streaks.</div>
+            <div class="app-tags">
+                <span class="app-tag">Education</span>
+                <span class="app-tag">Kannada</span>
+                <span class="app-tag">Flashcards</span>
+                <span class="app-tag">Quiz</span>
+            </div>
+            <div class="open-label">
+                Open App <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+    </div>
+
+    <div class="footer">
+        <p>
+            <span class="tech-badge">HTML</span>
+            <span class="tech-badge">CSS</span>
+            <span class="tech-badge">JavaScript</span>
+            <span class="tech-badge">PWA</span>
+            <span class="tech-badge">Offline-First</span>
+        </p>
+        <p style="margin-top: 12px;">Built with care for Bangalore residents</p>
+    </div>
+</body>
+</html>

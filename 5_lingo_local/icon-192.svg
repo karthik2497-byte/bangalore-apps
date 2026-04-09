@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#5B21B6"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="88" fill="url(#bg)"/>
+  <!-- Subtle inner ring -->
+  <circle cx="96" cy="96" r="78" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+  <!-- Speech bubble accent -->
+  <ellipse cx="138" cy="52" rx="22" ry="17" fill="rgba(255,255,255,0.15)"/>
+  <polygon points="130,66 126,76 138,66" fill="rgba(255,255,255,0.15)"/>
+  <!-- Kannada letter Ka -->
+  <text x="96" y="118" text-anchor="middle" font-family="'Noto Sans Kannada', sans-serif" font-size="90" font-weight="700" fill="#F59E0B">&#x0C95;</text>
+</svg>

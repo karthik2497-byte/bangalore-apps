@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LingoLocal - Kannada Phrasebook for Bangalore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS CUSTOM PROPERTIES ===== */
+:root {
+  --primary: #7C3AED;
+  --primary-light: #A78BFA;
+  --primary-dark: #5B21B6;
+  --accent: #F59E0B;
+  --accent-light: #FCD34D;
+  --bg: #FAFAF9;
+  --bg-card: #FFFFFF;
+  --text: #1C1917;
+  --text-secondary: #78716C;
+  --text-light: #A8A29E;
+  --success: #10B981;
+  --danger: #EF4444;
+  --purple-gradient: linear-gradient(135deg, #7C3AED, #A78BFA);
+  --green-gradient: linear-gradient(135deg, #059669, #34D399);
+  --orange-gradient: linear-gradient(135deg, #EA580C, #FB923C);
+  --blue-gradient: linear-gradient(135deg, #2563EB, #60A5FA);
+  --red-gradient: linear-gradient(135deg, #DC2626, #F87171);
+  --pink-gradient: linear-gradient(135deg, #DB2777, #F472B6);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,0.15);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --font-kn: 'Noto Sans Kannada', sans-serif;
+  --font-en: 'Poppins', sans-serif;
+  --nav-height: 70px;
+  --status-bar: 0px;
+}
+
+[data-theme="dark"] {
+  --bg: #1C1917;
+  --bg-card: #292524;
+  --text: #FAFAF9;
+  --text-secondary: #A8A29E;
+  --text-light: #78716C;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-en);
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== SPLASH SCREEN ===== */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 50%, #7C3AED 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.5s, transform 0.5s;
+}
+#splash.hide { opacity: 0; transform: scale(1.1); pointer-events: none; }
+#splash .logo-icon {
+  width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+  animation: splashPulse 1s ease-in-out infinite alternate;
+}
+#splash .logo-icon svg { width: 48px; height: 48px; }
+#splash h1 {
+  font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px;
+}
+#splash .greeting {
+  font-family: var(--font-kn); font-size: 28px; color: #FCD34D;
+  font-weight: 600; opacity: 0; animation: fadeUp 0.6s 0.3s forwards;
+}
+#splash .tagline {
+  color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 12px;
+  opacity: 0; animation: fadeUp 0.6s 0.6s forwards;
+}
+#splash .loader {
+  width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px;
+  margin-top: 32px; overflow: hidden;
+}
+#splash .loader::after {
+  content: ''; display: block; width: 60%; height: 100%;
+  background: #FCD34D; border-radius: 2px;
+  animation: loaderAnim 1.2s ease-in-out infinite;
+}
+@keyframes splashPulse { to { transform: scale(1.08); } }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } from { transform: translateY(10px); } }
+@keyframes loaderAnim { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+
+/* ===== APP CONTAINER ===== */
+#app {
+  max-width: 430px; margin: 0 auto; min-height: 100vh; min-height: 100dvh;
+  position: relative; background: var(--bg);
+}
+@media (min-width: 500px) {
+  body { background: #F0EDFF; }
+  #app {
+    box-shadow: 0 0 60px rgba(124,58,237,0.15);
+    border-left: 1px solid rgba(124,58,237,0.1);
+    border-right: 1px solid rgba(124,58,237,0.1);
+  }
+}
+
+/* ===== HEADER ===== */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg); padding: 12px 20px 8px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+[data-theme="dark"] .app-header { border-bottom-color: rgba(255,255,255,0.05); }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.header-brand { display: flex; align-items: center; gap: 10px; }
+.header-brand .brand-icon {
+  width: 36px; height: 36px; background: var(--purple-gradient);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+}
+.header-brand .brand-icon svg { width: 22px; height: 22px; }
+.header-brand h1 { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.header-brand h1 span { color: var(--primary); }
+.header-streak {
+  display: flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  color: #92400E;
+}
+.header-streak .fire { font-size: 16px; animation: fireAnim 0.5s ease-in-out infinite alternate; }
+@keyframes fireAnim { to { transform: scale(1.2) rotate(5deg); } }
+
+/* ===== BOTTOM NAVIGATION ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; height: var(--nav-height);
+  background: var(--bg-card); border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex; align-items: center; justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom, 0); z-index: 200;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+}
+[data-theme="dark"] .bottom-nav { border-top-color: rgba(255,255,255,0.06); }
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; padding: 8px 16px; cursor: pointer;
+  color: var(--text-light); transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn svg { width: 24px; height: 24px; transition: all 0.2s; }
+.nav-btn span { font-size: 11px; font-weight: 500; font-family: var(--font-en); }
+.nav-btn.active { color: var(--primary); }
+.nav-btn.active svg { transform: scale(1.1); }
+.nav-btn.active .nav-dot {
+  width: 4px; height: 4px; background: var(--primary);
+  border-radius: 50%; margin-top: 1px;
+}
+
+/* ===== TAB CONTENT ===== */
+.tab-content { display: none; padding-bottom: calc(var(--nav-height) + 20px); }
+.tab-content.active { display: block; }
+
+/* ===== SCENARIOS TAB ===== */
+.scenarios-header { padding: 16px 20px 4px; }
+.scenarios-header h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.scenarios-header p { font-size: 14px; color: var(--text-secondary); margin-top: 2px; }
+
+.category-section { padding: 12px 20px; }
+.category-title {
+  font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.category-title::after {
+  content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.06);
+}
+[data-theme="dark"] .category-title::after { background: rgba(255,255,255,0.06); }
+.scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.scenario-card {
+  background: var(--bg-card); border-radius: var(--radius-md); padding: 16px;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0; transform: translateY(20px);
+  animation: cardStagger 0.5s forwards;
+}
+.scenario-card:nth-child(1) { animation-delay: 0.05s; }
+.scenario-card:nth-child(2) { animation-delay: 0.1s; }
+.scenario-card:nth-child(3) { animation-delay: 0.15s; }
+.scenario-card:nth-child(4) { animation-delay: 0.2s; }
+@keyframes cardStagger { to { opacity: 1; transform: translateY(0); } }
+.scenario-card:active { transform: scale(0.96); }
+.scenario-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.scenario-card[data-theme="purple"]::before { background: var(--purple-gradient); }
+.scenario-card[data-theme="green"]::before { background: var(--green-gradient); }
+.scenario-card[data-theme="orange"]::before { background: var(--orange-gradient); }
+.scenario-card[data-theme="blue"]::before { background: var(--blue-gradient); }
+.scenario-card[data-theme="red"]::before { background: var(--red-gradient); }
+.scenario-card[data-theme="pink"]::before { background: var(--pink-gradient); }
+.scenario-card .card-icon { font-size: 28px; margin-bottom: 8px; }
+.scenario-card .card-title { font-size: 14px; font-weight: 600; line-height: 1.3; margin-bottom: 8px; color: var(--text); }
+.scenario-card .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.scenario-card .card-badge {
+  font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+  background: rgba(124,58,237,0.08); color: var(--primary);
+}
+.scenario-card[data-theme="green"] .card-badge { background: rgba(5,150,105,0.08); color: #059669; }
+.scenario-card[data-theme="orange"] .card-badge { background: rgba(234,88,12,0.08); color: #EA580C; }
+.scenario-card[data-theme="blue"] .card-badge { background: rgba(37,99,235,0.08); color: #2563EB; }
+.scenario-card[data-theme="red"] .card-badge { background: rgba(220,38,38,0.08); color: #DC2626; }
+.scenario-card[data-theme="pink"] .card-badge { background: rgba(219,39,119,0.08); color: #DB2777; }
+.scenario-card .card-count { font-size: 10px; color: var(--text-light); }
+.scenario-card .card-progress {
+  width: 100%; height: 3px; background: rgba(0,0,0,0.05); border-radius: 2px; margin-top: 10px;
+  overflow: hidden;
+}
+.scenario-card .card-progress-fill {
+  height: 100%; border-radius: 2px; transition: width 0.5s;
+}
+.scenario-card[data-theme="purple"] .card-progress-fill { background: var(--purple-gradient); }
+.scenario-card[data-theme="green"] .card-progress-fill { background: var(--green-gradient); }
+.scenario-card[data-theme="orange"] .card-progress-fill { background: var(--orange-gradient); }
+.scenario-card[data-theme="blue"] .card-progress-fill { background: var(--blue-gradient); }
+.scenario-card[data-theme="red"] .card-progress-fill { background: var(--red-gradient); }
+.scenario-card[data-theme="pink"] .card-progress-fill { background: var(--pink-gradient); }
+
+/* ===== SCENARIO DETAIL MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.5);
+  display: none; align-items: flex-end; justify-content: center;
+  opacity: 0; transition: opacity 0.3s;
+}
+.modal-overlay.show { display: flex; opacity: 1; }
+.modal-container {
+  width: 100%; max-width: 430px; max-height: 92vh; background: var(--bg);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-overlay.show .modal-container { transform: translateY(0); }
+.modal-header {
+  padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-header.purple { background: var(--purple-gradient); }
+.modal-header.green { background: var(--green-gradient); }
+.modal-header.orange { background: var(--orange-gradient); }
+.modal-header.blue { background: var(--blue-gradient); }
+.modal-header.red { background: var(--red-gradient); }
+.modal-header.pink { background: var(--pink-gradient); }
+.modal-header h2 { color: #fff; font-size: 18px; font-weight: 700; }
+.modal-header .modal-count { color: rgba(255,255,255,0.8); font-size: 13px; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2);
+  border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal-close svg { width: 18px; height: 18px; color: #fff; }
+.modal-body { flex: 1; overflow: hidden; position: relative; padding: 20px; }
+
+/* ===== FLASHCARD ===== */
+.flashcard-wrapper { position: relative; width: 100%; height: 380px; perspective: 1000px; }
+.flashcard {
+  width: 100%; height: 100%; position: relative;
+  transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.flashcard.flipped { transform: rotateY(180deg); }
+.flashcard-front, .flashcard-back {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  border-radius: var(--radius-lg); padding: 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-lg); text-align: center;
+}
+.flashcard-front {
+  background: var(--bg-card);
+}
+.flashcard-back {
+  background: var(--bg-card);
+  transform: rotateY(180deg);
+}
+.flashcard-front .en-phrase {
+  font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.4;
+  margin-bottom: 16px;
+}
+.flashcard-front .tap-hint {
+  font-size: 12px; color: var(--text-light); display: flex; align-items: center; gap: 6px;
+  margin-top: auto; padding-top: 16px;
+}
+.flashcard-front .tap-hint svg { width: 16px; height: 16px; }
+.flashcard-front .scenario-emoji { font-size: 40px; margin-bottom: 16px; }
+
+.flashcard-back .kn-script {
+  font-family: var(--font-kn); font-size: 32px; font-weight: 600;
+  color: var(--primary); line-height: 1.5; margin-bottom: 12px;
+}
+.flashcard-back .kn-translit {
+  font-size: 18px; font-style: italic; color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.flashcard-back .en-phrase-small {
+  font-size: 14px; color: var(--text-light); margin-bottom: 16px;
+}
+.flashcard-back .pron-tip {
+  background: rgba(245,158,11,0.1); border-radius: var(--radius-sm);
+  padding: 10px 14px; font-size: 12px; color: #92400E; width: 100%;
+  text-align: left; line-height: 1.5;
+}
+[data-theme="dark"] .flashcard-back .pron-tip { background: rgba(245,158,11,0.15); color: #FCD34D; }
+.flashcard-back .pron-tip strong { font-weight: 600; }
+
+/* ===== FLASHCARD ACTIONS ===== */
+.flashcard-actions {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin-top: 16px;
+}
+.fc-action-btn {
+  display: flex; align-items: center; gap: 6px; padding: 10px 18px;
+  border-radius: 50px; border: none; font-family: var(--font-en);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fc-action-btn.speak-btn {
+  background: rgba(124,58,237,0.1); color: var(--primary);
+}
+.fc-action-btn.speak-btn:active { background: rgba(124,58,237,0.2); }
+.fc-action-btn.learn-btn {
+  background: rgba(16,185,129,0.1); color: #059669;
+}
+.fc-action-btn.learn-btn.learned {
+  background: #059669; color: #fff;
+}
+.fc-action-btn.learn-btn.learned .check-pop {
+  animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes checkPop { 0% { transform: scale(0); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+.fc-action-btn.bookmark-btn {
+  background: rgba(245,158,11,0.1); color: #D97706;
+}
+.fc-action-btn.bookmark-btn.saved {
+  background: #F59E0B; color: #fff;
+}
+.fc-action-btn svg { width: 16px; height: 16px; }
+
+/* ===== PROGRESS DOTS ===== */
+.progress-dots {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 16px;
+}
+.progress-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(0,0,0,0.1); transition: all 0.3s;
+}
+[data-theme="dark"] .progress-dot { background: rgba(255,255,255,0.15); }
+.progress-dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+.progress-dot.learned { background: var(--success); }
+
+/* ===== SWIPE NAV ARROWS ===== */
+.swipe-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px;
+}
+.swipe-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.08);
+  background: var(--bg-card); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+  color: var(--text);
+}
+[data-theme="dark"] .swipe-btn { border-color: rgba(255,255,255,0.1); }
+.swipe-btn:disabled { opacity: 0.3; cursor: default; }
+.swipe-btn:active:not(:disabled) { transform: scale(0.92); }
+.swipe-btn svg { width: 20px; height: 20px; }
+.swipe-counter { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+
+/* ===== LEARN TAB ===== */
+.learn-header { padding: 16px 20px 4px; }
+.learn-header h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+
+.daily-phrase-card {
+  margin: 16px 20px; background: var(--purple-gradient); border-radius: var(--radius-lg);
+  padding: 24px; color: #fff; position: relative; overflow: hidden;
+}
+.daily-phrase-card::after {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.daily-phrase-card .daily-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+  opacity: 0.8; margin-bottom: 12px;
+}
+.daily-phrase-card .daily-en { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.daily-phrase-card .daily-kn {
+  font-family: var(--font-kn); font-size: 26px; font-weight: 600;
+  color: #FCD34D; margin-bottom: 6px;
+}
+.daily-phrase-card .daily-translit { font-size: 14px; font-style: italic; opacity: 0.8; }
+
+/* Progress Section */
+.progress-section { padding: 8px 20px; }
+.progress-card {
+  background: var(--bg-card); border-radius: var(--radius-md); padding: 20px;
+  box-shadow: var(--shadow-sm); margin-bottom: 12px;
+}
+.progress-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+.progress-bar-wrap {
+  width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px;
+  overflow: hidden; margin-bottom: 8px;
+}
+[data-theme="dark"] .progress-bar-wrap { background: rgba(255,255,255,0.08); }
+.progress-bar-fill {
+  height: 100%; border-radius: 4px; background: var(--purple-gradient);
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.progress-text { font-size: 13px; color: var(--text-secondary); }
+.progress-text strong { color: var(--primary); font-weight: 700; }
+
+/* Category Progress */
+.cat-progress-list { display: flex; flex-direction: column; gap: 10px; }
+.cat-progress-item { display: flex; align-items: center; gap: 12px; }
+.cat-ring {
+  width: 40px; height: 40px; position: relative; flex-shrink: 0;
+}
+.cat-ring svg { width: 40px; height: 40px; transform: rotate(-90deg); }
+.cat-ring circle { fill: none; stroke-width: 3; }
+.cat-ring .ring-bg { stroke: rgba(0,0,0,0.06); }
+[data-theme="dark"] .cat-ring .ring-bg { stroke: rgba(255,255,255,0.08); }
+.cat-ring .ring-fill { stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+.cat-ring .ring-text {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+}
+.cat-progress-info { flex: 1; }
+.cat-progress-name { font-size: 13px; font-weight: 600; }
+.cat-progress-count { font-size: 11px; color: var(--text-light); }
+
+/* Streak */
+.streak-card {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: var(--radius-md);
+  padding: 20px; margin: 12px 20px; display: flex; align-items: center; gap: 16px;
+}
+[data-theme="dark"] .streak-card { background: linear-gradient(135deg, #78350F, #92400E); }
+.streak-fire { font-size: 36px; animation: fireAnim 0.5s ease-in-out infinite alternate; }
+.streak-info h3 { font-size: 18px; font-weight: 700; color: #92400E; }
+[data-theme="dark"] .streak-info h3 { color: #FCD34D; }
+.streak-info p { font-size: 12px; color: #A16207; margin-top: 2px; }
+[data-theme="dark"] .streak-info p { color: #FBBF24; }
+
+/* Quiz Section */
+.quiz-section { padding: 0 20px; margin-top: 8px; }
+.quiz-card {
+  background: var(--bg-card); border-radius: var(--radius-md); padding: 20px;
+  box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.quiz-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.quiz-subtitle { font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+.quiz-prompt {
+  font-family: var(--font-kn); font-size: 28px; font-weight: 600;
+  color: var(--primary); text-align: center; padding: 20px 0; line-height: 1.5;
+}
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+.quiz-option {
+  width: 100%; padding: 14px 16px; border-radius: var(--radius-sm);
+  border: 2px solid rgba(0,0,0,0.06); background: var(--bg);
+  font-family: var(--font-en); font-size: 15px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; text-align: left;
+  -webkit-tap-highlight-color: transparent; color: var(--text);
+}
+[data-theme="dark"] .quiz-option { border-color: rgba(255,255,255,0.08); }
+.quiz-option:active { transform: scale(0.98); }
+.quiz-option.correct {
+  border-color: var(--success); background: rgba(16,185,129,0.1); color: #059669;
+  animation: correctFlash 0.5s;
+}
+.quiz-option.wrong {
+  border-color: var(--danger); background: rgba(239,68,68,0.1); color: #DC2626;
+  animation: wrongShake 0.4s;
+}
+@keyframes correctFlash { 50% { background: rgba(16,185,129,0.3); } }
+@keyframes wrongShake { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.quiz-next {
+  display: none; margin-top: 12px; padding: 12px; width: 100%;
+  border-radius: var(--radius-sm); border: none; background: var(--purple-gradient);
+  color: #fff; font-family: var(--font-en); font-size: 14px; font-weight: 600;
+  cursor: pointer;
+}
+.quiz-score {
+  text-align: center; padding: 16px 0; font-size: 14px; color: var(--text-secondary);
+}
+.quiz-score strong { color: var(--primary); }
+
+/* Confetti */
+.confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
+.confetti-piece {
+  position: absolute; width: 8px; height: 8px; top: -10px;
+  animation: confettiFall 1.5s forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Numbers Section */
+.numbers-section { padding: 0 20px; margin-top: 16px; margin-bottom: 16px; }
+.numbers-card {
+  background: var(--bg-card); border-radius: var(--radius-md); padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.numbers-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+.numbers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.num-item {
+  background: var(--bg); border-radius: var(--radius-sm); padding: 10px 4px;
+  text-align: center; transition: all 0.2s;
+}
+.num-item .num-digit { font-size: 16px; font-weight: 700; color: var(--primary); }
+.num-item .num-kn { font-family: var(--font-kn); font-size: 16px; font-weight: 600; color: var(--text); margin-top: 2px; }
+.num-item .num-word { font-size: 9px; color: var(--text-light); margin-top: 2px; }
+
+/* ===== SAVED / PROFILE TAB ===== */
+.profile-header { padding: 16px 20px 4px; }
+.profile-header h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+
+.saved-phrases { padding: 0 20px; margin-top: 12px; }
+.saved-phrases h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+.saved-empty {
+  text-align: center; padding: 30px 20px; color: var(--text-light); font-size: 14px;
+}
+.saved-empty .empty-icon { font-size: 40px; margin-bottom: 10px; opacity: 0.5; }
+.saved-item {
+  background: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 16px;
+  margin-bottom: 8px; box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.saved-item .saved-text { flex: 1; }
+.saved-item .saved-en { font-size: 14px; font-weight: 600; }
+.saved-item .saved-kn { font-family: var(--font-kn); font-size: 16px; color: var(--primary); margin-top: 2px; }
+.saved-item .remove-btn {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: rgba(239,68,68,0.1); color: #DC2626;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  flex-shrink: 0;
+}
+.saved-item .remove-btn svg { width: 14px; height: 14px; }
+
+/* Stats */
+.stats-section { padding: 0 20px; margin-top: 20px; }
+.stats-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat-item {
+  background: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 10px;
+  text-align: center; box-shadow: var(--shadow-sm);
+}
+.stat-num { font-size: 24px; font-weight: 800; color: var(--primary); }
+.stat-label { font-size: 10px; color: var(--text-light); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Settings */
+.settings-section { padding: 0 20px; margin-top: 20px; }
+.settings-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+.setting-item {
+  background: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 16px;
+  margin-bottom: 6px; box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.setting-item .setting-label { font-size: 14px; font-weight: 500; }
+.setting-item .setting-desc { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 48px; height: 26px; background: rgba(0,0,0,0.12); border-radius: 13px;
+  position: relative; cursor: pointer; transition: background 0.3s; flex-shrink: 0;
+}
+[data-theme="dark"] .toggle-switch { background: rgba(255,255,255,0.15); }
+.toggle-switch.active { background: var(--primary); }
+.toggle-switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  box-shadow: var(--shadow-sm); transition: transform 0.3s;
+}
+.toggle-switch.active::after { transform: translateX(22px); }
+
+/* Difficulty Selector */
+.diff-selector { display: flex; gap: 6px; }
+.diff-btn {
+  padding: 6px 12px; border-radius: 20px; border: 1.5px solid rgba(0,0,0,0.08);
+  background: transparent; font-family: var(--font-en); font-size: 12px;
+  font-weight: 500; cursor: pointer; color: var(--text-secondary);
+  transition: all 0.2s;
+}
+[data-theme="dark"] .diff-btn { border-color: rgba(255,255,255,0.1); }
+.diff-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Fun Facts */
+.funfacts-section { padding: 0 20px; margin-top: 20px; margin-bottom: 20px; }
+.funfacts-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+.funfact-item {
+  background: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 16px;
+  margin-bottom: 8px; box-shadow: var(--shadow-sm); font-size: 13px; line-height: 1.6;
+  color: var(--text-secondary);
+}
+.funfact-item .fact-emoji { font-size: 20px; margin-right: 8px; }
+
+/* ===== PRONUNCIATION POPUP ===== */
+.pron-popup {
+  position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.pron-popup.show { display: flex; }
+.pron-popup-content {
+  background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px;
+  width: 100%; max-width: 340px; text-align: center;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pron-popup-content h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.pron-popup-content .pron-text {
+  font-size: 22px; font-weight: 600; color: var(--primary); margin-bottom: 8px;
+}
+.pron-popup-content .pron-guide {
+  font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;
+}
+.pron-popup-content .pron-syllables {
+  display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.pron-popup-content .syllable {
+  background: rgba(124,58,237,0.08); padding: 6px 12px; border-radius: 8px;
+  font-size: 18px; font-weight: 600; color: var(--primary);
+}
+.pron-popup-content .syllable.stress {
+  background: var(--primary); color: #fff;
+}
+.pron-close-btn {
+  padding: 10px 24px; border-radius: 50px; border: none;
+  background: var(--purple-gradient); color: #fff; font-family: var(--font-en);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+
+/* ===== UTILITIES ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+</style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7C3AED">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LingoLocal">
+<link rel="apple-touch-icon" href="icon-192.svg">
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="logo-icon">
+    <svg viewBox="0 0 48 48" fill="none"><path d="M24 4C12.954 4 4 12.954 4 24s8.954 20 20 20 20-8.954 20-20S35.046 4 24 4z" fill="rgba(255,255,255,0.2)"/><path d="M16 18c0-2.21 1.79-4 4-4h8c2.21 0 4 1.79 4 4v2c0 2.21-1.79 4-4 4H20c-2.21 0-4-1.79-4-4v-2z" fill="#FCD34D"/><path d="M18 28h12M21 32h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+  </div>
+  <h1>LingoLocal</h1>
+  <div class="greeting">ನಮಸ್ಕಾರ!</div>
+  <p class="tagline">Your Kannada Phrasebook for Bangalore</p>
+  <div class="loader"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="rgba(255,255,255,0.2)"/><path d="M8 9h8M8 12h6M8 15h4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <h1>Lingo<span>Local</span></h1>
+      </div>
+      <div class="header-streak" id="headerStreak">
+        <span class="fire">🔥</span>
+        <span id="streakCount">0</span> day streak
+      </div>
+    </div>
+  </header>
+
+  <!-- TAB: Scenarios -->
+  <div class="tab-content active" id="tabScenarios">
+    <div class="scenarios-header">
+      <h2>Scenarios</h2>
+      <p>Tap a card to learn phrases for real situations</p>
+    </div>
+    <div id="scenariosList"></div>
+  </div>
+
+  <!-- TAB: Learn -->
+  <div class="tab-content" id="tabLearn">
+    <div class="learn-header">
+      <h2>Learn</h2>
+    </div>
+
+    <!-- Daily Phrase -->
+    <div class="daily-phrase-card" id="dailyPhrase">
+      <div class="daily-label">✨ Phrase of the Day</div>
+      <div class="daily-en" id="dailyEn"></div>
+      <div class="daily-kn" id="dailyKn"></div>
+      <div class="daily-translit" id="dailyTranslit"></div>
+    </div>
+
+    <!-- Streak -->
+    <div class="streak-card">
+      <div class="streak-fire">🔥</div>
+      <div class="streak-info">
+        <h3 id="streakText">0 Day Streak!</h3>
+        <p>Keep learning every day to build your streak</p>
+      </div>
+    </div>
+
+    <!-- Overall Progress -->
+    <div class="progress-section">
+      <div class="progress-card">
+        <h3>📊 Overall Progress</h3>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="overallProgressBar" style="width:0%"></div>
+        </div>
+        <p class="progress-text">You've learned <strong id="learnedCount">0</strong> of <strong id="totalCount">0</strong> phrases</p>
+      </div>
+
+      <div class="progress-card">
+        <h3>📁 Category Progress</h3>
+        <div class="cat-progress-list" id="catProgressList"></div>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="quiz-section">
+      <div class="quiz-card" id="quizCard">
+        <h3>🧠 Quiz Me!</h3>
+        <p class="quiz-subtitle">Match the Kannada phrase to the English meaning</p>
+        <div class="quiz-score" id="quizScore">Score: <strong>0</strong> / <strong>0</strong></div>
+        <div class="quiz-prompt" id="quizPrompt"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <button class="quiz-next" id="quizNext" onclick="nextQuiz()">Next Question →</button>
+      </div>
+    </div>
+
+    <!-- Numbers -->
+    <div class="numbers-section">
+      <div class="numbers-card">
+        <h3>🔢 Kannada Numbers (1-20)</h3>
+        <div class="numbers-grid" id="numbersGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Saved/Profile -->
+  <div class="tab-content" id="tabSaved">
+    <div class="profile-header">
+      <h2>Saved & Settings</h2>
+    </div>
+
+    <!-- Saved Phrases -->
+    <div class="saved-phrases">
+      <h3>⭐ Bookmarked Phrases</h3>
+      <div id="savedList"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-section">
+      <h3>📈 Learning Statistics</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-num" id="statLearned">0</div>
+          <div class="stat-label">Learned</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statSaved">0</div>
+          <div class="stat-label">Saved</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statStreak">0</div>
+          <div class="stat-label">Streak</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="settings-section">
+      <h3>⚙️ Settings</h3>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">Dark Mode</div>
+          <div class="setting-desc">Easy on the eyes at night</div>
+        </div>
+        <div class="toggle-switch" id="darkToggle" onclick="toggleDarkMode()"></div>
+      </div>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">Difficulty</div>
+          <div class="setting-desc">Control transliteration display</div>
+        </div>
+        <div class="diff-selector">
+          <button class="diff-btn active" onclick="setDifficulty('beginner',this)">Beginner</button>
+          <button class="diff-btn" onclick="setDifficulty('intermediate',this)">Script Only</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fun Facts -->
+    <div class="funfacts-section">
+      <h3>🏙️ About Bangalore</h3>
+      <div class="funfact-item"><span class="fact-emoji">🌳</span>Bangalore is called the "Garden City" of India, known for its parks and green spaces.</div>
+      <div class="funfact-item"><span class="fact-emoji">💻</span>It's the Silicon Valley of India, home to thousands of tech companies and startups.</div>
+      <div class="funfact-item"><span class="fact-emoji">☕</span>Filter coffee is a cultural staple. Don't miss the authentic South Indian filter kaapi!</div>
+      <div class="funfact-item"><span class="fact-emoji">🌦️</span>Bangalore enjoys a moderate climate year-round thanks to its elevation of ~900m above sea level.</div>
+      <div class="funfact-item"><span class="fact-emoji">🍛</span>Must-try dishes: Masala Dosa, Bisi Bele Bath, Ragi Mudde, and Mangalore Buns.</div>
+      <div class="funfact-item"><span class="fact-emoji">🗣️</span>Kannada is one of the oldest Dravidian languages with a literary history of over 1500 years.</div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('scenarios', this)" aria-label="Scenarios">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Scenarios</span>
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-btn" onclick="switchTab('learn', this)" aria-label="Learn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+      <span>Learn</span>
+      <div class="nav-dot"></div>
+    </button>
+    <button class="nav-btn" onclick="switchTab('saved', this)" aria-label="Saved">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21l-8-5-8 5V5a2 2 0 012-2h12a2 2 0 012 2z"/></svg>
+      <span>Saved</span>
+      <div class="nav-dot"></div>
+    </button>
+  </nav>
+</div>
+
+<!-- SCENARIO DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal-container">
+    <div class="modal-header" id="modalHeader">
+      <div>
+        <h2 id="modalTitle">Scenario</h2>
+        <div class="modal-count" id="modalCount"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="flashcard-wrapper" id="flashcardWrapper">
+        <div class="flashcard" id="flashcard" onclick="flipCard()">
+          <div class="flashcard-front">
+            <div class="scenario-emoji" id="fcEmoji"></div>
+            <div class="en-phrase" id="fcEnglish"></div>
+            <div class="tap-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 15l-2 5L9 9l11 4-5 2z"/></svg>
+              Tap to reveal Kannada
+            </div>
+          </div>
+          <div class="flashcard-back">
+            <div class="kn-script" id="fcKannada"></div>
+            <div class="kn-translit" id="fcTranslit"></div>
+            <div class="en-phrase-small" id="fcEnSmall"></div>
+            <div class="pron-tip" id="fcPronTip"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flashcard-actions">
+        <button class="fc-action-btn speak-btn" onclick="showPronunciation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
+          Speak
+        </button>
+        <button class="fc-action-btn learn-btn" id="learnBtn" onclick="toggleLearned()">
+          <svg class="check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="learnBtnText">Learned</span>
+        </button>
+        <button class="fc-action-btn bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        </button>
+      </div>
+
+      <div class="swipe-nav">
+        <button class="swipe-btn" id="prevBtn" onclick="prevPhrase()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="swipe-counter" id="swipeCounter">1 / 6</span>
+        <button class="swipe-btn" id="nextBtn" onclick="nextPhrase()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div class="progress-dots" id="progressDots"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRONUNCIATION POPUP -->
+<div class="pron-popup" id="pronPopup" onclick="closePronPopup(event)">
+  <div class="pron-popup-content">
+    <h3>🗣️ Pronunciation Guide</h3>
+    <div class="pron-text" id="pronText"></div>
+    <div class="pron-syllables" id="pronSyllables"></div>
+    <div class="pron-guide" id="pronGuide"></div>
+    <button class="pron-close-btn" onclick="document.getElementById('pronPopup').classList.remove('show')">Got it!</button>
+  </div>
+</div>
+
+<!-- CONFETTI CONTAINER -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+/* ============================================= */
+/*             LINGOLOCAL - FULL DATA            */
+/* ============================================= */
+
+const SCENARIOS = [
+  // ===== GETTING AROUND =====
+  {
+    id: 'auto_stand', name: 'At the Auto Stand', icon: '🛺', category: 'Getting Around',
+    theme: 'purple', difficulty: 'Beginner',
+    phrases: [
+      { en: 'I need to go to [place]', kn: 'ನನಗೆ [place] ಗೆ ಹೋಗ್ಬೇಕು', tr: 'Nanage [place] ge hogbekku', tip: 'Replace [place] with your destination. "Hogbekku" = need to go.' },
+      { en: 'How much to go to [place]?', kn: '[place] ಗೆ ಎಷ್ಟು?', tr: '[place] ge eshtu?', tip: '"Eshtu" means "how much" — one of the most useful words!' },
+      { en: "That's too much", kn: 'ತುಂಬಾ ಜಾಸ್ತಿ', tr: 'Tumba jaasti', tip: '"Tumba" = very/too much. Use this when bargaining!' },
+      { en: 'Please use the meter', kn: 'ಮೀಟರ್ ಹಾಕಿ', tr: 'Meter haki', tip: '"Haki" means "put on/start". Direct but polite.' },
+      { en: 'Stop here', kn: 'ಇಲ್ಲಿ ನಿಲ್ಲಿಸಿ', tr: 'Illi nillisi', tip: '"Illi" = here. Stress on the double-L sound.' },
+      { en: 'Please go straight', kn: 'ನೇರೆ ಹೋಗಿ', tr: 'Nere hogi', tip: '"Nere" = straight. "Hogi" = go (polite).' }
+    ]
+  },
+  {
+    id: 'taking_bus', name: 'Taking a Bus', icon: '🚌', category: 'Getting Around',
+    theme: 'purple', difficulty: 'Beginner',
+    phrases: [
+      { en: 'Does this bus go to [place]?', kn: 'ಈ ಬಸ್ [place] ಗೆ ಹೋಗುತ್ತಾ?', tr: 'Ee bus [place] ge hogutta?', tip: '"Ee" = this. "Hogutta" = does it go?' },
+      { en: 'Which bus goes to [place]?', kn: 'ಯಾವ ಬಸ್ [place] ಗೆ ಹೋಗುತ್ತೆ?', tr: 'Yaava bus [place] ge hogutte?', tip: '"Yaava" = which. Very handy word!' },
+      { en: 'Where is the bus stop?', kn: 'ಬಸ್ ಸ್ಟಾಪ್ ಎಲ್ಲಿ?', tr: 'Bus stop elli?', tip: '"Elli" = where. Simple and effective.' },
+      { en: 'One ticket please', kn: 'ಒಂದು ಟಿಕೆಟ್ ಕೊಡಿ', tr: 'Ondu ticket kodi', tip: '"Ondu" = one, "Kodi" = give (polite).' },
+      { en: 'Please tell me when [place] comes', kn: '[place] ಬಂದಾಗ ಹೇಳಿ', tr: '[place] bandaaga heli', tip: '"Bandaaga" = when it comes, "Heli" = tell me.' }
+    ]
+  },
+  {
+    id: 'directions', name: 'Asking Directions', icon: '🧭', category: 'Getting Around',
+    theme: 'purple', difficulty: 'Beginner',
+    phrases: [
+      { en: 'Where is [place]?', kn: '[place] ಎಲ್ಲಿ?', tr: '[place] elli?', tip: 'The simplest direction question. "Elli" = where.' },
+      { en: 'Is it far?', kn: 'ದೂರ ಇದೆ?', tr: 'Doora ide?', tip: '"Doora" = far, "Ide" = is there. Simple yes/no question.' },
+      { en: 'Go left', kn: 'ಎಡಕ್ಕೆ ಹೋಗಿ', tr: 'Edakke hogi', tip: '"Edakke" = to the left. Remember: E for Eda = left.' },
+      { en: 'Go right', kn: 'ಬಲಕ್ಕೆ ಹೋಗಿ', tr: 'Balakke hogi', tip: '"Balakke" = to the right.' },
+      { en: 'Go straight', kn: 'ನೇರೆ ಹೋಗಿ', tr: 'Nere hogi', tip: '"Nere" rhymes with "dare" + "ay".' },
+      { en: 'Near here', kn: 'ಇಲ್ಲಿ ಹತ್ತಿರ', tr: 'Illi hattira', tip: '"Hattira" = near. Double-t sound is important.' }
+    ]
+  },
+
+  // ===== SHOPPING =====
+  {
+    id: 'veg_market', name: 'At the Vegetable Market', icon: '🥬', category: 'Shopping',
+    theme: 'green', difficulty: 'Beginner',
+    phrases: [
+      { en: 'How much for this?', kn: 'ಇದು ಎಷ್ಟು?', tr: 'Idu eshtu?', tip: '"Idu" = this. Point at the item and ask!' },
+      { en: 'One kg please', kn: 'ಒಂದು ಕೆಜಿ ಕೊಡಿ', tr: 'Ondu kg kodi', tip: '"Kodi" = give (polite request form).' },
+      { en: 'Half kg please', kn: 'ಅರ್ಧ ಕೆಜಿ ಕೊಡಿ', tr: 'Ardha kg kodi', tip: '"Ardha" = half. Pronounced "ar-dha".' },
+      { en: 'Too expensive', kn: 'ತುಂಬಾ ಜಾಸ್ತಿ ಬೆಲೆ', tr: 'Tumba jaasti bele', tip: '"Bele" = price. Show surprise for better bargaining!' },
+      { en: 'Give me a little less price', kn: 'ಸ್ವಲ್ಪ ಕಮ್ಮಿ ಮಾಡಿ', tr: 'Swalpa kammi maadi', tip: '"Swalpa" = a little, "Kammi" = less. Magic bargaining phrase!' },
+      { en: 'Fresh vegetables?', kn: 'ತಾಜಾ ತರಕಾರಿ?', tr: 'Taaja tarakaari?', tip: '"Taaja" = fresh. Roll the R in "tarakaari".' },
+      { en: 'Give me a bag', kn: 'ಒಂದು ಚೀಲ ಕೊಡಿ', tr: 'Ondu cheela kodi', tip: '"Cheela" = bag. The "ee" is long.' },
+      { en: 'What vegetables do you have?', kn: 'ಯಾವ ತರಕಾರಿ ಇದೆ?', tr: 'Yaava tarakaari ide?', tip: '"Yaava" = which/what, "Ide" = is there.' }
+    ]
+  },
+  {
+    id: 'shop_store', name: 'At a Shop/Store', icon: '🏪', category: 'Shopping',
+    theme: 'green', difficulty: 'Beginner',
+    phrases: [
+      { en: 'Do you have [item]?', kn: '[item] ಇದೆಯಾ?', tr: '[item] ideya?', tip: '"Ideya" = is there? / do you have?' },
+      { en: 'Show me that one', kn: 'ಅದನ್ನ ತೋರಿಸಿ', tr: 'Adanna torisi', tip: '"Adanna" = that one (object), "Torisi" = show.' },
+      { en: 'I am just looking', kn: 'ನೋಡ್ತಾ ಇದ್ದೀನಿ', tr: 'Nodta iddini', tip: '"Nodta iddini" = I am looking. Polite way to browse.' },
+      { en: 'This is nice', kn: 'ಇದು ಚೆನ್ನಾಗಿದೆ', tr: 'Idu chennagide', tip: '"Chennagide" = is nice/good. Very common compliment.' },
+      { en: 'I will take this', kn: 'ಇದನ್ನ ಕೊಡಿ', tr: 'Idanna kodi', tip: '"Idanna" = this one (I\'ll take it).' },
+      { en: 'Do you accept UPI/card?', kn: 'UPI/card ತೊಗೊತ್ತೀರಾ?', tr: 'UPI/card togottira?', tip: '"Togottira" = will you take/accept?' }
+    ]
+  },
+  {
+    id: 'bargaining', name: 'Bargaining', icon: '💰', category: 'Shopping',
+    theme: 'green', difficulty: 'Intermediate',
+    phrases: [
+      { en: 'What is the last price?', kn: 'ಕೊನೆ ಬೆಲೆ ಎಷ್ಟು?', tr: 'Kone bele eshtu?', tip: '"Kone bele" = last/final price. Classic bargaining opener.' },
+      { en: 'I will give [amount]', kn: 'ನಾನು [amount] ಕೊಡ್ತೀನಿ', tr: 'Naanu [amount] kodtini', tip: 'State your counter-offer confidently!' },
+      { en: 'It is available cheaper elsewhere', kn: 'ಬೇರೆ ಕಡೆ ಕಮ್ಮಿ ಇದೆ', tr: 'Bere kade kammi ide', tip: '"Bere kade" = other place. A classic negotiation tactic.' },
+      { en: 'Give some discount', kn: 'ಸ್ವಲ್ಪ ಡಿಸ್ಕೌಂಟ್ ಕೊಡಿ', tr: 'Swalpa discount kodi', tip: 'Smile when you say this — it works better!' },
+      { en: 'OK, I will buy it', kn: 'ಸರಿ, ತೊಗೊತ್ತೀನಿ', tr: 'Sari, togottini', tip: '"Sari" = OK/fine. Seal the deal!' }
+    ]
+  },
+
+  // ===== FOOD & DRINK =====
+  {
+    id: 'restaurant', name: 'At a Restaurant', icon: '🍽️', category: 'Food & Drink',
+    theme: 'orange', difficulty: 'Beginner',
+    phrases: [
+      { en: 'Table for two', kn: 'ಎರಡು ಜನಕ್ಕೆ ಟೇಬಲ್ ಬೇಕು', tr: 'Eradu janakke table beku', tip: '"Eradu" = two, "Beku" = need/want.' },
+      { en: 'Menu please', kn: 'ಮೆನು ಕೊಡಿ', tr: 'Menu kodi', tip: 'Simple and polite. "Kodi" = please give.' },
+      { en: "What's special today?", kn: 'ಇವತ್ತು ಸ್ಪೆಷಲ್ ಏನು?', tr: 'Ivattu special enu?', tip: '"Ivattu" = today, "Enu" = what.' },
+      { en: 'Less spicy please', kn: 'ಸ್ವಲ್ಪ ಕಮ್ಮಿ ಖಾರ', tr: 'Swalpa kammi khaara', tip: '"Khaara" = spicy. The "kh" is aspirated.' },
+      { en: 'Bill please', kn: 'ಬಿಲ್ ಕೊಡಿ', tr: 'Bill kodi', tip: 'Same "kodi" pattern — give me the bill.' },
+      { en: 'Very tasty!', kn: 'ತುಂಬಾ ರುಚಿಯಾಗಿದೆ', tr: 'Tumba ruchiyagide', tip: '"Ruchi" = taste. A great compliment for the cook!' },
+      { en: 'Water please', kn: 'ನೀರು ಕೊಡಿ', tr: 'Neeru kodi', tip: '"Neeru" = water. Essential word!' }
+    ]
+  },
+  {
+    id: 'street_food', name: 'Street Food Stall', icon: '🍜', category: 'Food & Drink',
+    theme: 'orange', difficulty: 'Beginner',
+    phrases: [
+      { en: 'One plate please', kn: 'ಒಂದು ಪ್ಲೇಟ್ ಕೊಡಿ', tr: 'Ondu plate kodi', tip: '"Ondu" = one. Point at what you want!' },
+      { en: 'What is this?', kn: 'ಇದು ಏನು?', tr: 'Idu enu?', tip: '"Idu" = this, "Enu" = what. Curious and friendly.' },
+      { en: 'Is this vegetarian?', kn: 'ಇದು ವೆಜ್ ಆ?', tr: 'Idu veg aa?', tip: 'Simple question — "aa" at end makes it a question.' },
+      { en: 'Very good!', kn: 'ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ', tr: 'Tumba chennagide', tip: '"Chennagide" = is good/nice. Show your appreciation!' },
+      { en: 'One more please', kn: 'ಇನ್ನೊಂದು ಕೊಡಿ', tr: 'Innondu kodi', tip: '"Innondu" = one more. When it\'s that delicious!' }
+    ]
+  },
+  {
+    id: 'coffee_tea', name: 'Ordering Coffee/Tea', icon: '☕', category: 'Food & Drink',
+    theme: 'orange', difficulty: 'Beginner',
+    phrases: [
+      { en: 'One coffee please', kn: 'ಒಂದು ಕಾಫಿ ಕೊಡಿ', tr: 'Ondu kaafi kodi', tip: '"Kaafi" is how Bangaloreans say coffee. Filter coffee is a must-try!' },
+      { en: 'One tea please', kn: 'ಒಂದು ಚಹಾ ಕೊಡಿ', tr: 'Ondu chaha kodi', tip: '"Chaha" = tea. Also commonly called "tea" directly.' },
+      { en: 'Less sugar', kn: 'ಸಕ್ಕರೆ ಕಮ್ಮಿ', tr: 'Sakkare kammi', tip: '"Sakkare" = sugar. Useful for health-conscious ordering.' },
+      { en: 'Very hot please', kn: 'ತುಂಬಾ ಬಿಸಿ ಬೇಕು', tr: 'Tumba bisi beku', tip: '"Bisi" = hot. Bangaloreans love their coffee piping hot!' }
+    ]
+  },
+
+  // ===== DAILY LIFE =====
+  {
+    id: 'landlord', name: 'With Your Landlord', icon: '🏠', category: 'Daily Life',
+    theme: 'blue', difficulty: 'Intermediate',
+    phrases: [
+      { en: 'The water is not coming', kn: 'ನೀರು ಬರುತ್ತಿಲ್ಲ', tr: 'Neeru baruttilla', tip: '"Baruttilla" = is not coming. Common complaint in Bangalore!' },
+      { en: 'Power has gone', kn: 'ಕರೆಂಟ್ ಹೋಗಿದೆ', tr: 'Current hogide', tip: '"Current" is commonly used for electricity in India.' },
+      { en: 'When will you fix this?', kn: 'ಯಾವಾಗ ಸರಿ ಮಾಡ್ತೀರಾ?', tr: 'Yaavaaga sari maadtira?', tip: '"Yaavaaga" = when, "Sari maadtira" = will you fix.' },
+      { en: "I'll pay the rent tomorrow", kn: 'ನಾಳೆ ಬಾಡಿಗೆ ಕೊಡ್ತೀನಿ', tr: 'Naale baadige kodtini', tip: '"Naale" = tomorrow, "Baadige" = rent.' },
+      { en: 'The tap is leaking', kn: 'ಟ್ಯಾಪ್ ಸೋರುತ್ತಿದೆ', tr: 'Tap soritide', tip: '"Soritide" = is leaking.' },
+      { en: "I'm moving out next month", kn: 'ಮುಂದಿನ ತಿಂಗಳು ಖಾಲಿ ಮಾಡ್ತೀನಿ', tr: 'Mundina tingalu khaali maadtini', tip: '"Mundina tingalu" = next month, "Khaali maadtini" = I will vacate.' }
+    ]
+  },
+  {
+    id: 'neighbors', name: 'With Neighbors', icon: '👋', category: 'Daily Life',
+    theme: 'blue', difficulty: 'Beginner',
+    phrases: [
+      { en: 'Good morning!', kn: 'ಶುಭೋದಯ!', tr: 'Shubhodaya!', tip: '"Shubhodaya" is formal. Most people just say "Namaskara".' },
+      { en: 'I just moved here', kn: 'ನಾನು ಈಗ ಇಲ್ಲಿ ಬಂದಿದ್ದೀನಿ', tr: 'Naanu eega illi bandiddini', tip: '"Eega" = just now/recently. Friendly introduction!' },
+      { en: 'I am from [place]', kn: 'ನಾನು [place] ಇಂದ ಬಂದಿದ್ದೀನಿ', tr: 'Naanu [place] inda bandiddini', tip: '"Inda" = from. Share where you\'re from to connect!' },
+      { en: 'Can I get some curd?', kn: 'ಸ್ವಲ್ಪ ಮೊಸರು ಕೊಡ್ತೀರಾ?', tr: 'Swalpa mosaru kodtira?', tip: '"Mosaru" = curd/yogurt. Neighbors sharing curd is a tradition!' },
+      { en: 'Your food smells delicious', kn: 'ನಿಮ್ಮ ಅಡುಗೆ ತುಂಬಾ ಚೆನ್ನಾಗಿ ವಾಸನೆ ಬರುತ್ತಿದೆ', tr: 'Nimma aduge tumba chennagi vaasane barutide', tip: 'A great icebreaker! "Aduge" = cooking, "Vaasane" = smell.' }
+    ]
+  },
+  {
+    id: 'laundry', name: 'At the Laundry', icon: '👕', category: 'Daily Life',
+    theme: 'blue', difficulty: 'Beginner',
+    phrases: [
+      { en: 'I need clothes washed', kn: 'ಬಟ್ಟೆ ಒಗೆಯಬೇಕು', tr: 'Batte ogeyabeku', tip: '"Batte" = clothes, "Ogeyabeku" = need to wash.' },
+      { en: 'When will it be ready?', kn: 'ಯಾವಾಗ ರೆಡಿ ಆಗುತ್ತೆ?', tr: 'Yaavaaga ready aagutte?', tip: '"Yaavaaga" = when. "Ready" is commonly used as-is.' },
+      { en: 'Please iron these', kn: 'ಇದನ್ನ ಇಸ್ತ್ರಿ ಮಾಡಿ', tr: 'Idanna istri maadi', tip: '"Istri" = iron (pressing). "Maadi" = do/please do.' },
+      { en: 'Be careful, this is delicate', kn: 'ಜೋಪಾನ, ಇದು ನಾಜೂಕು', tr: 'Jopaana, idu naajuku', tip: '"Jopaana" = careful, "Naajuku" = delicate.' }
+    ]
+  },
+
+  // ===== EMERGENCIES =====
+  {
+    id: 'medical', name: 'Medical Emergency', icon: '🏥', category: 'Emergencies',
+    theme: 'red', difficulty: 'Important',
+    phrases: [
+      { en: 'I need a doctor', kn: 'ನನಗೆ ಡಾಕ್ಟರ್ ಬೇಕು', tr: 'Nanage doctor beku', tip: '"Nanage" = I need, "Beku" = want/need. Urgency is understood.' },
+      { en: 'I am not feeling well', kn: 'ನನಗೆ ಹುಷಾರಿಲ್ಲ', tr: 'Nanage husharilla', tip: '"Husharilla" = not well. Very commonly used expression.' },
+      { en: 'Where is the nearest hospital?', kn: 'ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆ ಎಲ್ಲಿ?', tr: 'Hattirada aaspatre elli?', tip: '"Hattirada" = nearest, "Aaspatre" = hospital.' },
+      { en: 'Please call an ambulance', kn: 'ಆಂಬುಲೆನ್ಸ್ ಕರೆಯಿರಿ', tr: 'Ambulance kareyiri', tip: '"Kareyiri" = please call. Emergency number: 108.' },
+      { en: 'I have an allergy to [item]', kn: 'ನನಗೆ [item] ಅಲರ್ಜಿ ಇದೆ', tr: 'Nanage [item] allergy ide', tip: '"Allergy ide" = have allergy. Important to communicate!' }
+    ]
+  },
+  {
+    id: 'lost_help', name: 'Lost / Need Help', icon: '🆘', category: 'Emergencies',
+    theme: 'red', difficulty: 'Important',
+    phrases: [
+      { en: 'I am lost', kn: 'ನಾನು ದಾರಿ ತಪ್ಪಿದ್ದೀನಿ', tr: 'Naanu daari tappiddini', tip: '"Daari" = path/way, "Tappiddini" = I have lost/missed.' },
+      { en: 'Please help me', kn: 'ದಯವಿಟ್ಟು ಸಹಾಯ ಮಾಡಿ', tr: 'Dayavittu sahaaya maadi', tip: '"Dayavittu" = please, "Sahaaya" = help.' },
+      { en: 'I don\'t understand Kannada', kn: 'ನನಗೆ ಕನ್ನಡ ಬರಲ್ಲ', tr: 'Nanage Kannada baralla', tip: '"Baralla" = don\'t know/can\'t. People will try to help in other languages.' },
+      { en: 'Can you speak Hindi/English?', kn: 'ನೀವು ಹಿಂದಿ/ಇಂಗ್ಲಿಷ್ ಮಾತಾಡ್ತೀರಾ?', tr: 'Neevu Hindi/English maataadtira?', tip: '"Maataadtira" = do you speak? Most Bangaloreans know some English.' },
+      { en: 'Please call the police', kn: 'ಪೊಲೀಸ್ ಕರೆಯಿರಿ', tr: 'Police kareyiri', tip: 'Emergency number: 100 for police, 112 for all emergencies.' }
+    ]
+  },
+
+  // ===== SOCIAL =====
+  {
+    id: 'greetings', name: 'Greetings & Basics', icon: '🙏', category: 'Social',
+    theme: 'pink', difficulty: 'Beginner',
+    phrases: [
+      { en: 'Hello', kn: 'ನಮಸ್ಕಾರ', tr: 'Namaskara', tip: 'The universal greeting! Fold hands for extra respect.' },
+      { en: 'How are you?', kn: 'ಹೇಗಿದ್ದೀರಾ?', tr: 'Hegiddira?', tip: '"Heg" = how, "iddira" = are you (formal). Casual: "Hegidya?"' },
+      { en: "I'm fine", kn: 'ನಾನು ಚೆನ್ನಾಗಿದ್ದೀನಿ', tr: 'Naanu chennagiddini', tip: '"Chennagi" = well/good. "ddini" = I am.' },
+      { en: 'Thank you', kn: 'ಧನ್ಯವಾದಗಳು', tr: 'Dhanyavaadagalu', tip: 'Formal thanks. Casual: just say "Thanks" — widely understood!' },
+      { en: 'Yes', kn: 'ಹೌದು', tr: 'Howdu', tip: 'Pronounced "how-du". Nod your head side to side (Indian yes)!' },
+      { en: 'No', kn: 'ಇಲ್ಲ', tr: 'Illa', tip: '"Illa" = no/not there. Shake your head normally.' },
+      { en: 'Please', kn: 'ದಯವಿಟ್ಟು', tr: 'Dayavittu', tip: '"Dayavittu" shows politeness. Use before or after requests.' },
+      { en: 'Sorry / Excuse me', kn: 'ಕ್ಷಮಿಸಿ', tr: 'Kshamisi', tip: '"Ksh" is tricky — say "ksha-mi-si". Works for both sorry and excuse me.' }
+    ]
+  },
+  {
+    id: 'making_friends', name: 'Making Friends', icon: '🤝', category: 'Social',
+    theme: 'pink', difficulty: 'Beginner',
+    phrases: [
+      { en: 'My name is [name]', kn: 'ನನ್ನ ಹೆಸರು [name]', tr: 'Nanna hesaru [name]', tip: '"Nanna" = my, "Hesaru" = name.' },
+      { en: 'What is your name?', kn: 'ನಿಮ್ಮ ಹೆಸರೇನು?', tr: 'Nimma hesarenu?', tip: '"Nimma" = your (formal). Casual: "Ninna hesarenu?"' },
+      { en: 'Nice to meet you', kn: 'ನಿಮ್ಮನ್ನ ಭೇಟಿಯಾಗಿ ಖುಷಿಯಾಯಿತು', tr: 'Nimmanna bhetiyaagi khushiyaayitu', tip: 'Formal. A warm "Namaskara" with a smile works just as well!' },
+      { en: 'Do you live nearby?', kn: 'ನೀವು ಇಲ್ಲೇ ಹತ್ತಿರ ಇರ್ತೀರಾ?', tr: 'Neevu ille hattira irtira?', tip: '"Ille" = right here, "Hattira" = nearby.' },
+      { en: "Let's have coffee sometime", kn: 'ಒಂದ್ಸಲ ಕಾಫಿ ಕುಡಿಯೋಣ', tr: 'Ondsala kaafi kudiyona', tip: '"Kudiyona" = let\'s drink. Coffee is how friendships start in Bangalore!' }
+    ]
+  }
+];
+
+const KANNADA_NUMBERS = [
+  { n: 1, kn: '೧', word: 'Ondu', script: 'ಒಂದು' },
+  { n: 2, kn: '೨', word: 'Eradu', script: 'ಎರಡು' },
+  { n: 3, kn: '೩', word: 'Mooru', script: 'ಮೂರು' },
+  { n: 4, kn: '೪', word: 'Naalku', script: 'ನಾಲ್ಕು' },
+  { n: 5, kn: '೫', word: 'Aidu', script: 'ಐದು' },
+  { n: 6, kn: '೬', word: 'Aaru', script: 'ಆರು' },
+  { n: 7, kn: '೭', word: 'Elu', script: 'ಏಳು' },
+  { n: 8, kn: '೮', word: 'Entu', script: 'ಎಂಟು' },
+  { n: 9, kn: '೯', word: 'Ombattu', script: 'ಒಂಬತ್ತು' },
+  { n: 10, kn: '೧೦', word: 'Hattu', script: 'ಹತ್ತು' },
+  { n: 11, kn: '೧೧', word: 'Hannondu', script: 'ಹನ್ನೊಂದು' },
+  { n: 12, kn: '೧೨', word: 'Hanneradu', script: 'ಹನ್ನೆರಡು' },
+  { n: 13, kn: '೧೩', word: 'Hadimooru', script: 'ಹದಿಮೂರು' },
+  { n: 14, kn: '೧೪', word: 'Hadinaalku', script: 'ಹದಿನಾಲ್ಕು' },
+  { n: 15, kn: '೧೫', word: 'Hadinaidu', script: 'ಹದಿನೈದು' },
+  { n: 16, kn: '೧೬', word: 'Hadinaaru', script: 'ಹದಿನಾರು' },
+  { n: 17, kn: '೧೭', word: 'Hadineelu', script: 'ಹದಿನೇಳು' },
+  { n: 18, kn: '೧೮', word: 'Hadinentu', script: 'ಹದಿನೆಂಟು' },
+  { n: 19, kn: '೧೯', word: 'Hattombattu', script: 'ಹತ್ತೊಂಬತ್ತು' },
+  { n: 20, kn: '೨೦', word: 'Ippattu', script: 'ಇಪ್ಪತ್ತು' }
+];
+
+const CATEGORIES = [
+  { name: 'Getting Around', theme: 'purple', color: '#7C3AED' },
+  { name: 'Shopping', theme: 'green', color: '#059669' },
+  { name: 'Food & Drink', theme: 'orange', color: '#EA580C' },
+  { name: 'Daily Life', theme: 'blue', color: '#2563EB' },
+  { name: 'Emergencies', theme: 'red', color: '#DC2626' },
+  { name: 'Social', theme: 'pink', color: '#DB2777' }
+];
+
+/* ============================================= */
+/*                 APP STATE                     */
+/* ============================================= */
+let state = {
+  currentScenario: null,
+  currentPhraseIdx: 0,
+  isFlipped: false,
+  learned: JSON.parse(localStorage.getItem('ll_learned') || '{}'),
+  bookmarks: JSON.parse(localStorage.getItem('ll_bookmarks') || '{}'),
+  streak: JSON.parse(localStorage.getItem('ll_streak') || '{"count":0,"lastDate":""}'),
+  difficulty: localStorage.getItem('ll_difficulty') || 'beginner',
+  darkMode: localStorage.getItem('ll_darkMode') === 'true',
+  quizScore: 0,
+  quizTotal: 0,
+  touchStartX: 0,
+  touchEndX: 0
+};
+
+/* ============================================= */
+/*              INITIALIZATION                   */
+/* ============================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  // Splash screen
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
+  }, 1800);
+
+  // Apply saved settings
+  if (state.darkMode) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('darkToggle').classList.add('active');
+  }
+
+  // Update streak
+  updateStreak();
+
+  // Render all sections
+  renderScenarios();
+  renderDailyPhrase();
+  renderProgress();
+  renderNumbers();
+  renderQuiz();
+  renderSavedPhrases();
+  renderStats();
+  setupDifficulty();
+  setupSwipeGestures();
+});
+
+/* ============================================= */
+/*            STREAK MANAGEMENT                  */
+/* ============================================= */
+function updateStreak() {
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+  if (state.streak.lastDate === today) {
+    // Already visited today
+  } else if (state.streak.lastDate === yesterday) {
+    state.streak.count++;
+    state.streak.lastDate = today;
+  } else if (state.streak.lastDate !== today) {
+    state.streak.count = state.streak.lastDate ? 1 : 0;
+    if (state.streak.lastDate) state.streak.count = 1;
+    state.streak.lastDate = today;
+  }
+
+  localStorage.setItem('ll_streak', JSON.stringify(state.streak));
+  document.getElementById('streakCount').textContent = state.streak.count;
+  document.getElementById('streakText').textContent = `${state.streak.count} Day Streak!`;
+  document.getElementById('statStreak').textContent = state.streak.count;
+}
+
+/* ============================================= */
+/*          RENDER SCENARIO CARDS                */
+/* ============================================= */
+function renderScenarios() {
+  const container = document.getElementById('scenariosList');
+  let html = '';
+  const grouped = {};
+
+  SCENARIOS.forEach(s => {
+    if (!grouped[s.category]) grouped[s.category] = [];
+    grouped[s.category].push(s);
+  });
+
+  CATEGORIES.forEach(cat => {
+    if (!grouped[cat.name]) return;
+    html += `<div class="category-section">
+      <div class="category-title">${cat.name}</div>
+      <div class="scenario-grid">`;
+
+    grouped[cat.name].forEach(s => {
+      const total = s.phrases.length;
+      const learnedCount = s.phrases.filter((_, i) => state.learned[s.id + '_' + i]).length;
+      const pct = total > 0 ? Math.round((learnedCount / total) * 100) : 0;
+
+      html += `<div class="scenario-card" data-theme="${s.theme}" onclick="openScenario('${s.id}')">
+        <div class="card-icon">${s.icon}</div>
+        <div class="card-title">${s.name}</div>
+        <div class="card-meta">
+          <span class="card-badge">${s.difficulty}</span>
+          <span class="card-count">${total} phrases</span>
+        </div>
+        <div class="card-progress">
+          <div class="card-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+/* ============================================= */
+/*          OPEN/CLOSE SCENARIO MODAL            */
+/* ============================================= */
+function openScenario(id) {
+  const scenario = SCENARIOS.find(s => s.id === id);
+  if (!scenario) return;
+
+  state.currentScenario = scenario;
+  state.currentPhraseIdx = 0;
+  state.isFlipped = false;
+
+  const overlay = document.getElementById('modalOverlay');
+  const header = document.getElementById('modalHeader');
+  header.className = 'modal-header ' + scenario.theme;
+  document.getElementById('modalTitle').textContent = scenario.name;
+  document.getElementById('modalCount').textContent = `${scenario.phrases.length} phrases`;
+
+  renderFlashcard();
+  renderProgressDots();
+
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+  state.currentScenario = null;
+  // Refresh scenario cards to show updated progress
+  renderScenarios();
+  renderProgress();
+  renderStats();
+}
+
+function closeModalOutside(e) {
+  if (e.target === e.currentTarget) closeModal();
+}
+
+/* ============================================= */
+/*             FLASHCARD RENDERING               */
+/* ============================================= */
+function renderFlashcard() {
+  const s = state.currentScenario;
+  const idx = state.currentPhraseIdx;
+  if (!s) return;
+  const p = s.phrases[idx];
+  const card = document.getElementById('flashcard');
+
+  // Reset flip
+  card.classList.remove('flipped');
+  state.isFlipped = false;
+
+  document.getElementById('fcEmoji').textContent = s.icon;
+  document.getElementById('fcEnglish').textContent = p.en;
+  document.getElementById('fcKannada').textContent = p.kn;
+
+  const translitEl = document.getElementById('fcTranslit');
+  translitEl.textContent = p.tr;
+  translitEl.style.display = state.difficulty === 'intermediate' ? 'none' : '';
+
+  document.getElementById('fcEnSmall').textContent = p.en;
+  document.getElementById('fcPronTip').innerHTML = `<strong>💡 Tip:</strong> ${p.tip}`;
+
+  // Update counter
+  document.getElementById('swipeCounter').textContent = `${idx + 1} / ${s.phrases.length}`;
+
+  // Update nav buttons
+  document.getElementById('prevBtn').disabled = idx === 0;
+  document.getElementById('nextBtn').disabled = idx === s.phrases.length - 1;
+
+  // Update learned button
+  const key = s.id + '_' + idx;
+  const learnBtn = document.getElementById('learnBtn');
+  const learnText = document.getElementById('learnBtnText');
+  if (state.learned[key]) {
+    learnBtn.classList.add('learned');
+    learnText.textContent = 'Learned!';
+  } else {
+    learnBtn.classList.remove('learned');
+    learnText.textContent = 'Learned';
+  }
+
+  // Update bookmark button
+  const bmBtn = document.getElementById('bookmarkBtn');
+  if (state.bookmarks[key]) {
+    bmBtn.classList.add('saved');
+  } else {
+    bmBtn.classList.remove('saved');
+  }
+
+  // Update progress dots
+  updateProgressDots();
+}
+
+function flipCard() {
+  const card = document.getElementById('flashcard');
+  state.isFlipped = !state.isFlipped;
+  card.classList.toggle('flipped');
+}
+
+/* ============================================= */
+/*           PHRASE NAVIGATION                   */
+/* ============================================= */
+function nextPhrase() {
+  if (!state.currentScenario) return;
+  if (state.currentPhraseIdx < state.currentScenario.phrases.length - 1) {
+    state.currentPhraseIdx++;
+    renderFlashcard();
+  }
+}
+
+function prevPhrase() {
+  if (!state.currentScenario) return;
+  if (state.currentPhraseIdx > 0) {
+    state.currentPhraseIdx--;
+    renderFlashcard();
+  }
+}
+
+/* ============================================= */
+/*          SWIPE GESTURE HANDLING               */
+/* ============================================= */
+function setupSwipeGestures() {
+  const wrapper = document.getElementById('flashcardWrapper');
+
+  wrapper.addEventListener('touchstart', (e) => {
+    state.touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  wrapper.addEventListener('touchend', (e) => {
+    state.touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+}
+
+function handleSwipe() {
+  const diff = state.touchStartX - state.touchEndX;
+  if (Math.abs(diff) < 50) return; // minimum swipe distance
+  if (diff > 0) {
+    nextPhrase(); // swipe left = next
+  } else {
+    prevPhrase(); // swipe right = prev
+  }
+}
+
+/* ============================================= */
+/*             PROGRESS DOTS                     */
+/* ============================================= */
+function renderProgressDots() {
+  const s = state.currentScenario;
+  if (!s) return;
+  const container = document.getElementById('progressDots');
+  let html = '';
+  s.phrases.forEach((_, i) => {
+    const key = s.id + '_' + i;
+    const active = i === state.currentPhraseIdx ? ' active' : '';
+    const learned = state.learned[key] ? ' learned' : '';
+    html += `<div class="progress-dot${active}${learned}"></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function updateProgressDots() {
+  const dots = document.querySelectorAll('#progressDots .progress-dot');
+  const s = state.currentScenario;
+  if (!s) return;
+  dots.forEach((dot, i) => {
+    const key = s.id + '_' + i;
+    dot.className = 'progress-dot';
+    if (i === state.currentPhraseIdx) dot.classList.add('active');
+    if (state.learned[key]) dot.classList.add('learned');
+  });
+}
+
+/* ============================================= */
+/*        LEARNED / BOOKMARK TOGGLES             */
+/* ============================================= */
+function toggleLearned() {
+  const s = state.currentScenario;
+  const idx = state.currentPhraseIdx;
+  const key = s.id + '_' + idx;
+  state.learned[key] = !state.learned[key];
+  if (!state.learned[key]) delete state.learned[key];
+  localStorage.setItem('ll_learned', JSON.stringify(state.learned));
+  renderFlashcard();
+}
+
+function toggleBookmark() {
+  const s = state.currentScenario;
+  const idx = state.currentPhraseIdx;
+  const key = s.id + '_' + idx;
+
+  if (state.bookmarks[key]) {
+    delete state.bookmarks[key];
+  } else {
+    const p = s.phrases[idx];
+    state.bookmarks[key] = { en: p.en, kn: p.kn, tr: p.tr };
+  }
+  localStorage.setItem('ll_bookmarks', JSON.stringify(state.bookmarks));
+  renderFlashcard();
+}
+
+/* ============================================= */
+/*          PRONUNCIATION POPUP                  */
+/* ============================================= */
+function showPronunciation() {
+  const s = state.currentScenario;
+  const idx = state.currentPhraseIdx;
+  const p = s.phrases[idx];
+
+  document.getElementById('pronText').textContent = p.tr;
+
+  // Create syllable breakdown
+  const syllables = p.tr.split(/[\s]+/).filter(Boolean);
+  const syllablesHtml = syllables.map((syl, i) =>
+    `<span class="syllable${i === 0 ? ' stress' : ''}">${syl}</span>`
+  ).join('');
+  document.getElementById('pronSyllables').innerHTML = syllablesHtml;
+  document.getElementById('pronGuide').textContent = p.tip;
+  document.getElementById('pronPopup').classList.add('show');
+}
+
+function closePronPopup(e) {
+  if (e.target === e.currentTarget) {
+    document.getElementById('pronPopup').classList.remove('show');
+  }
+}
+
+/* ============================================= */
+/*             TAB SWITCHING                     */
+/* ============================================= */
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  const tabMap = { scenarios: 'tabScenarios', learn: 'tabLearn', saved: 'tabSaved' };
+  document.getElementById(tabMap[tab]).classList.add('active');
+  btn.classList.add('active');
+
+  // Refresh data on tab switch
+  if (tab === 'learn') {
+    renderProgress();
+    renderQuiz();
+  }
+  if (tab === 'saved') {
+    renderSavedPhrases();
+    renderStats();
+  }
+  if (tab === 'scenarios') {
+    renderScenarios();
+  }
+}
+
+/* ============================================= */
+/*              DAILY PHRASE                     */
+/* ============================================= */
+function renderDailyPhrase() {
+  const allPhrases = SCENARIOS.flatMap(s => s.phrases);
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  const idx = dayOfYear % allPhrases.length;
+  const p = allPhrases[idx];
+
+  document.getElementById('dailyEn').textContent = p.en;
+  document.getElementById('dailyKn').textContent = p.kn;
+  document.getElementById('dailyTranslit').textContent = p.tr;
+}
+
+/* ============================================= */
+/*            PROGRESS TRACKING                  */
+/* ============================================= */
+function renderProgress() {
+  const totalPhrases = SCENARIOS.reduce((sum, s) => sum + s.phrases.length, 0);
+  const learnedCount = Object.keys(state.learned).length;
+  const pct = totalPhrases > 0 ? Math.round((learnedCount / totalPhrases) * 100) : 0;
+
+  document.getElementById('overallProgressBar').style.width = pct + '%';
+  document.getElementById('learnedCount').textContent = learnedCount;
+  document.getElementById('totalCount').textContent = totalPhrases;
+
+  // Category progress
+  const catList = document.getElementById('catProgressList');
+  const circumference = 2 * Math.PI * 17;
+  let html = '';
+
+  CATEGORIES.forEach(cat => {
+    const catScenarios = SCENARIOS.filter(s => s.category === cat.name);
+    const catTotal = catScenarios.reduce((sum, s) => sum + s.phrases.length, 0);
+    let catLearned = 0;
+    catScenarios.forEach(s => {
+      s.phrases.forEach((_, i) => {
+        if (state.learned[s.id + '_' + i]) catLearned++;
+      });
+    });
+    const catPct = catTotal > 0 ? Math.round((catLearned / catTotal) * 100) : 0;
+    const dashoffset = circumference - (catPct / 100) * circumference;
+
+    html += `<div class="cat-progress-item">
+      <div class="cat-ring">
+        <svg viewBox="0 0 40 40"><circle class="ring-bg" cx="20" cy="20" r="17"/><circle class="ring-fill" cx="20" cy="20" r="17" stroke="${cat.color}" stroke-dasharray="${circumference}" stroke-dashoffset="${dashoffset}"/></svg>
+        <div class="ring-text" style="color:${cat.color}">${catPct}%</div>
+      </div>
+      <div class="cat-progress-info">
+        <div class="cat-progress-name">${cat.name}</div>
+        <div class="cat-progress-count">${catLearned} of ${catTotal} phrases</div>
+      </div>
+    </div>`;
+  });
+
+  catList.innerHTML = html;
+}
+
+/* ============================================= */
+/*              QUIZ SYSTEM                      */
+/* ============================================= */
+let quizPhrase = null;
+let quizAnswered = false;
+
+function renderQuiz() {
+  const allPhrases = SCENARIOS.flatMap(s => s.phrases);
+  if (allPhrases.length < 3) return;
+
+  // Pick random phrase
+  const idx = Math.floor(Math.random() * allPhrases.length);
+  quizPhrase = allPhrases[idx];
+  quizAnswered = false;
+
+  document.getElementById('quizPrompt').textContent = quizPhrase.kn;
+  document.getElementById('quizScore').innerHTML = `Score: <strong>${state.quizScore}</strong> / <strong>${state.quizTotal}</strong>`;
+  document.getElementById('quizNext').style.display = 'none';
+
+  // Create options (1 correct + 2 wrong)
+  const options = [quizPhrase.en];
+  const others = allPhrases.filter(p => p.en !== quizPhrase.en);
+  while (options.length < 3 && others.length > 0) {
+    const rIdx = Math.floor(Math.random() * others.length);
+    const opt = others.splice(rIdx, 1)[0];
+    if (!options.includes(opt.en)) options.push(opt.en);
+  }
+
+  // Shuffle
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+
+  const optionsContainer = document.getElementById('quizOptions');
+  optionsContainer.innerHTML = options.map(opt =>
+    `<button class="quiz-option" onclick="answerQuiz(this, '${opt.replace(/'/g, "\\'")}')">${opt}</button>`
+  ).join('');
+}
+
+function answerQuiz(btn, answer) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  state.quizTotal++;
+
+  if (answer === quizPhrase.en) {
+    btn.classList.add('correct');
+    state.quizScore++;
+    spawnConfetti();
+  } else {
+    btn.classList.add('wrong');
+    // Highlight correct answer
+    document.querySelectorAll('.quiz-option').forEach(opt => {
+      if (opt.textContent === quizPhrase.en) opt.classList.add('correct');
+    });
+  }
+
+  document.getElementById('quizScore').innerHTML = `Score: <strong>${state.quizScore}</strong> / <strong>${state.quizTotal}</strong>`;
+  document.getElementById('quizNext').style.display = 'block';
+}
+
+function nextQuiz() {
+  renderQuiz();
+}
+
+/* ============================================= */
+/*            CONFETTI EFFECT                    */
+/* ============================================= */
+function spawnConfetti() {
+  const container = document.getElementById('confettiContainer');
+  const colors = ['#7C3AED', '#F59E0B', '#10B981', '#EF4444', '#3B82F6', '#EC4899'];
+
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (1 + Math.random()) + 's';
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.width = (6 + Math.random() * 6) + 'px';
+    piece.style.height = (6 + Math.random() * 6) + 'px';
+    container.appendChild(piece);
+  }
+
+  setTimeout(() => { container.innerHTML = ''; }, 2500);
+}
+
+/* ============================================= */
+/*          NUMBERS SECTION                      */
+/* ============================================= */
+function renderNumbers() {
+  const grid = document.getElementById('numbersGrid');
+  grid.innerHTML = KANNADA_NUMBERS.map(n =>
+    `<div class="num-item">
+      <div class="num-digit">${n.n}</div>
+      <div class="num-kn">${n.script}</div>
+      <div class="num-word">${n.word}</div>
+    </div>`
+  ).join('');
+}
+
+/* ============================================= */
+/*          SAVED PHRASES                        */
+/* ============================================= */
+function renderSavedPhrases() {
+  const list = document.getElementById('savedList');
+  const keys = Object.keys(state.bookmarks);
+
+  if (keys.length === 0) {
+    list.innerHTML = `<div class="saved-empty"><div class="empty-icon">⭐</div>No saved phrases yet.<br>Bookmark phrases to see them here!</div>`;
+    return;
+  }
+
+  list.innerHTML = keys.map(key => {
+    const b = state.bookmarks[key];
+    return `<div class="saved-item">
+      <div class="saved-text">
+        <div class="saved-en">${b.en}</div>
+        <div class="saved-kn">${b.kn}</div>
+      </div>
+      <button class="remove-btn" onclick="removeBookmark('${key}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+
+  document.getElementById('statSaved').textContent = keys.length;
+}
+
+function removeBookmark(key) {
+  delete state.bookmarks[key];
+  localStorage.setItem('ll_bookmarks', JSON.stringify(state.bookmarks));
+  renderSavedPhrases();
+  renderStats();
+}
+
+/* ============================================= */
+/*                STATS                          */
+/* ============================================= */
+function renderStats() {
+  document.getElementById('statLearned').textContent = Object.keys(state.learned).length;
+  document.getElementById('statSaved').textContent = Object.keys(state.bookmarks).length;
+  document.getElementById('statStreak').textContent = state.streak.count;
+}
+
+/* ============================================= */
+/*             SETTINGS                          */
+/* ============================================= */
+function toggleDarkMode() {
+  state.darkMode = !state.darkMode;
+  document.documentElement.setAttribute('data-theme', state.darkMode ? 'dark' : '');
+  document.getElementById('darkToggle').classList.toggle('active');
+  localStorage.setItem('ll_darkMode', state.darkMode);
+}
+
+function setDifficulty(level, btn) {
+  state.difficulty = level;
+  localStorage.setItem('ll_difficulty', level);
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setupDifficulty() {
+  if (state.difficulty === 'intermediate') {
+    const btns = document.querySelectorAll('.diff-btn');
+    btns[0].classList.remove('active');
+    btns[1].classList.add('active');
+  }
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>

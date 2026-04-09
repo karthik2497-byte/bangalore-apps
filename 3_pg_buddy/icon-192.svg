@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="96" fill="#FF6B35"/>
+  <!-- Subtle inner glow -->
+  <circle cx="96" cy="96" r="80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+  <!-- House body -->
+  <rect x="62" y="95" width="68" height="52" rx="4" fill="white"/>
+  <!-- Roof -->
+  <polygon points="96,48 42,95 54,95 96,60 138,95 150,95" fill="white"/>
+  <!-- Chimney -->
+  <rect x="124" y="60" width="12" height="28" rx="2" fill="white"/>
+  <!-- Door -->
+  <rect x="84" y="115" width="24" height="32" rx="4" fill="#FF6B35"/>
+  <!-- Door knob -->
+  <circle cx="102" cy="132" r="2.5" fill="white"/>
+  <!-- Window left -->
+  <rect x="68" y="102" width="16" height="14" rx="3" fill="#FF6B35" opacity="0.85"/>
+  <line x1="76" y1="102" x2="76" y2="116" stroke="white" stroke-width="1.5"/>
+  <line x1="68" y1="109" x2="84" y2="109" stroke="white" stroke-width="1.5"/>
+  <!-- Window right -->
+  <rect x="108" y="102" width="16" height="14" rx="3" fill="#FF6B35" opacity="0.85"/>
+  <line x1="116" y1="102" x2="116" y2="116" stroke="white" stroke-width="1.5"/>
+  <line x1="108" y1="109" x2="124" y2="109" stroke="white" stroke-width="1.5"/>
+  <!-- Heart inside roof area -->
+  <path d="M96 78 C96 78, 88 68, 82 74 C76 80, 82 88, 96 96 C110 88, 116 80, 110 74 C104 68, 96 78, 96 78Z" fill="#FFB74D" opacity="0.9"/>
+</svg>
