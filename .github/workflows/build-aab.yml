@@ -54,10 +54,8 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Bubblewrap
-        run: |
-          npm i -g @bubblewrap/cli
-          cd scripts && npm init -y && npm install @bubblewrap/core
+      - name: Install Bubblewrap Core
+        run: cd scripts && npm init -y && npm install @bubblewrap/core
 
       - name: Write Bubblewrap config
         run: |
@@ -94,12 +92,53 @@ jobs:
           echo "=== twa-manifest.json ==="
           cat "$BUILD_DIR/twa-manifest.json"
 
-      - name: Build AAB and APK
+      - name: Build APK and AAB with Gradle
         working-directory: build_${{ matrix.dir }}
-        env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: bangaloreapps123
-          BUBBLEWRAP_KEY_PASSWORD: bangaloreapps123
-        run: echo "N" | bubblewrap build --skipPwaValidation
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Sign APK
+        working-directory: build_${{ matrix.dir }}
+        run: |
+          UNSIGNED_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+          ALIGNED_APK="app-release-aligned.apk"
+          SIGNED_APK="app-release-signed.apk"
+
+          # Zipalign
+          "${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools/" | sort -V | tail -1)/zipalign" \
+            -v -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
+
+          # Sign with apksigner
+          "${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools/" | sort -V | tail -1)/apksigner" sign \
+            --ks "$GITHUB_WORKSPACE/android.keystore" \
+            --ks-key-alias android \
+            --ks-pass pass:bangaloreapps123 \
+            --key-pass pass:bangaloreapps123 \
+            --out "$SIGNED_APK" \
+            "$ALIGNED_APK"
+
+          echo "Signed APK: $SIGNED_APK"
+          ls -la "$SIGNED_APK"
+
+      - name: Sign AAB
+        working-directory: build_${{ matrix.dir }}
+        run: |
+          UNSIGNED_AAB="app/build/outputs/bundle/release/app-release.aab"
+          SIGNED_AAB="app-release-bundle.aab"
+
+          jarsigner -verbose \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore "$GITHUB_WORKSPACE/android.keystore" \
+            -storepass "bangaloreapps123" \
+            -keypass "bangaloreapps123" \
+            "$UNSIGNED_AAB" android
+
+          # Copy signed AAB to expected output name
+          cp "$UNSIGNED_AAB" "$SIGNED_AAB"
+
+          echo "Signed AAB: $SIGNED_AAB"
+          ls -la "$SIGNED_AAB"
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
