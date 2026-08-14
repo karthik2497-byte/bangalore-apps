@@ -1,5 +1,57 @@
 # Work Log
 
+## StockPing — affiliate + price tracking (2026-08-15)
+
+Implements EXECUTION_PLAN §4.3 P0 affiliate rewrite and both P1 items. The other P0
+(server-side checking) is **not** done — it needs a Cloudflare Worker that does not exist yet.
+
+- **Affiliate rewrite (the revenue).** `affiliateUrl()` sets `tag=` for Amazon and `affid=`
+  for Flipkart, preserving path and existing query params, replacing rather than duplicating
+  an existing tag, and returning the URL untouched on anything it does not recognise or cannot
+  parse. Every outbound click routes through `openProductPage()`, so the tag is applied in
+  exactly one place. **`AFFILIATE` ships with empty tags** — an unset tag is a pass-through, so
+  this is safe to deploy before the Associates accounts exist.
+- **Buy now on alerts.** Restock and price-drop alert cards get a button (the highest-intent
+  click in the app), shown only when the alert is actionable and the product is still tracked.
+- **Price tracking.** `price` + `lowestPrice` per product, rendered on the card, with drop
+  alerts and notifications. Only a genuine drop alerts: first-seen, unchanged and rising prices
+  do not. This matters because checks run on a timer — an off-by-one here spams forever.
+- **JSON-LD scrapers.** schema.org `Product` / `offers` is now the primary source for name,
+  price and availability, walking `@graph` and array forms and skipping malformed blocks; the
+  old keyword regex is the fallback. This fixes the real failure mode: a "Sold Out" string in
+  a recommendation carousel deciding the answer for the product you actually tracked.
+- **Deduplication, not addition.** `checkProduct` and `fetchAndDetect` each carried their own
+  copy of the proxy list, the stock regexes and the parse logic, and the copies had already
+  drifted (different length floors, different patterns). Both now share `fetchPage()` and
+  `extractProductData()`. `checkSingleProduct` and `checkAllProducts` likewise shared nothing
+  and now both call `applyCheckResult()` — otherwise price bookkeeping needed writing twice.
+- SW → `stockping-v2`.
+
+### Verification (§0.3 gate — all four)
+1. Syntax: `node --check` on both inline blocks + service-worker.js → PASS.
+2. Runtime: served at `:8902`, SW and caches cleared first, `window.fetch` stubbed so the
+   third-party CORS proxies were never contacted and the test stayed deterministic. Added a
+   product through the real `processUrl`/`trackProduct` flow (name, price and status all read
+   from JSON-LD), then a restock at a lower price produced exactly one stock alert and one
+   price alert, both rendering correctly. **0 console errors.**
+3. Persistence: reload → products (with `price`/`lowestPrice`) and all alerts survived.
+4. Regression: all 3 tabs render; stats bar correct.
+5. `test-stockping.mjs`: 26 cases. Mutation tested, 13/14 killed. The `<=` survivor was a real
+   gap — with it, an unchanged price alerts on every timer pass — so it got a test. The
+   remaining survivor is the `oldPrice != null` guard, redundant only because `null` coerces to
+   0 in the comparison; kept deliberately and commented, since leaning on that coercion on a
+   money path is exactly the kind of thing that breaks later.
+6. Affiliate behaviour verified through the real button: tagged exactly once, `ref` preserved,
+   Flipkart got `affid` and not `tag`, Myntra untouched, empty config passed through clean.
+7. Backward compatibility: alerts saved before this change have no `type` field. Injected a
+   synthetic legacy record and confirmed it still renders as a stock change.
+
+**Still open (§4.3 P0):** server-side checking. The client still routes every tracked URL
+through allorigins/corsproxy, which see all of them — flagged with a `ponytail:` comment at
+the proxy list. That is a Worker job and belongs to Phase C.
+
+---
+
 ## LingoLocal — roadmap build-out (2026-08-15)
 
 Implements EXECUTION_PLAN §4.2 P0+P1. One app, no new dependencies, no backend.
