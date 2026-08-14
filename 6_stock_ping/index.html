@@ -1664,45 +1664,6 @@ async function checkAllProducts() {
   const btn = document.getElementById('btnCheckAll');
   btn.classList.add('checking');
 
-  // Set all to checking
-  products.forEach(p => p.status = 'checking');
-  saveProducts(products);
-  renderProducts();
-
-  // Check products sequentially to avoid rate limiting
-  for (let i = 0; i < products.length; i++) {
-    const product = products[i];
-    const oldStatus = products.find(p => p.id === product.id)?.status;
-    const prevStatus = loadProducts().find(p => p.id === product.id);
-    const previousStatus = prevStatus ? prevStatus.status : 'unknown';
-
-    const newStatus = await checkProduct(product);
-    product.status = newStatus;
-    product.lastChecked = new Date().toISOString();
-    saveProducts(products);
-
-    // Just use the old status from before we started (we already saved it as 'checking')
-    // We need to track original status before check all
-    renderProducts();
-  }
-
-  btn.classList.remove('checking');
-  products = loadProducts();
-  renderProducts();
-  updateStats();
-  showToast(`Checked ${products.length} product${products.length > 1 ? 's' : ''}`, 'success');
-}
-
-// Fix: Track original statuses before check all
-async function checkAllProducts() {
-  if (products.length === 0) {
-    showToast('No products to check', 'error');
-    return;
-  }
-
-  const btn = document.getElementById('btnCheckAll');
-  btn.classList.add('checking');
-
   // Save original statuses
   const originalStatuses = {};
   products.forEach(p => { originalStatuses[p.id] = p.status; });
@@ -1960,7 +1921,7 @@ function renderProducts() {
           <button class="action-btn" onclick="checkSingleProduct('${product.id}')" title="Check now">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           </button>
-          <button class="action-btn" onclick="window.open('${escapeHtml(product.url)}', '_blank')" title="Open product page">
+          <button class="action-btn" onclick="openProductPage('${product.id}')" title="Open product page">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </button>
           <button class="action-btn delete" onclick="confirmDeleteProduct('${product.id}')" title="Delete">
@@ -2222,6 +2183,11 @@ document.getElementById('addModal').addEventListener('click', function(e) {
   if (e.target === this) closeAddModal();
 });
 
+function openProductPage(id) {
+  const product = products.find(p => p.id === id);
+  if (product) window.open(product.url, '_blank');
+}
+
 // ---- DELETE PRODUCT ----
 function confirmDeleteProduct(id) {
   const product = products.find(p => p.id === id);
@@ -2478,13 +2444,6 @@ setInterval(() => {
   }
 }, 60000);
 
-// Handle visibility change for background checking
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && settings.autoCheck && products.length > 0) {
-    // Don't auto-check on every tab focus, only on initial load
-    // The interval timer handles periodic checks
-  }
-});
 </script>
 </body>
 </html>

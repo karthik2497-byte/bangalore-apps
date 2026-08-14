@@ -2751,6 +2751,10 @@ function switchCommunityTab(tab, btn) {
 }
 
 // ========== VISITOR MANAGEMENT ==========
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function openVisitorForm() {
   document.getElementById('visitorModal').classList.add('show');
   // Set default date to today
@@ -2833,10 +2837,10 @@ function renderVisitors() {
     <div class="visitor-card" id="visitor-${v.id}" onclick="toggleVisitorCard(${v.id})">
       <div class="visitor-card-top">
         <div class="visitor-card-left">
-          <div class="visitor-avatar ${v.type}">${v.initial}</div>
+          <div class="visitor-avatar ${v.type}">${esc(v.initial)}</div>
           <div>
-            <div class="visitor-name">${v.name}</div>
-            <div class="visitor-purpose">${v.purpose} &middot; ${v.time}</div>
+            <div class="visitor-name">${esc(v.name)}</div>
+            <div class="visitor-purpose">${esc(v.purpose)} &middot; ${esc(v.time)}</div>
           </div>
         </div>
         <div class="visitor-status-badge ${v.status}">${v.status === 'active' ? 'Entered' : v.status === 'expected' ? 'Expected' : 'Exited'}</div>
@@ -2845,6 +2849,7 @@ function renderVisitors() {
         <div class="visitor-qr">
           <div class="qr-grid" id="qr-${v.id}"></div>
           <div class="qr-label">Show this QR to the security guard</div>
+          <button class="frequent-approve-btn" style="margin-top:10px;background:#FEE2E2;color:#DC2626;" onclick="event.stopPropagation();cancelPass(${v.id})">Cancel Pass</button>
         </div>
       </div>
     </div>
@@ -2888,6 +2893,13 @@ function renderVisitors() {
       <button class="frequent-approve-btn" onclick="quickApproveFrequent('${v.name}', '${v.role}', '${v.type}')">Approve</button>
     </div>
   `).join('');
+}
+
+function cancelPass(id) {
+  APP_STATE.activeVisitors = APP_STATE.activeVisitors.filter(v => v.id !== id);
+  saveState();
+  renderVisitors();
+  showToast('Visitor pass cancelled', 'info');
 }
 
 function quickApproveFrequent(name, role, type) {
@@ -3122,9 +3134,12 @@ function toggleRSVP(btn) {
   const isRSVPd = btn.classList.toggle('rsvpd');
   btn.textContent = isRSVPd ? 'Going!' : 'RSVP';
   const countEl = btn.parentElement.querySelector('.attendees-count');
-  const currentText = countEl.textContent;
-  const num = parseInt(currentText.match(/\d+/)[0]);
-  countEl.innerHTML = countEl.innerHTML.replace(/\d+/, isRSVPd ? num + 1 : num - 1);
+  // Only touch the text node — innerHTML.replace would corrupt the SVG icon's numeric attributes
+  const textNode = [...countEl.childNodes].find(n => n.nodeType === 3 && /\d/.test(n.textContent));
+  if (textNode) {
+    const num = parseInt(textNode.textContent.match(/\d+/)[0]);
+    textNode.textContent = textNode.textContent.replace(/\d+/, isRSVPd ? num + 1 : num - 1);
+  }
   showToast(isRSVPd ? 'You\'re going! See you there.' : 'RSVP cancelled', isRSVPd ? 'success' : 'info');
 }
 

@@ -934,7 +934,7 @@ function getNextDueDate(dayOfMonth) {
   today.setHours(0, 0, 0, 0);
   let day = Math.min(dayOfMonth, new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
   let dueDate = new Date(today.getFullYear(), today.getMonth(), day);
-  if (dueDate <= today) {
+  if (dueDate < today) {
     day = Math.min(dayOfMonth, new Date(today.getFullYear(), today.getMonth() + 2, 0).getDate());
     dueDate = new Date(today.getFullYear(), today.getMonth() + 1, day);
   }
@@ -975,9 +975,8 @@ function getCurrentBill(cardId, dueDay) {
 
 function getStatusInfo(daysLeft, isPaid) {
   if (isPaid) return { text: 'Paid', class: 'badge-paid', color: '#00C853' };
-  if (daysLeft <= 0) return { text: 'Overdue', class: 'badge-overdue', color: '#FF1744' };
   if (daysLeft === 0) return { text: 'Due Today', class: 'badge-due-today', color: '#FF1744' };
-  if (daysLeft <= 3) return { text: 'Due in ' + daysLeft + 'd', class: 'badge-due-soon', color: '#FF9100' };
+  if (daysLeft < 0) return { text: 'Overdue', class: 'badge-overdue', color: '#FF1744' };
   if (daysLeft <= 7) return { text: 'Due in ' + daysLeft + 'd', class: 'badge-due-soon', color: '#FF9100' };
   return { text: 'Due in ' + daysLeft + 'd', class: 'badge-safe', color: '#00BCD4' };
 }
@@ -990,6 +989,10 @@ function getRingColor(daysLeft) {
 
 // ====================== GENERATE IDs ======================
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 // ====================== SPLASH SCREEN ======================
 setTimeout(() => {
@@ -1064,7 +1067,7 @@ function renderDashboard() {
             : `<div class="countdown-days" style="color:${ringColor}">${nextDays}</div>
                <div class="countdown-label">${nextDays === 1 ? 'day left' : 'days left'}</div>`
           }
-          <div class="countdown-card-name">${nextCard.nickname || nextCard.bank}</div>
+          <div class="countdown-card-name">${esc(nextCard.nickname || nextCard.bank)}</div>
         </div>
       </div>
     </div>`;
@@ -1087,7 +1090,7 @@ function renderDashboard() {
         <div class="bill-card-main" onclick="toggleBillExpand('${card.id}')">
           <div class="bill-stripe" style="background:${bankColor}"></div>
           <div class="bill-info">
-            <div class="bill-name">${card.nickname || card.bank + ' Card'}</div>
+            <div class="bill-name">${esc(card.nickname || card.bank + ' Card')}</div>
             <div class="bill-last4">•••• ${card.last4}</div>
           </div>
           <div class="bill-right">
@@ -1168,7 +1171,7 @@ function renderCards() {
           <div class="credit-card-front" style="background:${gradient}">
             <div class="cc-bank-name">${card.bank}</div>
             <div class="cc-chip"></div>
-            <div class="cc-nickname">${card.nickname || 'Credit Card'}</div>
+            <div class="cc-nickname">${esc(card.nickname || 'Credit Card')}</div>
             <div class="cc-bottom">
               <div>
                 <div class="cc-last4">•••• ${card.last4}</div>
@@ -1275,7 +1278,7 @@ function renderHistory() {
           <div class="history-entry">
             <div class="history-stripe" style="background:${bankColor}"></div>
             <div class="history-info">
-              <div class="history-card-name">${cardName}</div>
+              <div class="history-card-name">${esc(cardName)}</div>
               <div class="history-date">Due: ${formatDate(bill.dueDate)}</div>
             </div>
             <div class="history-right">
@@ -1522,7 +1525,7 @@ function saveCard() {
   const amount = parseFloat(document.getElementById('input-amount').value) || 0;
 
   if (!bank) { showToast('Please select a bank'); return; }
-  if (!last4 || last4.length !== 4) { showToast('Enter valid last 4 digits'); return; }
+  if (!/^\d{4}$/.test(last4)) { showToast('Enter valid last 4 digits'); return; }
   if (!dueDay || dueDay < 1 || dueDay > 31) { showToast('Enter a valid due date (1-31)'); return; }
 
   const card = {
@@ -1649,7 +1652,9 @@ function confirmPayment() {
 }
 
 function snoozeBill(cardId) {
-  showToast('Reminder snoozed for 1 day');
+  // Suppress today's reminder — checkAndNotify skips cards with today's notif key set
+  localStorage.setItem('cardguard_notif_' + cardId + '_' + new Date().toDateString(), '1');
+  showToast('Reminder snoozed until tomorrow');
 }
 
 // ====================== CELEBRATION ANIMATION ======================
@@ -1716,11 +1721,7 @@ function checkAndNotify() {
             icon: 'icon-192.svg',
             badge: 'icon-192.svg',
             tag: 'cardguard-' + card.id,
-            data: { cardId: card.id },
-            actions: [
-              { action: 'markPaid', title: 'Mark as Paid' },
-              { action: 'snooze', title: 'Snooze' }
-            ]
+            data: { cardId: card.id }
           });
           notification.onclick = function () {
             window.focus();

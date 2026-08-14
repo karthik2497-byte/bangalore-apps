@@ -1221,9 +1221,9 @@ function updateStreak() {
   } else if (state.streak.lastDate === yesterday) {
     state.streak.count++;
     state.streak.lastDate = today;
-  } else if (state.streak.lastDate !== today) {
-    state.streak.count = state.streak.lastDate ? 1 : 0;
-    if (state.streak.lastDate) state.streak.count = 1;
+  } else {
+    // First visit ever, or streak broken — today counts as day 1
+    state.streak.count = 1;
     state.streak.lastDate = today;
   }
 
@@ -1481,11 +1481,23 @@ function toggleBookmark() {
 /* ============================================= */
 /*          PRONUNCIATION POPUP                  */
 /* ============================================= */
+function speakPhrase(p) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const knVoice = speechSynthesis.getVoices().find(v => v.lang.startsWith('kn'));
+  const u = new SpeechSynthesisUtterance(knVoice ? p.kn : p.tr);
+  if (knVoice) { u.voice = knVoice; u.lang = knVoice.lang; }
+  else { u.lang = 'en-IN'; } // ponytail: no Kannada voice installed — read the transliteration instead
+  u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+
 function showPronunciation() {
   const s = state.currentScenario;
   const idx = state.currentPhraseIdx;
   const p = s.phrases[idx];
 
+  speakPhrase(p);
   document.getElementById('pronText').textContent = p.tr;
 
   // Create syllable breakdown
