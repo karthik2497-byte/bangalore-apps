@@ -181,6 +181,13 @@ img { max-width: 100%; display: block; }
 }
 [data-theme="dark"] .header-badge { background: rgba(16,185,129,0.15); }
 .header-right { display: flex; align-items: center; gap: 8px; }
+.lang-btn {
+  border: none; cursor: pointer; font-family: inherit;
+  background: var(--yellow-light); color: var(--yellow-dark);
+  padding: 4px 10px;
+}
+[data-theme="dark"] .lang-btn { background: rgba(251,191,36,0.15); }
+.lang-btn:active { transform: scale(0.94); }
 
 /* ============================================================
    MAIN CONTENT AREA
@@ -495,6 +502,32 @@ img { max-width: 100%; display: block; }
   font-size: 0.7rem; color: var(--green-dark); opacity: 0.7;
   margin-top: 4px; position: relative; z-index: 1;
 }
+
+/* Ride-app fare comparison */
+.app-compare-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border-color);
+}
+.app-compare-row:last-of-type { border-bottom: none; }
+.app-compare-name { flex: 1; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.app-compare-range { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+.app-compare-delta { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; text-align: right; }
+.app-compare-note {
+  font-size: 0.68rem; color: var(--text-muted);
+  line-height: 1.5; margin-top: 10px;
+}
+
+/* Complaint send actions */
+.send-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-send {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px 8px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);
+  font-family: inherit; font-size: 0.82rem; font-weight: 600;
+  background: var(--bg-input); color: var(--text-primary); cursor: pointer;
+}
+.btn-send:active { transform: scale(0.98); }
+.btn-send.whatsapp { color: #128C7E; }
+[data-theme="dark"] .btn-send.whatsapp { color: #4ADE80; }
 
 /* Waiting Charge Input */
 .waiting-input-row {
@@ -947,7 +980,8 @@ img { max-width: 100%; display: block; }
       </div>
     </div>
     <div class="header-right">
-      <span class="header-badge">Bangalore</span>
+      <button class="header-badge lang-btn" id="langToggle" onclick="toggleLang()" aria-label="Switch language">ಕನ್ನಡ</button>
+      <span class="header-badge" data-i18n="hdr.city">Bangalore</span>
     </div>
   </header>
 
@@ -984,14 +1018,14 @@ img { max-width: 100%; display: block; }
 
       <!-- Distance Input -->
       <div class="distance-section">
-        <div class="section-title">Distance</div>
+        <div class="section-title" data-i18n="sec.distance">Distance</div>
         <div class="distance-input-row">
-          <button class="stepper-btn stepper-minus" onclick="adjustDistance(-0.5)" aria-label="Decrease distance">-</button>
+          <button class="stepper-btn stepper-minus" onclick="adjustDistance(-0.5, this)" aria-label="Decrease distance">-</button>
           <div class="distance-display">
             <input type="number" id="distanceInput" value="2" min="0" max="100" step="0.5" oninput="calculateFare()" aria-label="Distance in km">
             <div class="unit">kilometers</div>
           </div>
-          <button class="stepper-btn stepper-plus" onclick="adjustDistance(0.5)" aria-label="Increase distance">+</button>
+          <button class="stepper-btn stepper-plus" onclick="adjustDistance(0.5, this)" aria-label="Increase distance">+</button>
         </div>
         <div class="quick-presets">
           <button class="preset-btn active" onclick="setDistance(2, this)">2 km</button>
@@ -1004,7 +1038,7 @@ img { max-width: 100%; display: block; }
 
       <!-- Options -->
       <div class="card">
-        <div class="section-title">Options</div>
+        <div class="section-title" data-i18n="sec.options">Options</div>
         <!-- Night Mode -->
         <div class="toggle-row">
           <div class="toggle-info">
@@ -1014,8 +1048,8 @@ img { max-width: 100%; display: block; }
               </svg>
             </div>
             <div>
-              <div class="toggle-label">Night Surcharge</div>
-              <div class="toggle-sub">50% extra (10 PM - 5 AM)</div>
+              <div class="toggle-label" data-i18n="opt.night">Night Surcharge</div>
+              <div class="toggle-sub" id="lblNightSub">50% extra (10 PM - 5 AM)</div>
             </div>
           </div>
           <div class="toggle-switch" id="nightToggle" onclick="toggleNight()" role="switch" aria-checked="false" tabindex="0"></div>
@@ -1029,8 +1063,8 @@ img { max-width: 100%; display: block; }
               </svg>
             </div>
             <div>
-              <div class="toggle-label">Waiting Time</div>
-              <div class="toggle-sub">&rupee;5 per 15 minutes</div>
+              <div class="toggle-label" data-i18n="opt.wait">Waiting Time</div>
+              <div class="toggle-sub" id="lblWaitSub">&rupee;5 per 15 minutes</div>
             </div>
           </div>
           <div class="waiting-input-row">
@@ -1048,8 +1082,8 @@ img { max-width: 100%; display: block; }
               </svg>
             </div>
             <div>
-              <div class="toggle-label">Luggage</div>
-              <div class="toggle-sub">&rupee;5 per large piece</div>
+              <div class="toggle-label" data-i18n="opt.lug">Luggage</div>
+              <div class="toggle-sub" id="lblLugSub">&rupee;5 per large piece</div>
             </div>
           </div>
           <div class="luggage-counter">
@@ -1062,30 +1096,30 @@ img { max-width: 100%; display: block; }
 
       <!-- Fare Breakdown -->
       <div class="card fare-breakdown">
-        <div class="section-title">Fare Breakdown</div>
+        <div class="section-title" data-i18n="sec.breakdown">Fare Breakdown</div>
         <div class="breakdown-row">
-          <span class="label">Base fare (first 2 km)</span>
+          <span class="label" id="lblBaseRow">Base fare (first 2 km)</span>
           <span class="value" id="breakBase">&rupee;30</span>
         </div>
         <div class="breakdown-row" id="breakDistRow" style="display:none">
-          <span class="label">Distance fare (<span id="breakDistKm">0</span> km &times; &rupee;15)</span>
+          <span class="label" id="lblDistRow">Distance fare</span>
           <span class="value" id="breakDist">&rupee;0</span>
         </div>
         <div class="breakdown-row" id="breakWaitRow" style="display:none">
-          <span class="label">Waiting charge</span>
+          <span class="label" data-i18n="brk.wait">Waiting charge</span>
           <span class="value" id="breakWait">&rupee;0</span>
         </div>
         <div class="breakdown-row" id="breakLugRow" style="display:none">
-          <span class="label">Luggage (<span id="breakLugPcs">0</span> pcs)</span>
+          <span class="label" id="lblLugRow">Luggage</span>
           <span class="value" id="breakLug">&rupee;0</span>
         </div>
         <div class="breakdown-row" id="breakNightRow" style="display:none">
-          <span class="label">Night surcharge (50%)</span>
+          <span class="label" id="lblNightRow">Night surcharge</span>
           <span class="value" id="breakNight">&rupee;0</span>
         </div>
         <div class="breakdown-divider"></div>
         <div class="breakdown-total">
-          <span class="label">Total Fair Fare</span>
+          <span class="label" data-i18n="brk.total">Total Fair Fare</span>
           <span class="value" id="breakTotal">&rupee;30</span>
         </div>
       </div>
@@ -1096,16 +1130,25 @@ img { max-width: 100%; display: block; }
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
-          You Should Pay
+          <span data-i18n="badge.pay">You Should Pay</span>
         </div>
         <div class="fair-fare-amount" id="fairFareAmount">&rupee;30</div>
-        <div class="fair-fare-note">As per Bangalore transport authority rules</div>
+        <div class="fair-fare-note" id="lblRatesNote">As per Bangalore transport authority rules</div>
+      </div>
+
+      <!-- App Fare Comparison -->
+      <div class="card">
+        <div class="section-title" data-i18n="sec.apps">Ride Apps &mdash; Estimate</div>
+        <div id="appCompareList"></div>
+        <div class="app-compare-note" id="lblAppNote">
+          Estimates calculated from the meter fare. Ola / Uber / Rapido use dynamic pricing &mdash; actual quotes vary with demand.
+        </div>
       </div>
 
       <!-- Popular Routes -->
       <div class="popular-routes">
-        <div class="section-title">Popular Routes</div>
-        <div class="route-card" onclick="setRouteDistance(8)">
+        <div class="section-title" data-i18n="sec.routes">Popular Routes</div>
+        <div class="route-card" data-km="8" onclick="setRouteDistance(8)">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1115,7 +1158,7 @@ img { max-width: 100%; display: block; }
           </div>
           <div class="route-fare">&rupee;120</div>
         </div>
-        <div class="route-card" onclick="setRouteDistance(16)">
+        <div class="route-card" data-km="16" onclick="setRouteDistance(16)">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1125,7 +1168,7 @@ img { max-width: 100%; display: block; }
           </div>
           <div class="route-fare">&rupee;240</div>
         </div>
-        <div class="route-card" onclick="setRouteDistance(12)">
+        <div class="route-card" data-km="12" onclick="setRouteDistance(12)">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1135,7 +1178,7 @@ img { max-width: 100%; display: block; }
           </div>
           <div class="route-fare">&rupee;180</div>
         </div>
-        <div class="route-card" onclick="setRouteDistance(35)">
+        <div class="route-card" data-km="35" onclick="setRouteDistance(35)">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1145,7 +1188,7 @@ img { max-width: 100%; display: block; }
           </div>
           <div class="route-fare">&rupee;525</div>
         </div>
-        <div class="route-card" onclick="setRouteDistance(18)">
+        <div class="route-card" data-km="18" onclick="setRouteDistance(18)">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1164,7 +1207,7 @@ img { max-width: 100%; display: block; }
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
           <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
         </svg>
-        Share Fare Info
+        <span data-i18n="btn.share">Share Fare Info</span>
       </button>
     </div>
 
@@ -1304,6 +1347,17 @@ img { max-width: 100%; display: block; }
           <button class="btn-primary" onclick="copyComplaint()" style="margin-top:12px">
             Copy to Clipboard
           </button>
+          <div class="send-row">
+            <button class="btn-send whatsapp" onclick="sendComplaintWhatsApp()">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.41a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.13-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.53.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.13-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.02 2.56c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.11-.22-.17-.47-.29z"/></svg>
+              WhatsApp
+            </button>
+            <button class="btn-send email" onclick="sendComplaintEmail()">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>
+              Email
+            </button>
+          </div>
+          <div class="app-compare-note" id="lblSendNote"></div>
         </div>
       </div>
 
@@ -1540,9 +1594,10 @@ img { max-width: 100%; display: block; }
       <!-- App Info -->
       <div class="card" style="text-align:center;">
         <div style="font-size:0.75rem; color: var(--text-muted); line-height: 1.8;">
-          <strong style="color: var(--text-primary);">MeterSmart v1.0</strong><br>
+          <strong style="color: var(--text-primary);">MeterSmart v1.1</strong><br>
           Made with care for Bangalore commuters<br>
-          Fare rules as per Karnataka Transport Authority<br>
+          <span id="profileRatesLine">Fare rules as per Karnataka Transport Authority</span><br>
+          <a href="./privacy.html" style="color: var(--yellow-dark); font-weight:600;">Privacy Policy</a><br>
           <span style="color: var(--yellow-dark);">&hearts;</span> Stay safe, ride fair
         </div>
       </div>
@@ -1567,7 +1622,7 @@ img { max-width: 100%; display: block; }
         <line x1="14" y1="14" x2="16" y2="14"/>
         <line x1="8" y1="18" x2="16" y2="18"/>
       </svg>
-      <span>CALC</span>
+      <span data-i18n="nav.calc">CALC</span>
     </button>
     <button class="nav-item" onclick="switchTab('RideLog', this)" aria-label="Ride Logger">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -1577,7 +1632,7 @@ img { max-width: 100%; display: block; }
         <line x1="16" y1="17" x2="8" y2="17"/>
         <polyline points="10 9 9 9 8 9"/>
       </svg>
-      <span>LOG</span>
+      <span data-i18n="nav.log">LOG</span>
     </button>
     <button class="nav-item" onclick="switchTab('Complaint', this)" aria-label="Complaint">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -1585,21 +1640,21 @@ img { max-width: 100%; display: block; }
         <line x1="12" y1="9" x2="12" y2="13"/>
         <line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
-      <span>REPORT</span>
+      <span data-i18n="nav.report">REPORT</span>
     </button>
     <button class="nav-item" onclick="switchTab('Tips', this)" aria-label="Tips">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
         <circle cx="12" cy="12" r="3"/>
       </svg>
-      <span>TIPS</span>
+      <span data-i18n="nav.tips">TIPS</span>
     </button>
     <button class="nav-item" onclick="switchTab('Profile', this)" aria-label="Profile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </svg>
-      <span>ME</span>
+      <span data-i18n="nav.me">ME</span>
     </button>
   </nav>
 
@@ -1615,15 +1670,41 @@ img { max-width: 100%; display: block; }
 /* ============================================================
    STATE & CONSTANTS
    ============================================================ */
-const FARE_RULES = {
-  baseFare: 30,
-  baseKm: 2,
-  perKm: 15,
-  waitingPerUnit: 5,
-  waitingUnitMinutes: 15,
-  nightMultiplier: 1.5,
-  luggagePerPiece: 5
+/* Bundled fare rules — the fallback when no remote config has been fetched yet.
+   Single source of truth: every rate shown in the UI is derived from this object.
+   Revisions ship via fares.json (see loadRates) so a rate change needs no app update. */
+const DEFAULT_RATES = {
+  version: 1,
+  lastVerified: '2026-08-01',
+  source: 'Karnataka Transport Dept. / BMTC auto tariff',
+  sourceUrl: 'https://transport.karnataka.gov.in',
+  fare: {
+    baseFare: 30,
+    baseKm: 2,
+    perKm: 15,
+    waitingPerUnit: 5,
+    waitingUnitMinutes: 15,
+    nightMultiplier: 1.5,
+    nightStartHour: 22,
+    nightEndHour: 5,
+    luggagePerPiece: 5
+  },
+  // Ride-hailing estimates: multipliers applied to the meter fare + a flat platform fee.
+  // Deliberately a range — these apps price dynamically, so a single number would be a lie.
+  appEstimates: [
+    { name: 'Ola Auto',    min: 1.00, max: 1.30, fee: 10 },
+    { name: 'Uber Auto',   min: 1.00, max: 1.30, fee: 10 },
+    { name: 'Rapido Auto', min: 0.90, max: 1.20, fee: 9  }
+  ],
+  // Leave blank to let the OS chooser pick the recipient. Fill in fares.json once verified.
+  complaint: { whatsapp: '', email: '' }
 };
+
+const RATES_URL = './fares.json';
+const RATES_KEY = 'meterSmartRates';
+
+let RATES = JSON.parse(JSON.stringify(DEFAULT_RATES));
+let FARE_RULES = RATES.fare;
 
 let state = {
   distance: 2,
@@ -1635,7 +1716,9 @@ let state = {
   totalSaved: 340,
   homeLocation: '',
   workLocation: '',
-  darkMode: false
+  darkMode: false,
+  lang: 'en',
+  nightManual: false   // true once the user overrides the auto night detection
 };
 
 /* ============================================================
@@ -1643,14 +1726,18 @@ let state = {
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
+  loadCachedRates();
   initSplash();
   initDefaults();
+  autoDetectNight();
+  renderLabels();
   calculateFare();
   renderRideHistory();
   renderComplaints();
   updateProfileStats();
   initDateTimeFields();
   setupFareComparisonListeners();
+  refreshRates();
 });
 
 function initSplash() {
@@ -1710,7 +1797,8 @@ function saveState() {
       totalSaved: state.totalSaved,
       homeLocation: state.homeLocation,
       workLocation: state.workLocation,
-      darkMode: state.darkMode
+      darkMode: state.darkMode,
+      lang: state.lang
     }));
   } catch(e) { /* quota exceeded, silent fail */ }
 }
@@ -1726,8 +1814,240 @@ function loadState() {
       state.homeLocation = data.homeLocation || '';
       state.workLocation = data.workLocation || '';
       state.darkMode = data.darkMode || false;
+      state.lang = data.lang === 'kn' ? 'kn' : 'en';
     }
   } catch(e) { /* corrupted, start fresh */ }
+}
+
+/* ============================================================
+   REMOTE FARE CONFIG
+   Rates are fetched from fares.json on the same origin so a tariff
+   revision ships without a new app build. Cache-first, network-refresh.
+   ============================================================ */
+/* Validates EVERY field applyRates() goes on to use. A published typo would otherwise
+   reach every installed client with no way to spot it from the app. Reject-whole:
+   a partially-good config is not worth the branching — the bundled rates are always sane. */
+function validRates(r) {
+  const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
+  const int = (v, lo, hi) => num(v, lo, hi) && Number.isInteger(v);
+
+  if (!r || typeof r !== 'object') return false;
+  if (!num(r.version, 1, Infinity)) return false;
+
+  const f = r.fare;
+  if (!f || typeof f !== 'object') return false;
+  if (!num(f.baseFare, 1, 10000)) return false;
+  if (!num(f.baseKm, 0.1, 50)) return false;
+  if (!num(f.perKm, 1, 1000)) return false;              // 0 would make every trip cost the base fare
+  if (!num(f.waitingPerUnit, 0, 1000)) return false;
+  if (!num(f.waitingUnitMinutes, 1, 240)) return false;
+  if (!num(f.luggagePerPiece, 0, 1000)) return false;
+  if (!num(f.nightMultiplier, 1, 3)) return false;
+  if (!int(f.nightStartHour, 0, 23)) return false;       // feeds isNightNow() and the UI label
+  if (!int(f.nightEndHour, 0, 23)) return false;
+
+  // appEstimates and complaint are optional; if present they must be usable as-is.
+  if (r.appEstimates !== undefined) {
+    if (!Array.isArray(r.appEstimates)) return false;
+    for (const a of r.appEstimates) {
+      if (!a || typeof a.name !== 'string' || !a.name.trim()) return false;
+      if (!num(a.min, 0, 10) || !num(a.max, 0, 10) || a.max < a.min) return false;
+      if (a.fee !== undefined && !num(a.fee, 0, 10000)) return false;
+    }
+  }
+  if (r.complaint !== undefined) {
+    const c = r.complaint;
+    if (!c || typeof c !== 'object') return false;
+    for (const k of ['whatsapp', 'email']) {
+      if (c[k] !== undefined && typeof c[k] !== 'string') return false;
+    }
+  }
+  return true;
+}
+
+function applyRates(r) {
+  RATES = r;
+  FARE_RULES = r.fare;
+  if (!Array.isArray(RATES.appEstimates)) RATES.appEstimates = DEFAULT_RATES.appEstimates;
+  if (!RATES.complaint) RATES.complaint = DEFAULT_RATES.complaint;
+}
+
+function loadCachedRates() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(RATES_KEY));
+    if (validRates(cached) && cached.version > RATES.version) applyRates(cached);
+  } catch(e) { /* no/corrupt cache, bundled rates stand */ }
+}
+
+function refreshRates() {
+  fetch(RATES_URL, { cache: 'no-cache' })
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(r => {
+      if (!validRates(r) || r.version <= RATES.version) return;
+      applyRates(r);
+      try { localStorage.setItem(RATES_KEY, JSON.stringify(r)); } catch(e) {}
+      renderLabels();
+      calculateFare();
+      showToast(t('toast.rates'));
+    })
+    .catch(() => { /* offline or no config deployed — bundled/cached rates stand */ });
+}
+
+/* ============================================================
+   LANGUAGE (English / Kannada)
+   ============================================================ */
+const I18N = {
+  'hdr.city':      ['Bangalore', 'ಬೆಂಗಳೂರು'],
+  'nav.calc':      ['CALC', 'ದರ'],
+  'nav.log':       ['LOG', 'ದಾಖಲೆ'],
+  'nav.report':    ['REPORT', 'ದೂರು'],
+  'nav.tips':      ['TIPS', 'ಸಲಹೆ'],
+  'nav.me':        ['ME', 'ನಾನು'],
+  'sec.distance':  ['Distance', 'ದೂರ'],
+  'sec.options':   ['Options', 'ಆಯ್ಕೆಗಳು'],
+  'sec.breakdown': ['Fare Breakdown', 'ದರದ ವಿವರ'],
+  'sec.apps':      ['Ride Apps — Estimate', 'ರೈಡ್ ಆ್ಯಪ್‌ಗಳು — ಅಂದಾಜು'],
+  'sec.routes':    ['Popular Routes', 'ಜನಪ್ರಿಯ ಮಾರ್ಗಗಳು'],
+  'opt.night':     ['Night Surcharge', 'ರಾತ್ರಿ ಶುಲ್ಕ'],
+  'opt.wait':      ['Waiting Time', 'ಕಾಯುವ ಸಮಯ'],
+  'opt.lug':       ['Luggage', 'ಸಾಮಾನು'],
+  'brk.wait':      ['Waiting charge', 'ಕಾಯುವ ಶುಲ್ಕ'],
+  'brk.total':     ['Total Fair Fare', 'ಒಟ್ಟು ನ್ಯಾಯಯುತ ದರ'],
+  'badge.pay':     ['You Should Pay', 'ನೀವು ಕೊಡಬೇಕಾದ ಮೊತ್ತ'],
+  'btn.share':     ['Share Fare Info', 'ದರ ಮಾಹಿತಿ ಹಂಚಿಕೊಳ್ಳಿ'],
+  // Templated strings (filled by renderLabels)
+  'lbl.nightSub':  ['{pct}% extra ({from} - {to})', '{pct}% ಹೆಚ್ಚು ({from} - {to})'],
+  'lbl.waitSub':   ['₹{amt} per {min} minutes', '{min} ನಿಮಿಷಕ್ಕೆ ₹{amt}'],
+  'lbl.lugSub':    ['₹{amt} per large piece', 'ದೊಡ್ಡ ಸಾಮಾನಿಗೆ ₹{amt}'],
+  'lbl.baseRow':   ['Base fare (first {km} km)', 'ಮೂಲ ದರ (ಮೊದಲ {km} ಕಿ.ಮೀ)'],
+  'lbl.distRow':   ['Distance fare ({km} km × ₹{rate})', 'ದೂರ ದರ ({km} ಕಿ.ಮೀ × ₹{rate})'],
+  'lbl.lugRow':    ['Luggage ({n} pcs)', 'ಸಾಮಾನು ({n})'],
+  'lbl.nightRow':  ['Night surcharge ({pct}%)', 'ರಾತ್ರಿ ಶುಲ್ಕ ({pct}%)'],
+  'lbl.rates':     ['Official rates · verified {date}', 'ಅಧಿಕೃತ ದರ · {date} ರಂದು ಪರಿಶೀಲಿಸಲಾಗಿದೆ'],
+  'lbl.appNote':   ['Estimates from the meter fare. Ola / Uber / Rapido price dynamically — real quotes vary with demand.',
+                    'ಮೀಟರ್ ದರದಿಂದ ಅಂದಾಜು. Ola / Uber / Rapido ದರ ಬೇಡಿಕೆಗೆ ತಕ್ಕಂತೆ ಬದಲಾಗುತ್ತದೆ.'],
+  'lbl.sendNote':  ['Opens WhatsApp / your email app with the complaint pre-filled. Attach the receipt or photo if you have one.',
+                    'ದೂರನ್ನು ಭರ್ತಿ ಮಾಡಿ WhatsApp / ಇಮೇಲ್ ತೆರೆಯುತ್ತದೆ.'],
+  'lbl.baseStatus':['Base fare (first {km} km)', 'ಮೂಲ ದರ (ಮೊದಲ {km} ಕಿ.ಮೀ)'],
+  'lbl.journey':   ['{km} km journey', '{km} ಕಿ.ಮೀ ಪ್ರಯಾಣ'],
+  'lbl.nightTag':  [' (night rate)', ' (ರಾತ್ರಿ ದರ)'],
+  'toast.rates':   ['Fare rates updated', 'ದರಗಳು ನವೀಕರಿಸಲ್ಪಟ್ಟಿವೆ'],
+  'toast.noComplaint': ['Generate the complaint first', 'ಮೊದಲು ದೂರನ್ನು ರಚಿಸಿ'],
+  'toast.night':   ['Night rate applied (after 10 PM)', 'ರಾತ್ರಿ ದರ ಅನ್ವಯಿಸಲಾಗಿದೆ'],
+  'toast.lang':    ['Language: Kannada', 'ಭಾಷೆ: ಕನ್ನಡ']
+};
+
+function t(key, vars) {
+  const entry = I18N[key];
+  let s = entry ? (state.lang === 'kn' ? entry[1] : entry[0]) : key;
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+
+function toggleLang() {
+  state.lang = state.lang === 'kn' ? 'en' : 'kn';
+  saveState();
+  renderLabels();
+  calculateFare();
+  showToast(state.lang === 'kn' ? t('toast.lang') : 'Language: English');
+}
+
+/* Fills every label that depends on the language OR on the (remotely updatable) rates. */
+function renderLabels() {
+  document.documentElement.lang = state.lang === 'kn' ? 'kn' : 'en';
+  document.getElementById('langToggle').textContent = state.lang === 'kn' ? 'EN' : 'ಕನ್ನಡ';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+
+  const f = FARE_RULES;
+  const nightPct = Math.round((f.nightMultiplier - 1) * 100);
+  const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+
+  set('lblNightSub', t('lbl.nightSub', { pct: nightPct, from: hour12(f.nightStartHour), to: hour12(f.nightEndHour) }));
+  set('lblWaitSub',  t('lbl.waitSub', { amt: f.waitingPerUnit, min: f.waitingUnitMinutes }));
+  set('lblLugSub',   t('lbl.lugSub', { amt: f.luggagePerPiece }));
+  set('lblBaseRow',  t('lbl.baseRow', { km: f.baseKm }));
+  set('lblNightRow', t('lbl.nightRow', { pct: nightPct }));
+  set('lblAppNote',  t('lbl.appNote'));
+  set('lblSendNote', t('lbl.sendNote'));
+  set('lblRatesNote', t('lbl.rates', { date: formatVerified(RATES.lastVerified) }));
+  set('profileRatesLine', `${RATES.source || ''} · v${RATES.version} (${formatVerified(RATES.lastVerified)})`);
+  set('breakBase', `₹${f.baseFare}`);
+
+  // Popular-route fares are derived, never hardcoded, so a rate change updates them too.
+  document.querySelectorAll('.route-card[data-km]').forEach(card => {
+    const fareEl = card.querySelector('.route-fare');
+    if (fareEl) fareEl.textContent = `₹${meterFareFor(parseFloat(card.dataset.km))}`;
+  });
+}
+
+/* Plain meter fare for a distance — no waiting/luggage/night. One formula, three callers. */
+function meterFareFor(km) {
+  if (!(km > 0)) return 0;
+  let fare = FARE_RULES.baseFare;
+  if (km > FARE_RULES.baseKm) fare += Math.ceil(km - FARE_RULES.baseKm) * FARE_RULES.perKm;
+  return fare;
+}
+
+function hour12(h) {
+  if (typeof h !== 'number') return '';
+  const hr = h % 12 === 0 ? 12 : h % 12;
+  // Kannada puts the time-of-day word first and has no AM/PM — "ರಾತ್ರಿ 10" not "10 PM".
+  if (state.lang === 'kn') {
+    const part = (h >= 16 || h < 4) ? 'ರಾತ್ರಿ' : (h < 12 ? 'ಬೆಳಿಗ್ಗೆ' : 'ಮಧ್ಯಾಹ್ನ');
+    return `${part} ${hr}`;
+  }
+  return `${hr} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+function formatVerified(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return iso || 'unknown';
+  return d.toLocaleDateString(state.lang === 'kn' ? 'kn-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/* ============================================================
+   NIGHT AUTO-DETECT (10 PM – 5 AM by default, configurable)
+   ============================================================ */
+function isNightNow() {
+  const h = new Date().getHours();
+  const start = FARE_RULES.nightStartHour, end = FARE_RULES.nightEndHour;
+  return start > end ? (h >= start || h < end) : (h >= start && h < end);
+}
+
+function autoDetectNight() {
+  if (state.nightManual) return;
+  const night = isNightNow();
+  if (night === state.nightMode) return;
+  state.nightMode = night;
+  const toggle = document.getElementById('nightToggle');
+  toggle.classList.toggle('on', night);
+  toggle.setAttribute('aria-checked', String(night));
+  if (night) setTimeout(() => showToast(t('toast.night')), 2000);
+}
+
+/* ============================================================
+   RIDE-APP FARE ESTIMATES
+   ============================================================ */
+function renderAppCompare(meterFare) {
+  const list = document.getElementById('appCompareList');
+  if (!list) return;
+  list.innerHTML = RATES.appEstimates.map(a => {
+    const lo = Math.round(meterFare * a.min + (a.fee || 0));
+    const hi = Math.round(meterFare * a.max + (a.fee || 0));
+    const delta = lo - meterFare;
+    const deltaText = delta === 0 ? 'same as meter'
+      : (delta > 0 ? `from +₹${delta} vs meter` : `from −₹${Math.abs(delta)} vs meter`);
+    return `
+      <div class="app-compare-row">
+        <span class="app-compare-name">${esc(a.name)}</span>
+        <div>
+          <div class="app-compare-range">₹${lo}&ndash;₹${hi}</div>
+          <div class="app-compare-delta">${esc(deltaText)}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 /* ============================================================
@@ -1782,7 +2102,7 @@ function calculateFare() {
   let subtotal = baseFare + distanceFare + waitingCharge + luggageCharge;
   let nightSurcharge = 0;
   if (isNight) {
-    nightSurcharge = Math.round((baseFare + distanceFare) * 0.5);
+    nightSurcharge = Math.round((baseFare + distanceFare) * (FARE_RULES.nightMultiplier - 1));
     subtotal += nightSurcharge;
   }
 
@@ -1793,10 +2113,10 @@ function calculateFare() {
 
   // Update status text
   const statusText = document.getElementById('meterStatusText');
-  if (distance <= 2) {
-    statusText.textContent = 'Base fare (first 2 km)';
+  if (distance <= FARE_RULES.baseKm) {
+    statusText.textContent = t('lbl.baseStatus', { km: FARE_RULES.baseKm });
   } else {
-    statusText.textContent = `${distance} km journey${isNight ? ' (night rate)' : ''}`;
+    statusText.textContent = t('lbl.journey', { km: distance }) + (isNight ? t('lbl.nightTag') : '');
   }
 
   // Update breakdown
@@ -1805,7 +2125,8 @@ function calculateFare() {
   const distRow = document.getElementById('breakDistRow');
   if (distanceFare > 0) {
     distRow.style.display = 'flex';
-    document.getElementById('breakDistKm').textContent = Math.ceil(distance - FARE_RULES.baseKm);
+    document.getElementById('lblDistRow').textContent =
+      t('lbl.distRow', { km: Math.ceil(distance - FARE_RULES.baseKm), rate: FARE_RULES.perKm });
     document.getElementById('breakDist').textContent = `\u20B9${distanceFare}`;
   } else {
     distRow.style.display = 'none';
@@ -1822,7 +2143,7 @@ function calculateFare() {
   const lugRow = document.getElementById('breakLugRow');
   if (luggageCharge > 0) {
     lugRow.style.display = 'flex';
-    document.getElementById('breakLugPcs').textContent = luggage;
+    document.getElementById('lblLugRow').textContent = t('lbl.lugRow', { n: luggage });
     document.getElementById('breakLug').textContent = `\u20B9${luggageCharge}`;
   } else {
     lugRow.style.display = 'none';
@@ -1838,6 +2159,7 @@ function calculateFare() {
 
   document.getElementById('breakTotal').textContent = `\u20B9${total}`;
   document.getElementById('fairFareAmount').textContent = `\u20B9${total}`;
+  renderAppCompare(total);
 }
 
 let meterAnimFrame = null;
@@ -1864,7 +2186,7 @@ function animateMeterTo(target) {
   meterAnimFrame = requestAnimationFrame(step);
 }
 
-function adjustDistance(delta) {
+function adjustDistance(delta, btn) {
   const input = document.getElementById('distanceInput');
   let val = parseFloat(input.value) || 0;
   val = Math.max(0, Math.min(100, val + delta));
@@ -1877,7 +2199,7 @@ function adjustDistance(delta) {
   });
 
   calculateFare();
-  pulseButton(event.currentTarget);
+  if (btn) pulseButton(btn);
 }
 
 function setDistance(km, btn) {
@@ -1897,6 +2219,7 @@ function setRouteDistance(km) {
 
 function toggleNight() {
   state.nightMode = !state.nightMode;
+  state.nightManual = true;   // stop auto-detect from fighting the user
   const toggle = document.getElementById('nightToggle');
   toggle.classList.toggle('on', state.nightMode);
   toggle.setAttribute('aria-checked', state.nightMode);
@@ -1921,7 +2244,9 @@ function shareFare() {
   const dist = state.distance;
   const total = parseInt(document.getElementById('meterFareDisplay').textContent);
   const night = state.nightMode ? ' (Night Rate)' : '';
-  const text = `Auto fare for ${dist} km in Bangalore${night}:\n\nFair Fare: \u20B9${total}\n\nBase fare: \u20B930 (first 2 km)\nPer km after 2 km: \u20B915/km${state.nightMode ? '\nNight surcharge: +50%' : ''}\n\nCalculated with MeterSmart - Know your fare, ride fair!`;
+  const f = FARE_RULES;
+  const nightPct = Math.round((f.nightMultiplier - 1) * 100);
+  const text = `Auto fare for ${dist} km in Bangalore${night}:\n\nFair Fare: \u20B9${total}\n\nBase fare: \u20B9${f.baseFare} (first ${f.baseKm} km)\nPer km after ${f.baseKm} km: \u20B9${f.perKm}/km${state.nightMode ? `\nNight surcharge: +${nightPct}%` : ''}\n\nRates verified ${RATES.lastVerified} \u00B7 ${RATES.source}\n\nCalculated with MeterSmart - Know your fare, ride fair!`;
 
   if (navigator.share) {
     navigator.share({ title: 'MeterSmart Fare', text: text }).catch(() => {});
@@ -2014,15 +2339,6 @@ function logRide() {
   };
 
   state.rides.unshift(ride);
-
-  // Update savings
-  if (diff > 0) {
-    // Knowledge of the right fare may save you next time
-  } else {
-    state.totalSaved += Math.abs(diff) || 0;
-  }
-
-  // Recalculate total savings based on knowledge saved
   recalculateSavings();
 
   saveState();
@@ -2088,7 +2404,7 @@ function renderRideHistory() {
       <div class="ride-history-item ${cls}">
         <div class="rh-icon ${iconCls}">${iconSvg}</div>
         <div class="rh-info">
-          <div class="rh-route">${ride.from} \u2192 ${ride.to}</div>
+          <div class="rh-route">${esc(ride.from)} \u2192 ${esc(ride.to)}</div>
           <div class="rh-date">${formatDate(ride.date)} \u2022 ${ride.distance} km</div>
         </div>
         <div class="rh-amount">
@@ -2107,6 +2423,10 @@ function updateRideStats() {
   document.getElementById('statSaved').textContent = `\u20B9${state.totalSaved}`;
   document.getElementById('statRides').textContent = total;
   document.getElementById('statFair').textContent = pct + '%';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function formatDate(dateStr) {
@@ -2134,6 +2454,10 @@ function generateComplaint() {
   }
 
   const overcharge = parseInt(charged) - parseInt(meter);
+  if (isNaN(overcharge) || overcharge <= 0) {
+    showToast('Charged fare must be higher than meter fare');
+    return;
+  }
   const formattedDate = date ? new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
   const complaintText = `COMPLAINT: Auto Rickshaw Overcharging
@@ -2191,6 +2515,28 @@ function copyComplaint() {
   });
 }
 
+function complaintBody() {
+  const text = document.getElementById('complaintText').textContent;
+  if (!text) showToast(t('toast.noComplaint'));
+  return text;
+}
+
+function sendComplaintWhatsApp() {
+  const text = complaintBody();
+  if (!text) return;
+  // No number configured -> wa.me opens the contact chooser instead of a dead chat.
+  const num = (RATES.complaint.whatsapp || '').replace(/\D/g, '');
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+}
+
+function sendComplaintEmail() {
+  const text = complaintBody();
+  if (!text) return;
+  const to = RATES.complaint.email || '';
+  const subject = 'Complaint: Auto rickshaw overcharging (Bangalore)';
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+}
+
 function renderComplaints() {
   const list = document.getElementById('recentComplaintsList');
   if (state.complaints.length === 0) {
@@ -2210,7 +2556,7 @@ function renderComplaints() {
         </svg>
       </div>
       <div class="rh-info">
-        <div class="rh-route">${c.plate} \u2022 ${c.from} \u2192 ${c.to}</div>
+        <div class="rh-route">${esc(c.plate)} \u2022 ${esc(c.from)} \u2192 ${esc(c.to)}</div>
         <div class="rh-date">${formatDate(c.date)} \u2022 Overcharge: \u20B9${c.overcharge}</div>
       </div>
     </div>
@@ -2293,11 +2639,13 @@ function clearAllData() {
 /* ============================================================
    TOAST NOTIFICATION
    ============================================================ */
+let toastTimer = null;
 function showToast(message) {
   const toast = document.getElementById('toast');
   toast.textContent = message;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
 /* ============================================================
@@ -2331,11 +2679,7 @@ function showConfetti() {
 document.getElementById('logDistance').addEventListener('input', function() {
   const dist = parseFloat(this.value) || 0;
   if (dist > 0) {
-    let fare = FARE_RULES.baseFare;
-    if (dist > FARE_RULES.baseKm) {
-      fare += Math.ceil(dist - FARE_RULES.baseKm) * FARE_RULES.perKm;
-    }
-    document.getElementById('logMeterFare').value = fare;
+    document.getElementById('logMeterFare').value = meterFareFor(dist);
     updateFareComparison();
   }
 });

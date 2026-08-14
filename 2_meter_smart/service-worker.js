@@ -1,5 +1,5 @@
-const CACHE_NAME = 'metersmart-v1';
-const urlsToCache = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg'];
+const CACHE_NAME = 'metersmart-v2';
+const urlsToCache = ['./', './index.html', './privacy.html', './manifest.json', './icon-192.svg', './icon-512.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
@@ -12,5 +12,10 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // fares.json is network-first: a cached copy would freeze fare rates forever.
+  if (event.request.url.includes('fares.json')) {
+    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    return;
+  }
   event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
 });
