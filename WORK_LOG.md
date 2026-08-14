@@ -1,5 +1,60 @@
 # Work Log
 
+## PG Buddy — real listings pipeline (2026-08-15)
+
+Implements EXECUTION_PLAN §4.6 as far as it goes without a backend. The Supabase-dependent
+P1 items (photo storage, featured placement) are untouched.
+
+- **Listings left the source file.** The 8 PGs were 264 lines of object literal inside
+  `index.html`; they are now `pgs.json`, loaded through the same shape MeterSmart already
+  proved: versioned, schema-validated, localStorage cache first, network refresh after, SW
+  serving the file network-first so a newly verified PG is never pinned stale. **Adding a
+  listing is now editing one file.** The rows are flat enough to become a Supabase table, and
+  that migration is changing the fetch URL in `refreshPGs()`.
+- **The validator rejects a payload whole**, never row by row. A half-valid publish showing
+  half the listings is worse than showing the previous set, and duplicate ids would make
+  `openDetail()` and `toggleSave()` ambiguous, so those are rejected too.
+- **Owner submission funnel** (Profile tab): five fields → a prefilled WhatsApp or mailto
+  intent, recipients configurable via `listingContact` in `pgs.json`. Deliberately not a
+  database write — submissions come to you and you verify by visiting, which is the only thing
+  that makes the "Verified" badge worth charging for.
+- **The Contact button was a lie.** It toasted "Contact details copied!" and copied nothing.
+  It is now a real `wa.me` deep link with a prefilled message naming the PG and area, and a
+  10-digit Indian number gets `91` prepended. **Numbers ship blank in `pgs.json`** — inventing
+  plausible mobile numbers would have pointed real users at real strangers — and the button
+  says no number is listed rather than opening an empty chat.
+- **Budget slider is a real filter** (WORK_LOG below lists it as a deliberate skip). It
+  defaults to the top of its range, meaning "Any budget", so the app does not open with two
+  thirds of the listings hidden behind a default nobody chose.
+- Distinct empty state for "couldn't load listings" — telling someone to adjust filters they
+  never set is the wrong answer to a network failure.
+- SW → `pgbuddy-v2`.
+
+### Verification (§0.3 gate — all four)
+1. Syntax: `node --check` on both inline blocks + service-worker.js → PASS. `pgs.json` parses.
+2. Runtime: served at `:8903`, SW and caches cleared first. 8 listings loaded from JSON and
+   cached; budget filter correct at every stop (20k/10k/7k/5k → 8/5/2/0 shown); WhatsApp and
+   mailto intents correct; owner form rejects a short phone and a negative rent.
+   **0 console errors.**
+3. Persistence: reload → listings cache, saved PGs and reviews all survived.
+4. Regression: all 4 tabs render; compare and the detail modal build from the loaded data;
+   featured/list/swipe views and both `<select>`s populate from it.
+5. **Live publish test:** wrote a v2 `pgs.json` with a 9th listing while the app was running.
+   Reload picked it up into the deck, the selects and its contact button, and `listingContact`
+   from the file drove the submission target. File restored to v1 afterwards.
+6. `test-pgs.mjs`: 28 cases. Mutation tested, 14/14 killed. The `res.ok` survivor was a real
+   gap — the validator was catching my 404 stub, so the HTTP check itself was untested; added
+   a case where a non-OK response carries a *valid* body, which a CDN error page can.
+
+Note on the test harness: the first run reported PASS and then threw. The async cases share
+fixtures and the runner was not awaiting them, so one case's `reset()` landed inside another's
+refresh. The runner now collects and awaits sequentially.
+
+**Still demo data:** the 8 rows are the original mock listings with blank contacts. Real
+listings replace them; nothing else has to change.
+
+---
+
 ## StockPing — affiliate + price tracking (2026-08-15)
 
 Implements EXECUTION_PLAN §4.3 P0 affiliate rewrite and both P1 items. The other P0
