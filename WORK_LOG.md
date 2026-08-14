@@ -1,5 +1,54 @@
 # Work Log
 
+## LingoLocal — roadmap build-out (2026-08-15)
+
+Implements EXECUTION_PLAN §4.2 P0+P1. One app, no new dependencies, no backend.
+
+- **Bundled phrase audio (the P0 moat).** 108 Opus clips, 487 KB total, precached by the
+  service worker at install — the app is fully voiced offline even on the many Android
+  devices that ship no Kannada TTS voice. `tools/gen-audio.mjs` generates them from the
+  macOS `kn_IN` system voice, reading `SCENARIOS` straight out of `index.html` so the clip
+  set can never drift from the phrase set. Placeholders are stripped before synthesis
+  (`"[place] ಗೆ ಎಷ್ಟು?"` must not be read aloud as the word "place"), while the card still
+  shows the bracket. Playback is clip-first, device TTS second — the reverse of before.
+  **The audio is synthesised, not a native speaker.** It fixes availability, not accent;
+  human recordings drop in under the same filenames.
+- **Spaced repetition (SM-2-lite).** `ll_srs` holds `{ease, interval, due, reps}` per phrase.
+  One scheduler, two surfaces: the flashcard deck opens most-overdue-first and the quiz asks
+  the most-overdue phrase. Grades come from what the user already does — Learned = 5, quiz
+  correct = 4, quiz wrong = 2 — so no new buttons appeared. The quiz shuffles before a stable
+  sort so a fresh install (everything equally due) doesn't ask the same phrase forever.
+- **Deck ordering is keyed, not positional.** `currentPhraseIdx` is now a position in
+  `state.deck`; every phrase lookup, learned flag and bookmark goes through
+  `state.deck[currentPhraseIdx]`. Getting this wrong would have silently attached progress to
+  slots rather than phrases — verified in the browser that learned markers follow the phrase.
+- **3 new packs**: At the Office, At the Hospital, Temples & Festivals. 16 → 19 scenarios,
+  90 → 108 phrases. Placed in existing categories/themes, so no CSS changed.
+- SW → `lingolocal-v2`, precaching clips individually (`cache.addAll` is all-or-nothing and
+  one missing clip must not fail the install).
+
+### Verification (§0.3 gate — all four)
+1. Syntax: `node --check` on both inline blocks + service-worker.js → PASS.
+2. Runtime: served at `:8901`, driven in Chrome after unregistering the SW and clearing all
+   caches (the 2026-08-07 entry below records a test loop poisoned by a stale cache-first SW).
+   Fresh install → 19 scenarios / 108 phrases / 19 cards; Speak requested the correct clip for
+   the reordered deck; quiz picked the most-overdue phrase and graded it. **0 console errors.**
+3. Persistence: reload → `ll_srs`, learned and bookmarks survived; deck stayed in scheduled
+   order (`2,3,4,6,7,0,1,5`), not authored order.
+4. Regression: all 3 tabs render; 6 category rings, 20 numbers, stats correct.
+5. `test-srs.mjs`: 15 scheduler cases PASS. Mutation tested, 10/10 killed — the one survivor
+   was an explicit `|| (a - b)` tie-break that ES2019's stable-sort guarantee makes dead code
+   on a `[0,1,2,…]` input; deleted it rather than write a test that cannot fail.
+6. Audio proven to decode without playing it: valid `OggS`, `canPlayType('audio/ogg;
+   codecs=opus')` = `"probably"`, `decodeAudioData` → 2.30s / mono / 48 kHz, matching ffprobe.
+
+**Known gap:** `clip.play()` under a real user gesture is not verifiable in this harness — the
+automation tab stays `visibilityState: "hidden"` and Chrome refuses media playback there, so
+`readyState` stays 0 no matter the gesture. A missing clip provably falls back to
+`speakPhrase()`, so the worst case is the old TTS behaviour. Tap Speak once on a real device.
+
+---
+
 ## MeterSmart — roadmap build-out (2026-08-01)
 
 Implements EXECUTION_PLAN §4.1 end to end. One app, no new dependencies, no backend.
