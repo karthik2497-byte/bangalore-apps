@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stockping-v1';
+const CACHE_NAME = 'stockping-v2';
 const urlsToCache = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg'];
 
 self.addEventListener('install', event => {

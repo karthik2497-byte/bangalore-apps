@@ -416,6 +416,24 @@
       color: var(--text-secondary);
     }
 
+    .product-price {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .product-price .low {
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .affiliate-note {
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      padding: 12px 16px;
+    }
+
     .product-actions {
       display: flex;
       gap: 4px;
@@ -801,6 +819,19 @@
       -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+
+    .alert-buy {
+      margin-top: 10px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
     .alert-card .alert-change {
@@ -1317,6 +1348,13 @@
         </div>
       </div>
 
+      <div class="settings-section" id="affiliateSection" style="display:none">
+        <div class="settings-section-title">Disclosure</div>
+        <div class="settings-group">
+          <div class="affiliate-note" id="affiliateNote"></div>
+        </div>
+      </div>
+
       <div class="about-section">
         <div class="version">StockPing v1.0</div>
         <div class="tagline">Paste. Track. Get Pinged.</div>
@@ -1590,39 +1628,187 @@ function formatDate(dateStr) {
   return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-// ---- STOCK CHECK ----
-async function checkProduct(product) {
-  const proxies = [
-    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    url => `https://corsproxy.io/?${encodeURIComponent(url)}`
-  ];
+// ---- AFFILIATE ----
+// Outbound product clicks carry the affiliate tag — this is the app's revenue.
+// Fill these in from your Amazon Associates / Flipkart Affiliate dashboards.
+// Leave a value empty and that site's links pass through untouched: an unset
+// or wrong tag must never produce a broken product URL.
+const AFFILIATE = {
+  amazon: '',    // Associates tracking id, e.g. 'blrapps-21'
+  flipkart: ''   // Flipkart affiliate id
+};
 
-  for (const proxyFn of proxies) {
+// The query parameter each network reads.
+const AFFILIATE_PARAM = { amazon: 'tag', flipkart: 'affid' };
+
+function affiliateNetwork(domain) {
+  if (domain.includes('amazon.')) return 'amazon';
+  if (domain.includes('flipkart.')) return 'flipkart';
+  return null;
+}
+
+// Whether any tag is configured at all — drives the disclosure line, which is
+// required by the Associates terms only once links are actually tagged.
+function affiliateEnabled() {
+  return Object.values(AFFILIATE).some(Boolean);
+}
+
+// Returns the url with the affiliate tag applied, or the original untouched.
+// Never throws: monetisation must not be able to break the "open product" button.
+function affiliateUrl(url) {
+  try {
+    const u = new URL(url);
+    const net = affiliateNetwork(getDomain(url));
+    const tag = net && AFFILIATE[net];
+    if (!tag) return url;
+    u.searchParams.set(AFFILIATE_PARAM[net], tag);
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+// ---- PRODUCT PAGE FETCH + PARSE ----
+// One proxy list and one parser, shared by the stock check and the add-product
+// detection. They used to hold a copy each, and the copies had already drifted
+// apart (different length floors, different out-of-stock patterns).
+// ponytail: these third-party proxies still see every tracked URL — the privacy
+// fix is EXECUTION_PLAN §4.3 P0 server-side checking, which needs a Worker.
+const CORS_PROXIES = [
+  u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`
+];
+
+async function fetchPage(url, timeoutMs) {
+  for (const proxyFn of CORS_PROXIES) {
     try {
-      const resp = await fetch(proxyFn(product.url), { signal: AbortSignal.timeout(15000) });
-      let html = '';
-      const contentType = resp.headers.get('content-type') || '';
-
-      if (contentType.includes('json')) {
-        const data = await resp.json();
-        html = (data.contents || JSON.stringify(data) || '').toLowerCase();
-      } else {
-        html = (await resp.text()).toLowerCase();
-      }
-
-      if (!html || html.length < 100) continue;
-
-      const outOfStockPatterns = /out[\s._-]*of[\s._-]*stock|sold[\s._-]*out|currently[\s._-]*unavailable|notify[\s._-]*me[\s._-]*when[\s._-]*available|not[\s._-]*available|coming[\s._-]*soon|out_of_stock|temporarily[\s._-]*out/i;
-      const inStockPatterns = /add[\s._-]*to[\s._-]*cart|buy[\s._-]*now|add[\s._-]*to[\s._-]*bag|in[\s._-]*stock|add_to_cart|add-to-cart/i;
-
-      if (outOfStockPatterns.test(html)) return 'out_of_stock';
-      if (inStockPatterns.test(html)) return 'in_stock';
-      return 'unknown';
-    } catch(e) {
+      const resp = await fetch(proxyFn(url), { signal: AbortSignal.timeout(timeoutMs) });
+      const ct = resp.headers.get('content-type') || '';
+      const html = ct.includes('json') ? ((await resp.json()).contents || '') : await resp.text();
+      if (html && html.length >= 100) return html;
+    } catch (e) {
       continue;
     }
   }
-  return 'unknown';
+  return '';
+}
+
+const OUT_OF_STOCK_RE = /out[\s._-]*of[\s._-]*stock|sold[\s._-]*out|currently[\s._-]*unavailable|notify[\s._-]*me[\s._-]*when[\s._-]*available|not[\s._-]*available|coming[\s._-]*soon|out_of_stock|temporarily[\s._-]*out/i;
+const IN_STOCK_RE = /add[\s._-]*to[\s._-]*cart|buy[\s._-]*now|add[\s._-]*to[\s._-]*bag|in[\s._-]*stock|add_to_cart|add-to-cart/i;
+// schema.org availability, e.g. "https://schema.org/InStock"
+const LD_OUT_OF_STOCK_RE = /OutOfStock|SoldOut|Discontinued/i;
+const LD_IN_STOCK_RE = /InStock|InStoreOnly|LimitedAvailability|OnlineOnly|PreOrder|BackOrder/i;
+
+// @graph and plain arrays both show up in the wild, so walk the whole tree.
+function flattenLd(node) {
+  if (Array.isArray(node)) return node.flatMap(flattenLd);
+  if (node && typeof node === 'object') {
+    return [node, ...(node['@graph'] ? flattenLd(node['@graph']) : [])];
+  }
+  return [];
+}
+
+// Amazon and Flipkart both embed a schema.org Product block. Reading it beats
+// keyword-matching the whole page, where a "sold out" string in a recommendation
+// carousel decides the answer for the product you actually asked about.
+function parseJsonLd(html) {
+  const blocks = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+  for (const block of blocks) {
+    const body = block.replace(/^<script[^>]*>/i, '').replace(/<\/script>\s*$/i, '');
+    let data;
+    try { data = JSON.parse(body); } catch { continue; }
+    for (const node of flattenLd(data)) {
+      const type = [].concat(node['@type'] || []).join(' ');
+      if (!/Product/i.test(type)) continue;
+      const offer = [].concat(node.offers || [])[0] || {};
+      const raw = offer.price != null ? offer.price : offer.lowPrice;
+      const price = parseFloat(raw);
+      return {
+        name: typeof node.name === 'string' ? node.name : '',
+        price: Number.isFinite(price) && price > 0 ? price : null,
+        availability: typeof offer.availability === 'string' ? offer.availability : ''
+      };
+    }
+  }
+  return null;
+}
+
+function parsePriceFallback(html) {
+  const m = html.match(/(?:₹|&#8377;|&#x20b9;|Rs\.?\s*|INR\s*)\s*([\d,]+(?:\.\d{1,2})?)/i);
+  if (!m) return null;
+  const n = parseFloat(m[1].replace(/,/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function parseTitle(html) {
+  const og = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
+  const tag = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const h1 = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+  const title = (og && og[1]) || (tag && tag[1]) || (h1 && h1[1]) || '';
+  return title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+              .replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+}
+
+// Structured data first, keyword matching only as the fallback.
+function extractProductData(html) {
+  const ld = parseJsonLd(html);
+  let status = 'unknown';
+  let price = null;
+  let name = '';
+
+  if (ld) {
+    name = ld.name;
+    price = ld.price;
+    if (LD_OUT_OF_STOCK_RE.test(ld.availability)) status = 'out_of_stock';
+    else if (LD_IN_STOCK_RE.test(ld.availability)) status = 'in_stock';
+  }
+  if (status === 'unknown') {
+    if (OUT_OF_STOCK_RE.test(html)) status = 'out_of_stock';
+    else if (IN_STOCK_RE.test(html)) status = 'in_stock';
+  }
+  if (price === null) price = parsePriceFallback(html);
+  if (!name) name = parseTitle(html);
+
+  return { name, status, price };
+}
+
+// ---- STOCK CHECK ----
+async function checkProduct(product) {
+  const html = await fetchPage(product.url, 15000);
+  if (!html) return { status: 'unknown', price: null };
+  const data = extractProductData(html);
+  return { status: data.status, price: data.price };
+}
+
+// Both the single check and the check-all loop need identical post-check
+// bookkeeping. It was copy-pasted before; one copy is the reason a price would
+// otherwise have to be recorded in two places.
+function applyCheckResult(product, oldStatus, oldPrice, result) {
+  product.status = result.status;
+  product.lastChecked = new Date().toISOString();
+
+  if (result.price !== null) {
+    product.price = result.price;
+    if (product.lowestPrice == null || result.price < product.lowestPrice) {
+      product.lowestPrice = result.price;
+    }
+  }
+
+  if (oldStatus !== result.status && oldStatus !== 'checking') {
+    addStockAlert(product, oldStatus, result.status);
+    if (result.status === 'in_stock' && (oldStatus === 'out_of_stock' || oldStatus === 'unknown')) {
+      notifyUser(product);
+    }
+  }
+
+  // Only a genuine drop is worth an alert — a price appearing for the first
+  // time, rising, or unchanged is not news. The `oldPrice != null` check is
+  // deliberate rather than leaning on null coercing to 0 in the comparison:
+  // this runs on a timer, so a wrong answer here spams the user forever.
+  if (oldPrice != null && result.price != null && result.price < oldPrice) {
+    addPriceAlert(product, oldPrice, result.price);
+    notifyPriceDrop(product, oldPrice, result.price);
+  }
 }
 
 async function checkSingleProduct(productId) {
@@ -1631,24 +1817,15 @@ async function checkSingleProduct(productId) {
 
   const product = products[idx];
   const oldStatus = product.status;
+  const oldPrice = product.price;
 
   product.status = 'checking';
   saveProducts(products);
   renderProducts();
 
-  const newStatus = await checkProduct(product);
-  product.status = newStatus;
-  product.lastChecked = new Date().toISOString();
+  const result = await checkProduct(product);
+  applyCheckResult(product, oldStatus, oldPrice, result);
   saveProducts(products);
-
-  // Check for status change
-  if (oldStatus !== newStatus && oldStatus !== 'checking') {
-    addAlert(product, oldStatus, newStatus);
-
-    if (newStatus === 'in_stock' && (oldStatus === 'out_of_stock' || oldStatus === 'unknown')) {
-      notifyUser(product);
-    }
-  }
 
   products = loadProducts();
   renderProducts();
@@ -1664,30 +1841,19 @@ async function checkAllProducts() {
   const btn = document.getElementById('btnCheckAll');
   btn.classList.add('checking');
 
-  // Save original statuses
-  const originalStatuses = {};
-  products.forEach(p => { originalStatuses[p.id] = p.status; });
+  // Snapshot before the UI is flipped to "checking", which would otherwise
+  // become the "old" value we compare against.
+  const before = {};
+  products.forEach(p => { before[p.id] = { status: p.status, price: p.price }; });
 
-  // Set all to checking
   products.forEach(p => p.status = 'checking');
   saveProducts(products);
   renderProducts();
 
-  for (let i = 0; i < products.length; i++) {
-    const product = products[i];
-    const oldStatus = originalStatuses[product.id] || 'unknown';
-
-    const newStatus = await checkProduct(product);
-    product.status = newStatus;
-    product.lastChecked = new Date().toISOString();
-
-    if (oldStatus !== newStatus && oldStatus !== 'checking') {
-      addAlert(product, oldStatus, newStatus);
-      if (newStatus === 'in_stock' && (oldStatus === 'out_of_stock' || oldStatus === 'unknown')) {
-        notifyUser(product);
-      }
-    }
-
+  for (const product of products) {
+    const prev = before[product.id] || { status: 'unknown', price: null };
+    const result = await checkProduct(product);
+    applyCheckResult(product, prev.status || 'unknown', prev.price, result);
     saveProducts(products);
     renderProducts();
   }
@@ -1712,6 +1878,18 @@ function notifyUser(product) {
       badge: 'icon-192.svg',
       tag: product.id,
       requireInteraction: true
+    });
+  }
+}
+
+function notifyPriceDrop(product, oldPrice, newPrice) {
+  playChime();
+  if (settings.notifications && 'Notification' in window && Notification.permission === 'granted') {
+    new Notification('Price dropped 📉', {
+      body: `${product.name} — ${formatPrice(oldPrice)} → ${formatPrice(newPrice)}`,
+      icon: 'icon-192.svg',
+      badge: 'icon-192.svg',
+      tag: product.id + '_price'
     });
   }
 }
@@ -1769,20 +1947,22 @@ async function testNotification() {
 }
 
 // ---- ALERTS ----
-function addAlert(product, oldStatus, newStatus) {
-  const alert = {
-    id: generateId(),
-    productId: product.id,
-    productName: product.name,
-    oldStatus: oldStatus,
-    newStatus: newStatus,
-    timestamp: new Date().toISOString()
-  };
-  alerts.unshift(alert);
+const formatPrice = (n) => '₹' + Number(n).toLocaleString('en-IN');
+
+function pushAlert(fields) {
+  alerts.unshift({ id: generateId(), timestamp: new Date().toISOString(), ...fields });
   saveAlerts(alerts);
   newAlertCount++;
   updateAlertBadge();
   renderAlerts();
+}
+
+function addStockAlert(product, oldStatus, newStatus) {
+  pushAlert({ type: 'stock', productId: product.id, productName: product.name, oldStatus, newStatus });
+}
+
+function addPriceAlert(product, oldPrice, newPrice) {
+  pushAlert({ type: 'price', productId: product.id, productName: product.name, oldPrice, newPrice });
 }
 
 function clearAllAlerts() {
@@ -1808,54 +1988,10 @@ function updateAlertBadge() {
 
 // ---- PRODUCT URL DETECTION ----
 async function fetchAndDetect(url) {
-  const proxies = [
-    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`
-  ];
-
-  for (const proxyFn of proxies) {
-    try {
-      const resp = await fetch(proxyFn(url), { signal: AbortSignal.timeout(12000) });
-      let html = '';
-      const ct = resp.headers.get('content-type') || '';
-
-      if (ct.includes('json')) {
-        const data = await resp.json();
-        html = data.contents || '';
-      } else {
-        html = await resp.text();
-      }
-
-      if (!html || html.length < 50) continue;
-
-      // Parse title
-      let title = '';
-      const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
-      const titleTagMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const h1Match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-
-      if (ogTitleMatch) title = ogTitleMatch[1];
-      else if (titleTagMatch) title = titleTagMatch[1];
-      else if (h1Match) title = h1Match[1];
-
-      title = title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
-
-      // Detect status
-      const htmlLower = html.toLowerCase();
-      const outOfStockPatterns = /out[\s._-]*of[\s._-]*stock|sold[\s._-]*out|currently[\s._-]*unavailable|notify[\s._-]*me[\s._-]*when[\s._-]*available|not[\s._-]*available|coming[\s._-]*soon|out_of_stock/i;
-      const inStockPatterns = /add[\s._-]*to[\s._-]*cart|buy[\s._-]*now|add[\s._-]*to[\s._-]*bag|in[\s._-]*stock|add_to_cart|add-to-cart/i;
-
-      let status = 'unknown';
-      if (outOfStockPatterns.test(htmlLower)) status = 'out_of_stock';
-      else if (inStockPatterns.test(htmlLower)) status = 'in_stock';
-
-      return { title, status, success: true };
-    } catch(e) {
-      continue;
-    }
-  }
-
-  return { title: '', status: 'unknown', success: false };
+  const html = await fetchPage(url, 12000);
+  if (!html) return { title: '', status: 'unknown', price: null, success: false };
+  const data = extractProductData(html);
+  return { title: data.name, status: data.status, price: data.price, success: true };
 }
 
 // ---- RENDER FUNCTIONS ----
@@ -1914,6 +2050,10 @@ function renderProducts() {
               ${product.status === 'checking' ? '<span class="spinner"></span>' : ''}
               ${statusLabel}
             </span>
+            ${product.price != null ? `<span class="product-price">${formatPrice(product.price)}${
+              product.lowestPrice != null && product.lowestPrice < product.price
+                ? ` <span class="low">low ${formatPrice(product.lowestPrice)}</span>` : ''
+            }</span>` : ''}
             <span class="last-checked">${timeAgo(product.lastChecked)}</span>
           </div>
         </div>
@@ -1960,19 +2100,33 @@ function renderAlerts() {
   clearBtn.style.display = 'block';
   let html = '<div class="alert-list">';
   alerts.forEach((alert, index) => {
-    const oldLabel = getStatusLabel(alert.oldStatus);
-    const newLabel = getStatusLabel(alert.newStatus);
-    const toClass = alert.newStatus === 'in_stock' ? 'to-in-stock' : 'to-out-of-stock';
+    // Alerts saved before price tracking existed have no `type` — they are all
+    // stock changes, so treat a missing type as 'stock' rather than dropping them.
+    const isPrice = alert.type === 'price';
+
+    const change = isPrice
+      ? `<span class="from">${formatPrice(alert.oldPrice)}</span>
+         <span class="arrow">→</span>
+         <span class="to-in-stock">${formatPrice(alert.newPrice)}</span>`
+      : `<span class="from">${getStatusLabel(alert.oldStatus)}</span>
+         <span class="arrow">→</span>
+         <span class="${alert.newStatus === 'in_stock' ? 'to-in-stock' : 'to-out-of-stock'}">${getStatusLabel(alert.newStatus)}</span>`;
+
+    // A buy link only where it is actionable, and only while the product is
+    // still tracked. Routed through openProductPage so the affiliate tag is
+    // applied in exactly one place.
+    const actionable = isPrice || alert.newStatus === 'in_stock';
+    const stillTracked = products.some(p => p.id === alert.productId);
+    const buy = actionable && stillTracked
+      ? `<button class="alert-buy" onclick="openProductPage('${alert.productId}')">Buy now</button>`
+      : '';
 
     html += `
       <div class="alert-card" style="animation-delay: ${index * 0.05}s;">
         <div class="alert-time">${formatDate(alert.timestamp)}</div>
         <div class="alert-product">${escapeHtml(alert.productName)}</div>
-        <div class="alert-change">
-          <span class="from">${oldLabel}</span>
-          <span class="arrow">→</span>
-          <span class="${toClass}">${newLabel}</span>
-        </div>
+        <div class="alert-change">${change}</div>
+        ${buy}
       </div>`;
   });
   html += '</div>';
@@ -2130,13 +2284,15 @@ async function processUrl(url) {
     url: url,
     domain: domain,
     name: detectedName,
-    status: detectedStatus
+    status: detectedStatus,
+    price: result.price
   };
 
   // Show detection result
   document.getElementById('detectedSite').textContent = getSiteName(domain);
   const statusEl = document.getElementById('detectedStatus');
-  statusEl.textContent = getStatusLabel(detectedStatus);
+  statusEl.textContent = getStatusLabel(detectedStatus) +
+    (result.price != null ? ` · ${formatPrice(result.price)}` : '');
   statusEl.style.color = detectedStatus === 'in_stock' ? '#3FB950' :
                           detectedStatus === 'out_of_stock' ? '#F85149' : '#8B949E';
   document.getElementById('detectionResult').classList.add('visible');
@@ -2165,6 +2321,8 @@ function trackProduct() {
     name: name,
     domain: detectedProductData.domain,
     status: detectedProductData.status,
+    price: detectedProductData.price,
+    lowestPrice: detectedProductData.price,
     lastChecked: new Date().toISOString(),
     addedAt: new Date().toISOString()
   };
@@ -2185,7 +2343,7 @@ document.getElementById('addModal').addEventListener('click', function(e) {
 
 function openProductPage(id) {
   const product = products.find(p => p.id === id);
-  if (product) window.open(product.url, '_blank');
+  if (product) window.open(affiliateUrl(product.url), '_blank', 'noopener');
 }
 
 // ---- DELETE PRODUCT ----
@@ -2266,6 +2424,14 @@ function applySettings() {
   document.getElementById('toggleAutoCheck').classList.toggle('active', settings.autoCheck);
   document.getElementById('toggleNotifications').classList.toggle('active', settings.notifications);
 
+  // Required by the Associates terms once links carry a tag — and it would be
+  // a false claim while no tag is configured, so it tracks the real state.
+  const affSection = document.getElementById('affiliateSection');
+  affSection.style.display = affiliateEnabled() ? '' : 'none';
+  document.getElementById('affiliateNote').textContent = affiliateEnabled()
+    ? 'StockPing earns a commission on qualifying purchases made through product links in this app. It costs you nothing extra, and it never affects stock results, prices shown, or when you are alerted.'
+    : '';
+
   document.querySelectorAll('#intervalControl .seg-btn').forEach(btn => {
     btn.classList.toggle('active', parseInt(btn.dataset.interval) === settings.interval);
   });
@@ -2313,6 +2479,8 @@ function handleImport(event) {
               name: p.name,
               domain: p.domain || getDomain(p.url),
               status: p.status || 'unknown',
+              price: typeof p.price === 'number' ? p.price : null,
+              lowestPrice: typeof p.lowestPrice === 'number' ? p.lowestPrice : null,
               lastChecked: p.lastChecked || null,
               addedAt: p.addedAt || new Date().toISOString()
             });
