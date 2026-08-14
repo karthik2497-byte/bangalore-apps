@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bangalore Apps — Hosting & Passive Income Playbook</title>
+<style>
+:root{
+  --bg:#0B1020;--card:#141B31;--card2:#1B2440;--ink:#EDF1FA;--sub:#93A0BC;--line:#2A3555;
+  --accent:#FFB800;--green:#2FD679;--blue:#58A6FF;--red:#FF5D73;--purple:#B78CFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;padding:32px 16px 80px}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:30px;letter-spacing:-.5px}
+h1 span{color:var(--accent)}
+.tagline{color:var(--sub);margin:6px 0 28px;font-size:15px}
+h2{font-size:20px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+h3{font-size:16px;margin-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;overflow:hidden}
+.card .head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.emoji{font-size:26px}
+.badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;letter-spacing:.4px;text-transform:uppercase;margin-left:auto;white-space:nowrap}
+.b-ready{background:rgba(47,214,121,.15);color:var(--green)}
+.b-backend{background:rgba(88,166,255,.15);color:var(--blue)}
+.b-later{background:rgba(147,160,188,.15);color:var(--sub)}
+.desc{color:var(--sub);font-size:13px;margin-bottom:12px}
+.diagram{background:var(--bg);border:1px solid var(--line);border-radius:10px;margin:10px 0;overflow-x:auto}
+.diagram svg{display:block;min-width:520px;width:100%;height:auto}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:13px;margin-top:10px}
+.kv dt{color:var(--sub)}
+.kv dd .money{color:var(--green);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--sub);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+td:first-child{font-weight:600}
+.note{background:var(--card2);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 16px;font-size:13.5px;color:var(--sub);margin:14px 0}
+.note b{color:var(--ink)}
+.rank{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#0B1020;font-weight:800;font-size:12px;margin-right:8px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--sub);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tablewrap{overflow-x:auto}
+footer{margin-top:56px;color:var(--sub);font-size:12px;text-align:center}
+@media(prefers-color-scheme:light){
+  :root{--bg:#F4F6FB;--card:#FFFFFF;--card2:#EEF2FA;--ink:#101529;--sub:#5B6780;--line:#DEE4F1}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>🏙️ Bangalore Apps — <span>Hosting & Passive Income Playbook</span></h1>
+<p class="tagline">7 PWAs · one free-tier platform · Android via TWA (workflow already in repo) · iOS via installable PWA first. Detailed steps live in <b>EXECUTION_PLAN.md</b>; this page is the visual map.</p>
+
+<h2>The Shared Platform (one stack for all seven)</h2>
+<div class="card">
+  <div class="diagram"><svg id="platform" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div class="legend">
+    <span><i style="background:#58A6FF"></i>Client / distribution</span>
+    <span><i style="background:#FFB800"></i>Cloudflare (free, durable)</span>
+    <span><i style="background:#2FD679"></i>Supabase (free tier)</span>
+    <span><i style="background:#B78CFF"></i>External / monetization</span>
+  </div>
+  <div class="note"><b>Fixed cost to launch on Android: $25 one-time (Play) + ~₹800/yr (domain).</b> Cloudflare Pages serves unlimited traffic free; Workers gives 100k req/day; Supabase free tier needs a weekly keep-alive ping (a Workers cron does it). iOS starts as an installable PWA at $0 — pay Apple's $99/yr only after revenue justifies it.</div>
+</div>
+
+<h2>Per-App Architecture & Money Map</h2>
+<div class="grid" id="apps"></div>
+
+<h2>Passive Income Ranking (build in this order)</h2>
+<div class="card tablewrap">
+<table>
+<thead><tr><th>#</th><th>App</th><th>Money model</th><th>Effort→income shape</th><th>12-mo honest range</th></tr></thead>
+<tbody>
+<tr><td><span class="rank">1</span>StockPing</td><td>Affiliate (Amazon Associates, Flipkart/EarnKaro)</td><td>Restock alert = high-intent purchase click</td><td>Days of work, compounds with users</td><td>₹2k–40k/mo</td></tr>
+<tr><td><span class="rank">2</span>PG Buddy</td><td>Featured listings ₹299/mo · leads ₹49</td><td>PG owners have real ad budgets</td><td>Semi-passive (verification work)</td><td>₹5k–50k/mo once seeded</td></tr>
+<tr><td><span class="rank">3</span>CardGuard</td><td>Freemium — ₹99/yr via Play Billing</td><td>Free: 2 cards · Premium: unlimited + Gmail sync</td><td>Finance apps convert 2–5%</td><td>₹1k–10k/mo</td></tr>
+<tr><td><span class="rank">4</span>LingoLocal</td><td>₹149 one-time IAP + AdMob banner</td><td>Perpetual newcomer audience</td><td>Content = moat, fully passive</td><td>₹500–8k/mo</td></tr>
+<tr><td><span class="rank">5</span>PowerPulse</td><td>AdSense + hyperlocal sponsor slot</td><td>Traffic play; needs community seeding</td><td>Passive after seeding</td><td>₹200–5k/mo</td></tr>
+<tr><td><span class="rank">6</span>MeterSmart</td><td>AdSense (SEO: “bangalore auto fare”)</td><td>Pure utility, ship first</td><td>Fully passive</td><td>₹100–3k/mo</td></tr>
+<tr><td><span class="rank">7</span>NestHub</td><td>B2B SaaS ₹2–5/flat/mo</td><td>Highest ceiling, needs sales — <b>not passive</b></td><td>Park until others are live</td><td>—</td></tr>
+</tbody>
+</table>
+<div class="note"><b>Compounding trick:</b> every app carries a “More BLR Apps” footer cross-promoting the other six — one audience, seven monetized surfaces. <b>Kill rule:</b> &lt;100 MAU and ₹0 after 3 months live → freeze (it keeps running at $0) and reinvest in the leaders.</div>
+</div>
+
+<h2>Security Posture (audited 2026-07-11)</h2>
+<div class="card tablewrap">
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>XSS (user input → innerHTML)</td><td style="color:var(--green)">✅ Fixed in all 5 affected apps</td><td>Rule enforced in EXECUTION_PLAN §0.2 for future agents</td></tr>
+<tr><td>Inline onclick URL injection</td><td style="color:var(--green)">✅ Fixed (StockPing)</td><td>ID-lookup pattern documented</td></tr>
+<tr><td>eval / rogue CDN scripts</td><td style="color:var(--green)">✅ None found (only Google GSI)</td><td>—</td></tr>
+<tr><td>Content-Security-Policy</td><td style="color:var(--red)">✗ Missing on all apps</td><td>Add via Cloudflare Pages <code>_headers</code> at deploy (exact policy in plan §6.2)</td></tr>
+<tr><td>StockPing CORS proxies see tracked URLs</td><td style="color:var(--accent)">⚠ Privacy + reliability risk</td><td>Move checking server-side (Workers cron) — Phase C1</td></tr>
+<tr><td>CardGuard client-side Gmail OAuth</td><td style="color:var(--accent)">⚠ Token in browser, dev-grade UX</td><td>Move OAuth to Worker backend; client never sees token</td></tr>
+<tr><td>NestHub QR passes</td><td style="color:var(--red)">✗ Decorative, forgeable</td><td>Signed JWT QR + guard verifier page before any real use</td></tr>
+<tr><td>localStorage financial data</td><td style="color:var(--green)">Acceptable (last-4 only, on-device)</td><td>State in privacy policy; never store full PAN</td></tr>
+<tr><td>Backend rules (future)</td><td>—</td><td>Supabase RLS day-one · writes via rate-limited Workers · secrets only in env vars · server re-validates everything</td></tr>
+</tbody>
+</table>
+</div>
+
+<footer>Generated 2026-07-11 · Pairs with EXECUTION_PLAN.md (forced audit protocol) & WORK_LOG.md (completed fixes) · repo: karthik2497-byte/bangalore-apps</footer>
+</div>
+
+<script>
+// ---- tiny SVG flow-diagram builder ----
+const C={client:'#58A6FF',cf:'#FFB800',sb:'#2FD679',ext:'#B78CFF'};
+function flow(nodes,w){
+  // nodes: [{t:'title',s:'sub',c:color}]
+  const H=96,bw=(w-((nodes.length-1)*34)-20)/nodes.length;
+  let x=10,out='';
+  nodes.forEach((n,i)=>{
+    out+=`<rect x="${x}" y="22" width="${bw}" height="52" rx="9" fill="none" stroke="${n.c}" stroke-width="1.6"/>`;
+    out+=`<text x="${x+bw/2}" y="44" text-anchor="middle" fill="${n.c}" font-size="11.5" font-weight="700" font-family="inherit">${n.t}</text>`;
+    if(n.s)out+=`<text x="${x+bw/2}" y="60" text-anchor="middle" fill="#93A0BC" font-size="9.5" font-family="inherit">${n.s}</text>`;
+    if(i<nodes.length-1){
+      const ax=x+bw+4;
+      out+=`<line x1="${ax}" y1="48" x2="${ax+24}" y2="48" stroke="#3A4870" stroke-width="1.6"/><path d="M${ax+24} 48 l-6 -4 v8 z" fill="#3A4870"/>`;
+    }
+    x+=bw+34;
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${H}">${out}</svg>`;
+}
+
+// platform overview (two rows)
+(function(){
+  const w=1040,svg=document.getElementById('platform');
+  svg.setAttribute('viewBox',`0 0 ${w} 250`);
+  const row=(y,nodes)=>{
+    const bw=(w-((nodes.length-1)*40)-24)/nodes.length;let x=12,o='';
+    nodes.forEach((n,i)=>{
+      o+=`<rect x="${x}" y="${y}" width="${bw}" height="58" rx="10" fill="none" stroke="${n.c}" stroke-width="1.8"/>
+          <text x="${x+bw/2}" y="${y+25}" text-anchor="middle" fill="${n.c}" font-size="13" font-weight="700" font-family="inherit">${n.t}</text>
+          <text x="${x+bw/2}" y="${y+43}" text-anchor="middle" fill="#93A0BC" font-size="10.5" font-family="inherit">${n.s||''}</text>`;
+      if(i<nodes.length-1){const ax=x+bw+6;o+=`<line x1="${ax}" y1="${y+29}" x2="${ax+28}" y2="${y+29}" stroke="#3A4870" stroke-width="1.8"/><path d="M${ax+28} ${y+29} l-7 -4.5 v9 z" fill="#3A4870"/>`}
+      x+=bw+40;
+    });return o;
+  };
+  let o=row(16,[
+    {t:'Users',s:'web · Android (TWA) · iOS (PWA)',c:C.client},
+    {t:'Cloudflare Pages',s:'static hosting · CDN · _headers CSP',c:C.cf},
+    {t:'Cloudflare Workers',s:'APIs · rate limits · cron jobs',c:C.cf},
+    {t:'Supabase',s:'Postgres · Auth · RLS · Realtime',c:C.sb}
+  ]);
+  o+=row(150,[
+    {t:'Workers KV / D1',s:'stock status · caches',c:C.cf},
+    {t:'Web Push + FCM',s:'restock · bill · outage alerts',c:C.ext},
+    {t:'Play Store',s:'AABs from repo GitHub Action',c:C.client},
+    {t:'Money',s:'affiliate · IAP · ads · listings',c:C.ext}
+  ]);
+  // vertical connector
+  o+=`<line x1="520" y1="74" x2="520" y2="150" stroke="#3A4870" stroke-width="1.8" stroke-dasharray="4 4"/>`;
+  svg.innerHTML=o;
+})();
+
+// ---- per-app cards ----
+const APPS=[
+ {e:'⚡',n:'PowerPulse',b:['b-backend','Needs backend'],d:'Community power/water outage tracker. Value = shared live data, so a backend is the product.',
+  f:[{t:'PWA / TWA',c:C.client},{t:'CF Pages',c:C.cf},{t:'Worker API',s:'rate-limited reports',c:C.cf},{t:'Supabase Realtime',s:'+ BESCOM scrape cron',c:C.sb},{t:'Web Push',s:'area alerts',c:C.ext}],
+  money:'AdSense + hyperlocal sponsor slot',free:'Pages ∞ · Workers 100k/day · Supabase 500MB',phase:'Phase D (weeks 7–8)'},
+ {e:'🛺',n:'MeterSmart',b:['b-ready','Ship now'],d:'Auto fare calculator + complaint generator. 100% client-side — zero backend needed, ever.',
+  f:[{t:'PWA / TWA',c:C.client},{t:'CF Pages',c:C.cf},{t:'rates.json',s:'static fare table, updatable',c:C.cf},{t:'AdSense',s:'SEO: “blr auto fare”',c:C.ext}],
+  money:'AdSense only — fully passive',free:'Pages ∞ — literally $0 forever',phase:'Phase B (weeks 2–3) — first to Play Store'},
+ {e:'🏠',n:'PG Buddy',b:['b-backend','Needs backend'],d:'PG discovery with swipe UI. Mock data today; real owner-submitted listings are the monetization surface.',
+  f:[{t:'PWA / TWA',c:C.client},{t:'CF Pages',c:C.cf},{t:'Worker API',s:'listing submit + leads',c:C.cf},{t:'Supabase',s:'pgs · reviews · Storage photos',c:C.sb},{t:'PG Owners',s:'₹299/mo featured · ₹49/lead',c:C.ext}],
+  money:'Featured listings + pay-per-lead',free:'Supabase Storage 1GB free for photos',phase:'Phase E (weeks 9–12)'},
+ {e:'🏢',n:'NestHub',b:['b-later','Park it'],d:'Apartment community suite. Highest ceiling but it’s B2B SaaS with sales effort — not passive. Do last.',
+  f:[{t:'PWA / TWA',c:C.client},{t:'CF Pages',c:C.cf},{t:'Worker API',s:'signed JWT QR passes',c:C.cf},{t:'Supabase',s:'multi-tenant RLS (society_id)',c:C.sb},{t:'Societies',s:'₹2–5 / flat / month',c:C.ext}],
+  money:'B2B subscription (not passive)',free:'Same stack, zero infra cost to pilot',phase:'Phase F — only after others earn'},
+ {e:'🗣️',n:'LingoLocal',b:['b-ready','Ship now'],d:'Kannada phrasebook with flashcards, quiz, streaks, TTS. Content is the moat; fully offline.',
+  f:[{t:'PWA / TWA',c:C.client},{t:'CF Pages',c:C.cf},{t:'Audio pack',s:'~2MB .opus in SW cache',c:C.cf},{t:'Play Billing',s:'₹149 unlock-all IAP',c:C.ext},{t:'AdMob',s:'banner on free tier',c:C.ext}],
+  money:'One-time IAP + ads',free:'$0 infra — static forever',phase:'Phase B (weeks 2–3) — second to Play Store'},
+ {e:'📦',n:'StockPing',b:['b-backend','Top earner'],d:'Restock tracker. Server-side checking transforms it from “works while tab open” into a real product — and every alert is an affiliate click.',
+  f:[{t:'PWA / TWA',c:C.client},{t:'CF Pages',c:C.cf},{t:'Workers Cron',s:'scrapes sites server-side',c:C.cf},{t:'KV / D1',s:'product status',c:C.cf},{t:'Web Push',s:'restock alert',c:C.ext},{t:'Affiliate link',s:'Amazon/Flipkart tag',c:C.ext}],
+  money:'Affiliate commissions (rank #1)',free:'KV 100k reads/day · cron free · kills CORS-proxy privacy leak',phase:'Phase C1 (weeks 3–4) — first backend build'},
+ {e:'💳',n:'CardGuard',b:['b-backend','Needs backend'],d:'Credit-card bill reminders. Server push = reminders with the app closed (the whole value prop). Gmail OAuth moves server-side.',
+  f:[{t:'PWA / TWA',c:C.client},{t:'CF Pages',c:C.cf},{t:'Workers Cron',s:'reminder dispatch',c:C.cf},{t:'Supabase',s:'sync (premium)',c:C.sb},{t:'Web Push/FCM',s:'bill due alerts',c:C.ext},{t:'Play Billing',s:'₹99/yr premium',c:C.ext}],
+  money:'Freemium subscription',free:'On-device data stays the default (privacy = feature)',phase:'Phase C2 (weeks 5–6)'}
+];
+document.getElementById('apps').innerHTML=APPS.map(a=>`
+ <div class="card">
+   <div class="head"><span class="emoji">${a.e}</span><h3>${a.n}</h3><span class="badge ${a.b[0]}">${a.b[1]}</span></div>
+   <div class="desc">${a.d}</div>
+   <div class="diagram">${flow(a.f,760)}</div>
+   <dl class="kv">
+     <dt>Money</dt><dd class="money"><span class="money">${a.money}</span></dd>
+     <dt>Free tier</dt><dd>${a.free}</dd>
+     <dt>When</dt><dd>${a.phase}</dd>
+   </dl>
+ </div>`).join('');
+</script>
+</body>
+</html>
