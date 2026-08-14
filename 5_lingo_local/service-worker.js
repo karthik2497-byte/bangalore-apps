@@ -1,8 +1,20 @@
-const CACHE_NAME = 'lingolocal-v1';
-const urlsToCache = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg'];
+const CACHE_NAME = 'lingolocal-v2';
+const urlsToCache = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg', './audio/manifest.json'];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(urlsToCache);
+    // Phrase audio IS the offline product, so precache every clip rather than
+    // waiting for a first play. Added one by one on purpose: cache.addAll is
+    // all-or-nothing, and one missing clip must not fail the whole install.
+    try {
+      const { files } = await (await fetch('./audio/manifest.json')).json();
+      await Promise.all(files.map(f => cache.add('./audio/' + f).catch(() => {})));
+    } catch (e) {
+      // No manifest — app still installs, clips fall back to device TTS.
+    }
+  })());
   self.skipWaiting();
 });
 
