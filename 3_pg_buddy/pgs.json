@@ -1,0 +1,864 @@
+{
+  "version": 1,
+  "updated": "2026-08-15",
+  "source": "PG Buddy seed listings",
+  "listingContact": {
+    "whatsapp": "",
+    "email": ""
+  },
+  "pgs": [
+    {
+      "id": 1,
+      "name": "Sri Lakshmi PG",
+      "area": "Koramangala",
+      "price": 8500,
+      "priceRange": "₹7,500 - ₹9,500",
+      "rating": 4.2,
+      "tags": [
+        "Home-style Food",
+        "Veg Only",
+        "Clean"
+      ],
+      "grad": "grad-1",
+      "verified": true,
+      "type": "veg",
+      "amenities": {
+        "wifi": true,
+        "ac": false,
+        "laundry": true,
+        "parking": false,
+        "gym": false,
+        "powerBackup": true
+      },
+      "filters": [
+        "veg",
+        "under10k",
+        "wifi"
+      ],
+      "ratings": {
+        "food": 4.5,
+        "cleanliness": 4,
+        "wifi": 3.8,
+        "location": 4.2,
+        "value": 4.5
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "10:30 PM (weekdays), 11:30 PM (weekends)"
+        },
+        {
+          "label": "Guests",
+          "text": "Allowed in common area till 8 PM"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7:30-9:30 AM, Lunch 12:30-2:30 PM, Dinner 7:30-10 PM"
+        },
+        {
+          "label": "Deposit",
+          "text": "2 months rent, refundable"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Idli, Sambar\nRice, Dal\nChapati, Paneer"
+        },
+        {
+          "day": "Tue",
+          "meal": "Dosa, Chutney\nPulao, Raita\nRice, Sambar"
+        },
+        {
+          "day": "Wed",
+          "meal": "Poha, Tea\nLemon Rice\nChapati, Gobi"
+        },
+        {
+          "day": "Thu",
+          "meal": "Upma, Vada\nCurd Rice\nDosa, Chutney"
+        },
+        {
+          "day": "Fri",
+          "meal": "Pongal\nBisibele Bath\nChapati, Dal"
+        },
+        {
+          "day": "Sat",
+          "meal": "Poori, Kurma\nFried Rice\nParatha, Curd"
+        },
+        {
+          "day": "Sun",
+          "meal": "Masala Dosa\nBiryani ✨\nNoodles, Soup"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Priya Sharma",
+          "initials": "PS",
+          "color": "#E91E63",
+          "date": "2 weeks ago",
+          "rating": 4,
+          "text": "Aunty cooks amazing South Indian food! The sambar is to die for. Rooms are basic but clean. WiFi works fine for WFH.",
+          "best": "Home-cooked food",
+          "worst": "No AC in summer is tough"
+        },
+        {
+          "name": "Karthik R",
+          "initials": "KR",
+          "color": "#2196F3",
+          "date": "1 month ago",
+          "rating": 5,
+          "text": "Best PG food in Koramangala hands down. I've stayed in 3 PGs before this. The Sunday biryani special is legendary among residents.",
+          "best": "Sunday special biryani",
+          "worst": "Parking space is limited"
+        },
+        {
+          "name": "Sneha Patel",
+          "initials": "SP",
+          "color": "#9C27B0",
+          "date": "3 months ago",
+          "rating": 4,
+          "text": "Very homely atmosphere. Landlady is like a mother figure. Food quality has been consistent for the 8 months I've been here. Would recommend for vegetarians.",
+          "best": "Consistent food quality",
+          "worst": "Gate timing is strict"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    },
+    {
+      "id": 2,
+      "name": "Zolo Stays HSR",
+      "area": "HSR Layout",
+      "price": 12000,
+      "priceRange": "₹10,000 - ₹14,000",
+      "rating": 3.8,
+      "tags": [
+        "Great WiFi",
+        "AC Available",
+        "Modern"
+      ],
+      "grad": "grad-2",
+      "verified": true,
+      "type": "both",
+      "amenities": {
+        "wifi": true,
+        "ac": true,
+        "laundry": true,
+        "parking": true,
+        "gym": true,
+        "powerBackup": true
+      },
+      "filters": [
+        "ac",
+        "wifi",
+        "single"
+      ],
+      "ratings": {
+        "food": 3.2,
+        "cleanliness": 4.2,
+        "wifi": 4.5,
+        "location": 4,
+        "value": 3.3
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "No curfew (biometric access)"
+        },
+        {
+          "label": "Guests",
+          "text": "Allowed with prior registration"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7-10 AM, Lunch 12-3 PM, Dinner 7-10:30 PM"
+        },
+        {
+          "label": "Deposit",
+          "text": "1 month rent + ₹5,000 security"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Bread, Eggs\nDal Rice\nChapati, Mix Veg"
+        },
+        {
+          "day": "Tue",
+          "meal": "Cornflakes\nRajma Rice\nFried Rice"
+        },
+        {
+          "day": "Wed",
+          "meal": "Sandwich\nChole Rice\nPasta"
+        },
+        {
+          "day": "Thu",
+          "meal": "Poha\nDal Fry\nChapati, Paneer"
+        },
+        {
+          "day": "Fri",
+          "meal": "Upma\nBiryani\nNoodles"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Arjun Mehta",
+          "initials": "AM",
+          "color": "#FF5722",
+          "date": "1 week ago",
+          "rating": 4,
+          "text": "Great amenities and facilities. WiFi is blazing fast - perfect for my coding sessions. Food is average cafeteria style but the convenience makes up for it.",
+          "best": "Fast WiFi & modern rooms",
+          "worst": "Food lacks homely taste"
+        },
+        {
+          "name": "Deepika S",
+          "initials": "DS",
+          "color": "#4CAF50",
+          "date": "3 weeks ago",
+          "rating": 3,
+          "text": "Nice place but overpriced for what you get. The food has gone downhill in the last 2 months. They keep changing cooks. AC rooms are worth the extra money though.",
+          "best": "No curfew policy",
+          "worst": "Frequent cook changes"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    },
+    {
+      "id": 3,
+      "name": "Sai Comfort PG",
+      "area": "BTM Layout",
+      "price": 7000,
+      "priceRange": "₹6,000 - ₹8,000",
+      "rating": 4.5,
+      "tags": [
+        "Best Food",
+        "Veg Only",
+        "Budget"
+      ],
+      "grad": "grad-3",
+      "verified": true,
+      "type": "veg",
+      "amenities": {
+        "wifi": true,
+        "ac": false,
+        "laundry": true,
+        "parking": false,
+        "gym": false,
+        "powerBackup": true
+      },
+      "filters": [
+        "veg",
+        "under10k",
+        "wifi",
+        "metro"
+      ],
+      "ratings": {
+        "food": 4.9,
+        "cleanliness": 4.3,
+        "wifi": 3.5,
+        "location": 4.5,
+        "value": 4.8
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "10 PM sharp"
+        },
+        {
+          "label": "Guests",
+          "text": "Not allowed inside rooms"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7-9 AM, Lunch 12:30-2 PM, Dinner 7:30-9:30 PM"
+        },
+        {
+          "label": "Deposit",
+          "text": "2 months rent"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Rava Idli\nSambar Rice\nChapati, Dal"
+        },
+        {
+          "day": "Tue",
+          "meal": "Masala Dosa\nLemon Rice\nRice, Rasam"
+        },
+        {
+          "day": "Wed",
+          "meal": "Pongal, Vada\nPulao\nChapati, Palak"
+        },
+        {
+          "day": "Thu",
+          "meal": "Poori, Sagu\nCurd Rice\nDosa, Chutney"
+        },
+        {
+          "day": "Fri",
+          "meal": "Upma\nBisibele Bath\nParatha, Curd"
+        },
+        {
+          "day": "Sat",
+          "meal": "Idli, Vada\nJeera Rice\nChapati, Curry"
+        },
+        {
+          "day": "Sun",
+          "meal": "Set Dosa\nVeg Biryani ✨\nPulao, Raita"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Rajesh Kumar",
+          "initials": "RK",
+          "color": "#FF9800",
+          "date": "5 days ago",
+          "rating": 5,
+          "text": "If you're looking for authentic Karnataka-style home food, this is THE place. Amma (the landlady) makes everything fresh. The bisibele bath on Fridays is outstanding. BTM metro is 5 min walk.",
+          "best": "Authentic home-cooked food",
+          "worst": "Strict gate timing at 10 PM"
+        },
+        {
+          "name": "Ananya M",
+          "initials": "AN",
+          "color": "#E91E63",
+          "date": "2 weeks ago",
+          "rating": 5,
+          "text": "Best food I've ever had in any PG in Bangalore. Period. Worth every rupee. My colleagues from other PGs come here for Sunday lunch sometimes 😄",
+          "best": "Everything about the food",
+          "worst": "WiFi could be faster"
+        },
+        {
+          "name": "Vikram B",
+          "initials": "VB",
+          "color": "#3F51B5",
+          "date": "1 month ago",
+          "rating": 4,
+          "text": "Excellent food and great value. Only downside is no AC and the rooms are on the smaller side. But for ₹7000, you can't complain. Been here 6 months and very happy.",
+          "best": "Value for money",
+          "worst": "Small rooms, no AC"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    },
+    {
+      "id": 4,
+      "name": "CoLive Indiranagar",
+      "area": "Indiranagar",
+      "price": 15000,
+      "priceRange": "₹13,000 - ₹18,000",
+      "rating": 4,
+      "tags": [
+        "Premium",
+        "AC",
+        "Gym"
+      ],
+      "grad": "grad-4",
+      "verified": true,
+      "type": "both",
+      "amenities": {
+        "wifi": true,
+        "ac": true,
+        "laundry": true,
+        "parking": true,
+        "gym": true,
+        "powerBackup": true
+      },
+      "filters": [
+        "ac",
+        "wifi",
+        "single"
+      ],
+      "ratings": {
+        "food": 3.5,
+        "cleanliness": 4.5,
+        "wifi": 4.3,
+        "location": 4.8,
+        "value": 3
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "No curfew (smart lock)"
+        },
+        {
+          "label": "Guests",
+          "text": "Allowed 24/7 with registration"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7-10:30 AM, Dinner 7-10:30 PM (No lunch)"
+        },
+        {
+          "label": "Deposit",
+          "text": "₹20,000 refundable"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Continental\nN/A\nPasta, Garlic Bread"
+        },
+        {
+          "day": "Tue",
+          "meal": "South Indian\nN/A\nNorth Indian"
+        },
+        {
+          "day": "Wed",
+          "meal": "Sandwiches\nN/A\nChinese"
+        },
+        {
+          "day": "Thu",
+          "meal": "Pancakes\nN/A\nBiryani"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Nikhil Joshi",
+          "initials": "NJ",
+          "color": "#009688",
+          "date": "1 week ago",
+          "rating": 4,
+          "text": "Great location in the heart of Indiranagar. Gym is well-maintained. Food is decent but not great for the price. You're basically paying for the address and amenities.",
+          "best": "Location & Amenities",
+          "worst": "Overpriced food quality"
+        },
+        {
+          "name": "Meera T",
+          "initials": "MT",
+          "color": "#673AB7",
+          "date": "1 month ago",
+          "rating": 4,
+          "text": "Love the co-living vibe. Met some amazing people here. The rooftop hangout space is great. WiFi is reliable for video calls. No lunch is a bummer though.",
+          "best": "Community & networking",
+          "worst": "No lunch, expensive"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    },
+    {
+      "id": 5,
+      "name": "Green View PG",
+      "area": "Marathahalli",
+      "price": 6500,
+      "priceRange": "₹5,500 - ₹7,500",
+      "rating": 3.5,
+      "tags": [
+        "Budget",
+        "Near IT Parks",
+        "Basic"
+      ],
+      "grad": "grad-5",
+      "verified": false,
+      "type": "both",
+      "amenities": {
+        "wifi": true,
+        "ac": false,
+        "laundry": false,
+        "parking": true,
+        "gym": false,
+        "powerBackup": false
+      },
+      "filters": [
+        "under10k",
+        "wifi"
+      ],
+      "ratings": {
+        "food": 3,
+        "cleanliness": 3.3,
+        "wifi": 3.5,
+        "location": 4,
+        "value": 4.2
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "11 PM"
+        },
+        {
+          "label": "Guests",
+          "text": "Allowed on weekends only"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7:30-9 AM, Dinner 8-10 PM (No lunch)"
+        },
+        {
+          "label": "Deposit",
+          "text": "1 month rent"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Idli\nN/A\nRice, Dal"
+        },
+        {
+          "day": "Tue",
+          "meal": "Dosa\nN/A\nChapati"
+        },
+        {
+          "day": "Wed",
+          "meal": "Upma\nN/A\nRice, Sambar"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Ravi Teja",
+          "initials": "RT",
+          "color": "#795548",
+          "date": "3 days ago",
+          "rating": 3,
+          "text": "It's basic and gets the job done. Close to Marthahalli junction and IT parks. Food is simple but filling. Don't expect luxury. Good for freshers starting out.",
+          "best": "Cheap and near office",
+          "worst": "No power backup, basic food"
+        },
+        {
+          "name": "Aditya N",
+          "initials": "AN",
+          "color": "#607D8B",
+          "date": "3 weeks ago",
+          "rating": 4,
+          "text": "For ₹6500, this is a steal. Owner is a nice guy. Food is simple dal-rice type but hygienic. Walking distance to RMZ Ecospace. WiFi works for basic browsing and calls.",
+          "best": "Budget friendly",
+          "worst": "No laundry service"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    },
+    {
+      "id": 6,
+      "name": "Nest PG for Women",
+      "area": "JP Nagar",
+      "price": 9000,
+      "priceRange": "₹8,000 - ₹10,000",
+      "rating": 4.7,
+      "tags": [
+        "Women Only",
+        "Safest",
+        "Great Food"
+      ],
+      "grad": "grad-6",
+      "verified": true,
+      "type": "veg",
+      "amenities": {
+        "wifi": true,
+        "ac": true,
+        "laundry": true,
+        "parking": false,
+        "gym": false,
+        "powerBackup": true
+      },
+      "filters": [
+        "veg",
+        "under10k",
+        "wifi",
+        "ac",
+        "women"
+      ],
+      "ratings": {
+        "food": 4.6,
+        "cleanliness": 4.8,
+        "wifi": 4.2,
+        "location": 4.5,
+        "value": 4.5
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "10 PM (inform warden for late entry)"
+        },
+        {
+          "label": "Guests",
+          "text": "Female visitors only, till 7 PM"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7-9:30 AM, Lunch 12:30-2:30 PM, Dinner 7:30-9:30 PM"
+        },
+        {
+          "label": "Deposit",
+          "text": "2 months rent"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Idli, Sambar\nRice, Rasam\nChapati, Paneer"
+        },
+        {
+          "day": "Tue",
+          "meal": "Dosa\nPulao, Raita\nRice, Dal Fry"
+        },
+        {
+          "day": "Wed",
+          "meal": "Poha\nLemon Rice\nParatha, Curd"
+        },
+        {
+          "day": "Thu",
+          "meal": "Upma, Vada\nSambar Rice\nDosa, Chutney"
+        },
+        {
+          "day": "Fri",
+          "meal": "Pongal\nBisibele Bath\nChapati, Palak"
+        },
+        {
+          "day": "Sat",
+          "meal": "Rava Dosa\nCurd Rice\nPasta, Soup"
+        },
+        {
+          "day": "Sun",
+          "meal": "Masala Dosa\nBiryani ✨\nFried Rice"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Kavya Reddy",
+          "initials": "KR",
+          "color": "#E91E63",
+          "date": "4 days ago",
+          "rating": 5,
+          "text": "This is hands down the safest and cleanest PG I've lived in. Warden aunty is strict but caring. Food is excellent and they even take dietary preferences into account. CCTV everywhere for safety.",
+          "best": "Safety and cleanliness",
+          "worst": "Strict visitor policy"
+        },
+        {
+          "name": "Swathi K",
+          "initials": "SK",
+          "color": "#9C27B0",
+          "date": "2 weeks ago",
+          "rating": 5,
+          "text": "As a woman who moved to Bangalore alone, this PG gave me so much peace of mind. The other residents are very friendly. Food reminds me of home. Highly recommend to all women!",
+          "best": "Homely and safe environment",
+          "worst": "No gym facility"
+        },
+        {
+          "name": "Divya Nair",
+          "initials": "DN",
+          "color": "#FF5722",
+          "date": "1 month ago",
+          "rating": 4,
+          "text": "Great PG overall. The 3-meal system is a blessing. Food is consistently good - the cook has been with them for 5 years. JP Nagar metro is nearby.",
+          "best": "Consistent 3 meals",
+          "worst": "10 PM curfew"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    },
+    {
+      "id": 7,
+      "name": "Tech Haven PG",
+      "area": "Whitefield",
+      "price": 11000,
+      "priceRange": "₹9,000 - ₹13,000",
+      "rating": 4.1,
+      "tags": [
+        "Fast WiFi",
+        "Techie Hub",
+        "Clean"
+      ],
+      "grad": "grad-7",
+      "verified": true,
+      "type": "both",
+      "amenities": {
+        "wifi": true,
+        "ac": true,
+        "laundry": true,
+        "parking": true,
+        "gym": false,
+        "powerBackup": true
+      },
+      "filters": [
+        "wifi",
+        "ac",
+        "single"
+      ],
+      "ratings": {
+        "food": 3.8,
+        "cleanliness": 4.3,
+        "wifi": 4.8,
+        "location": 3.5,
+        "value": 3.9
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "12 AM"
+        },
+        {
+          "label": "Guests",
+          "text": "Allowed till 9 PM"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7-10 AM, Lunch 12:30-2:30 PM, Dinner 7:30-10 PM"
+        },
+        {
+          "label": "Deposit",
+          "text": "2 months rent"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Dosa, Egg\nDal Rice\nChapati, Chicken"
+        },
+        {
+          "day": "Tue",
+          "meal": "Idli, Vada\nPulao\nFried Rice, Manchurian"
+        },
+        {
+          "day": "Wed",
+          "meal": "Poha\nRajma Rice\nChapati, Egg Curry"
+        },
+        {
+          "day": "Thu",
+          "meal": "Bread, Omelette\nCurd Rice\nBiryani"
+        },
+        {
+          "day": "Fri",
+          "meal": "Upma\nSambar Rice\nNoodles, Soup"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Suresh P",
+          "initials": "SP",
+          "color": "#00BCD4",
+          "date": "1 week ago",
+          "rating": 4,
+          "text": "The WiFi here is a game-changer. 100 Mbps dedicated line. Perfect for WFH and gaming. Food is decent - both veg and non-veg options. Most residents are IT folks so good community.",
+          "best": "Blazing fast WiFi",
+          "worst": "Whitefield traffic is terrible"
+        },
+        {
+          "name": "Manish G",
+          "initials": "MG",
+          "color": "#4CAF50",
+          "date": "3 weeks ago",
+          "rating": 4,
+          "text": "Good PG with all modern amenities. The owner is tech-savvy and has set up an app for food feedback and complaints. WiFi rarely goes down. Food has improved a lot recently.",
+          "best": "Tech-forward management",
+          "worst": "Far from city center"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    },
+    {
+      "id": 8,
+      "name": "Bengaluru Boys PG",
+      "area": "Electronic City",
+      "price": 7500,
+      "priceRange": "₹6,500 - ₹8,500",
+      "rating": 3.3,
+      "tags": [
+        "Decent",
+        "Budget",
+        "Men Only"
+      ],
+      "grad": "grad-8",
+      "verified": false,
+      "type": "both",
+      "amenities": {
+        "wifi": true,
+        "ac": false,
+        "laundry": false,
+        "parking": true,
+        "gym": false,
+        "powerBackup": false
+      },
+      "filters": [
+        "under10k",
+        "wifi"
+      ],
+      "ratings": {
+        "food": 3,
+        "cleanliness": 2.8,
+        "wifi": 3.5,
+        "location": 3.5,
+        "value": 3.8
+      },
+      "rules": [
+        {
+          "label": "Gate Closing",
+          "text": "11:30 PM"
+        },
+        {
+          "label": "Guests",
+          "text": "Allowed on weekends"
+        },
+        {
+          "label": "Food Timing",
+          "text": "Breakfast 7:30-9 AM, Dinner 8-10 PM"
+        },
+        {
+          "label": "Deposit",
+          "text": "1 month rent"
+        }
+      ],
+      "menu": [
+        {
+          "day": "Mon",
+          "meal": "Dosa\nN/A\nRice, Dal"
+        },
+        {
+          "day": "Tue",
+          "meal": "Idli\nN/A\nChapati, Curry"
+        },
+        {
+          "day": "Wed",
+          "meal": "Upma\nN/A\nRice, Chicken"
+        }
+      ],
+      "reviews": [
+        {
+          "name": "Harish V",
+          "initials": "HV",
+          "color": "#FF5722",
+          "date": "2 days ago",
+          "rating": 3,
+          "text": "It's okay for the price. Food is basic but they serve non-veg twice a week which is a plus. Cleanliness could be much better - the bathrooms need attention. Near Infosys campus.",
+          "best": "Non-veg food available",
+          "worst": "Bathroom cleanliness"
+        },
+        {
+          "name": "Siddharth M",
+          "initials": "SM",
+          "color": "#795548",
+          "date": "2 weeks ago",
+          "rating": 3,
+          "text": "Average PG. Nothing great, nothing terrible. The owner is responsive to complaints. WiFi works for basic stuff. If you're on a tight budget and work in ECity, it's fine.",
+          "best": "Responsive owner",
+          "worst": "No power backup during outages"
+        },
+        {
+          "name": "Ganesh T",
+          "initials": "GT",
+          "color": "#607D8B",
+          "date": "2 months ago",
+          "rating": 4,
+          "text": "Improved a lot since I first moved in. New cook joined and food quality went up. Still needs work on cleanliness. Good enough for a temporary stay while apartment hunting.",
+          "best": "Improving food quality",
+          "worst": "Needs regular cleaning"
+        }
+      ],
+      "ownerName": "",
+      "phone": "",
+      "verifiedOn": ""
+    }
+  ]
+}
