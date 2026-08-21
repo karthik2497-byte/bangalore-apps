@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A0E1A">
+<title>Privacy Policy — CardGuard</title>
+<style>
+  :root { --bg:#FFF; --fg:#0F172A; --muted:#64748B; --accent:#A16207; --line:#E2E8F0; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0A0E1A; --fg:#E6EAF2; --muted:#7B8CA8; --accent:#FFB800; --line:#1C2438; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 20px 60px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.65;
+    max-width: 720px; margin-inline: auto; font-size: 1rem;
+  }
+  h1 { font-size: 1.9rem; margin: 0 0 6px; letter-spacing: -0.03em; line-height: 1.2; }
+  h2 { font-size: 1.25rem; margin: 36px 0 8px; letter-spacing: -0.015em; }
+  .updated { color: var(--muted); font-size: 0.8rem; margin-bottom: 32px; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); }
+  code { font-size: 0.9em; }
+  .box {
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin: 20px 0; background: rgba(255,184,0,0.07);
+  }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>CardGuard — Privacy Policy</h1>
+<div class="updated">Last updated: 20 August 2026</div>
+
+<div class="box">
+  <strong>Short version:</strong> CardGuard has no accounts and no server holding your data.
+  Your cards, bills and payment history live in your own device's browser storage. We never
+  ask for, and the app cannot store, a full card number, CVV, PIN, expiry date, or your bank
+  login.
+</div>
+
+<h2>1. What the app stores</h2>
+<p>CardGuard saves the following in your device's local storage (<code>localStorage</code>),
+on your device only:</p>
+<ul>
+  <li>Per card: the bank name, a nickname you choose, the <strong>last four digits only</strong>, the monthly due day, and a typical bill amount</li>
+  <li>Bills and payment history: due date, amount, amount paid, an optional reference/UTR you type in, and paid/pending status</li>
+  <li>Preferences: reminders on/off, how many days ahead to remind, notification sound</li>
+  <li>Which reminders have already been shown today, so you are not notified twice</li>
+  <li>Whether Premium has been unlocked on this device</li>
+</ul>
+<p>A copy of the card list, reminder settings and due-date bookkeeping is also written to the
+browser's Cache Storage on your device. This is what lets the app's background worker remind
+you while the app is closed — it is the same data, in the same browser, and it is not
+transmitted anywhere.</p>
+
+<h2>2. What the app never stores</h2>
+<ul>
+  <li>No full card number, CVV, PIN, expiry date, or cardholder name</li>
+  <li>No net-banking or bank app credentials</li>
+  <li>No name, email, phone number, or account of any kind</li>
+  <li>No location, contacts, photos, files, or device identifiers</li>
+  <li>No advertising or cross-site tracking cookies</li>
+</ul>
+<p>Local storage on a phone is not encrypted by the app. It is protected by your device's
+own lock screen and by the browser's per-site isolation. Because the app deliberately holds
+nothing more identifying than a bank name and four digits, a lost device does not expose
+anything usable to make a payment. Use <strong>Settings → Clear All Data</strong> to erase
+everything, or uninstall the app / clear site data.</p>
+
+<h2>3. Reminders and notifications</h2>
+<p>Reminders are generated on your device by comparing today's date with the due days you
+entered. Nothing is sent to a server to decide when to notify you, and no push service is
+involved. Background reminders rely on a browser feature (periodic background sync) that is
+only available in some browsers when the app is installed to your home screen; the Settings
+screen tells you which case applies to you.</p>
+
+<h2>4. Gmail auto-detect (optional, advanced)</h2>
+<p>This feature is off unless you deliberately set it up, and it is not required to use the
+app. If you enable it:</p>
+<ul>
+  <li>You supply your own Google OAuth client ID. The app requests the read-only
+      <code>gmail.readonly</code> permission through Google's own sign-in screen.</li>
+  <li>The resulting access token is held in this browser's memory only. It is not stored on
+      a server, and it is not sent to us. Equally, there is no server protecting it — this is
+      why the feature is labelled advanced/self-hosted.</li>
+  <li>Your browser queries the Gmail API directly for bill-related emails from Indian card
+      issuers. The bank name, last four digits, amount and due date are extracted
+      <strong>in your browser</strong>. Email bodies are never uploaded anywhere and are not
+      saved by the app.</li>
+  <li>You can revoke access at any time at
+      <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+</ul>
+<p>CardGuard's use of information received from Google APIs adheres to the
+<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services
+User Data Policy</a>, including the Limited Use requirements.</p>
+
+<h2>5. Payments</h2>
+<p>CardGuard Premium is a one-off yearly purchase made through Google Play Billing inside the
+Play Store version of the app. Google processes the payment; the app receives only a
+confirmation that the purchase exists and records the unlock on your device. We never see
+your payment method. CardGuard does not take, hold, or move money towards your credit card
+bills — marking a bill as paid is a note to yourself, made after you pay through your own
+bank.</p>
+
+<h2>6. Network requests</h2>
+<p>The app works offline. It loads its own files from this website, a web font from Google
+Fonts, and Google's sign-in script — which only runs if you use the optional Gmail feature.
+Like any web request, the hosting provider records standard server log information such as IP
+address and timestamp, used for delivery and abuse prevention and not linked to any profile.
+No analytics or tracking SDK is included.</p>
+
+<h2>7. Export and import</h2>
+<p>Export writes a JSON backup file to your device through your browser's download
+mechanism. Where that file then goes is up to you — treat it as you would any personal
+document. Import replaces the app's current data with the contents of a file you choose.</p>
+
+<h2>8. Not a bank</h2>
+<p>CardGuard is an independent reminder tool. It is not affiliated with, endorsed by, or
+operated by HDFC Bank, ICICI Bank, SBI Card, Axis Bank, Kotak Mahindra Bank, IndusInd Bank,
+American Express, Citibank, RBL Bank, or any other issuer. Always confirm due dates and
+amounts against your issuer's own statement or app.</p>
+
+<h2>9. Children</h2>
+<p>CardGuard is a general-purpose utility and is not directed at children under 13. It
+collects no personal data from anyone.</p>
+
+<h2>10. Changes to this policy</h2>
+<p>If this policy changes, the updated version will be published on this page with a new
+"last updated" date.</p>
+
+<h2>11. Contact</h2>
+<p>Questions about this policy: <a href="mailto:REPLACE_WITH_CONTACT_EMAIL">REPLACE_WITH_CONTACT_EMAIL</a></p>
+
+<footer>
+  <a href="./index.html">&larr; Back to CardGuard</a>
+</footer>
+
+</body>
+</html>

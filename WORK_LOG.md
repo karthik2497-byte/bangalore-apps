@@ -1,5 +1,93 @@
 # Work Log
 
+## CardGuard — backend-free reminders, premium tier, privacy (2026-08-20)
+
+Scope: §4.4 everything that does not require a server, plus §6.2 items 1, 3 and 5
+for this app. No new dependencies. SW `cardguard-v1` → `cardguard-v2`.
+
+### The core value proposition, without the backend
+The plan assumed "reminders with the app closed" needs Workers + Supabase + Web
+Push. It does not: every input to the decision (due days, paid cycles, remind-days
+preference) is already on the device. What was missing was a way to *wake up* and a
+way for the worker to *see* the data — a service worker cannot read `localStorage`.
+
+- **`reminder-core.js`** (new) — due-date maths, the reminder rule, dedupe keys and
+  formatting, in one file loaded three ways: `<script src>` in the page,
+  `importScripts` in the service worker, and directly by the tests. The page's own
+  `getNextDueDate` / `getDaysUntilDue` / `formatDate` / `formatCurrency` /
+  `getBillingCycleKey` are now one-line wrappers over it, so there is a single
+  implementation instead of one per surface.
+- **State mirror** — the page writes `{cards, settings, paidCycleKeys, notified}`
+  into Cache Storage (`cardguard-state`, separate from the versioned app cache so
+  the activate purge cannot eat it) on every `saveCards`/`saveBills`/`saveSettings`.
+  That is the worker's only view of the data.
+- **`periodicsync`** (`cardguard-check`, 12 h) fires the same `dueReminders()` in the
+  worker and shows the notification. Chromium-only and installed-PWA-only, so
+  Settings reports the real state — Active / "Install to your home screen" / "Not
+  supported here" — instead of implying delivery that never happens.
+- **Test button** in Settings runs the worker's check on demand over a
+  `MessageChannel` and reports what actually happened, including the failure reason.
+- A notification that fails to display is **not** recorded as sent, so it retries
+  once the user grants permission.
+
+### Premium (P1)
+- Free plan = 2 cards, manual entry. `cardLimitReached()` gates both `saveCard()`
+  and the Gmail importer; the paywall explains which limit was hit.
+- ₹99/year via **Play Billing through the Digital Goods API** (`getDigitalGoodsService`
+  + `PaymentRequest`), with Restore purchase via `listPurchases()`. Outside the
+  Play-installed TWA the service does not resolve and the button says so — no fake
+  purchase flow. Receipt validation is server-side work, deferred with the rest of
+  Phase C2.
+- The header badge was a decorative "PREMIUM" label on every install. It now shows
+  the real plan and taps through to Settings.
+
+### Gmail import (§6.2 #3)
+Relabelled **Advanced**, gated behind Premium, and carrying a warning that states
+plainly what the current design means: the read-only token stays in this browser,
+which is also to say no server is protecting it. Moving it to a Worker stays open.
+
+### Spend insights (P2)
+Six-month bar chart, monthly average and highest-spend card, derived on-device from
+payments already recorded here. No statement parsing, no upload — the recorded
+payments are the same numbers a parser would produce.
+
+### Fixes found on the way
+- The worker's notification actions opened `/` — the landing page, not the app. Now
+  `./index.html`, with the card id preserved.
+- `?action=snooze` from the notification's Snooze button was never handled by the
+  page; it silently did nothing. Snooze now writes one dedupe key that silences the
+  page check and the background check together.
+- On-time payment rate counted bills due *next month* as unpaid — a perfect record
+  showed as 50%. The denominator is now bills whose due date has arrived.
+- `dueReminders` range-checks `dueDay` (1–31). An imported backup with a negative
+  day walks the date maths into the past and reminds forever. Found by mutation
+  testing, not by review.
+
+### Verification (§0.3 gate — all four)
+1. **Syntax:** `node --check` on both inline blocks, `service-worker.js`,
+   `reminder-core.js` — PASS.
+2. **Tests:** `node 7_card_guard/test-cardguard.mjs` — 34 cases PASS. Mutation
+   tested 16/16 killed. (One further mutant — the day stamp swapped for
+   `toISOString()` — is equivalent: both are deterministic per local day.)
+3. **Runtime:** served at :8904 with the SW and all caches cleared. Fresh install
+   cached 7 files into `cardguard-v2`; free plan admitted 2 cards and paywalled the
+   3rd; `buyPremium()`/`restorePurchases()` on the plain web reported "only in the
+   Play Store version" and granted nothing; the Test button proved the whole
+   background chain — page mirror → worker read → `importScripts` core → correct
+   reminders selected → `showNotification` attempted → failure reported back to the
+   page — and left `notified` empty so it retries; marking a bill paid removed it
+   from the worker's due list; snooze silenced today and not tomorrow; insights
+   arithmetic checked by hand (avg ₹13,300, Aug ₹26,700, top card ₹27,500).
+4. **Regression:** all 4 tabs render, card flip, bill expand, every modal opened and
+   closed, reload persistence (3 cards, premium, 5 paid bills, snooze key), privacy
+   page renders with 11 sections. 0 app console errors.
+
+**Not verifiable here:** the notification actually painting. Granting the OS
+notification permission needs a click on a browser prompt, and calling
+`Notification.requestPermission()` from automation froze the tab. Everything up to
+and including the `showNotification` call is proven; the remaining step is a
+one-tap check on a real device.
+
 ## PG Buddy — real listings pipeline (2026-08-15)
 
 Implements EXECUTION_PLAN §4.6 as far as it goes without a backend. The Supabase-dependent

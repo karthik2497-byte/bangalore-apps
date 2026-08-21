@@ -11,6 +11,7 @@
   <link rel="apple-touch-icon" href="icon-192.svg">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://accounts.google.com/gsi/client" async></script>
+  <script src="reminder-core.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
@@ -544,6 +545,61 @@
     .btn-clear { background: rgba(255,23,68,0.1); color: #FF1744; }
     .btn-data:hover { filter: brightness(1.2); }
 
+    /* ====================== PLAN / PREMIUM ====================== */
+    .header-badge.badge-free { background: rgba(123,140,168,0.15); color: #7B8CA8; cursor: pointer; }
+    .btn-upgrade {
+      padding: 8px 16px; border-radius: 10px; flex-shrink: 0;
+      background: #FFB800; color: #0A0E1A;
+      font-size: 13px; font-weight: 700; transition: all 0.2s;
+    }
+    .btn-upgrade:hover { filter: brightness(1.1); }
+    .btn-test-bg {
+      padding: 7px 14px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(0,188,212,0.12); color: #00BCD4;
+      font-size: 12px; font-weight: 600;
+    }
+    .premium-reason { font-size: 13px; color: #7B8CA8; margin-bottom: 14px; line-height: 1.5; }
+    .premium-price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 14px; }
+    .premium-price { font-size: 30px; font-weight: 700; color: #FFB800; }
+    .premium-period { font-size: 13px; color: #7B8CA8; }
+    .premium-benefits { list-style: none; margin-bottom: 18px; }
+    .premium-benefits li {
+      font-size: 13px; color: #E6EAF2; padding: 7px 0 7px 22px; position: relative;
+    }
+    .premium-benefits li::before {
+      content: '✓'; position: absolute; left: 0; color: #00C853; font-weight: 700;
+    }
+    .gmail-warning {
+      font-size: 11px; line-height: 1.5; color: #FF9100;
+      background: rgba(255,145,0,0.08); border-radius: 10px; padding: 10px 12px;
+    }
+
+    /* ====================== SPEND INSIGHTS ====================== */
+    .insights-card {
+      background: #141B2D; border-radius: 14px; padding: 16px;
+      border: 1px solid rgba(255,255,255,0.04); margin-bottom: 12px;
+    }
+    .insight-figures { display: flex; gap: 24px; margin-bottom: 16px; }
+    .insight-value { font-size: 19px; font-weight: 700; color: #FFFFFF; }
+    .insight-label { font-size: 11px; color: #7B8CA8; margin-top: 2px; }
+    .insight-chart {
+      display: flex; align-items: flex-end; gap: 10px; height: 92px;
+    }
+    .insight-bar {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-end; height: 100%; gap: 6px;
+    }
+    .insight-bar-fill {
+      width: 100%; max-width: 34px; border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, #FFB800, rgba(255,184,0,0.35));
+    }
+    .insight-bar span { font-size: 10px; color: #7B8CA8; }
+    .insight-top {
+      font-size: 12px; color: #7B8CA8; margin-top: 14px;
+      padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .insight-top strong { color: #E6EAF2; font-weight: 600; }
+
     /* About */
     .about-info { text-align: center; padding: 20px; color: #7B8CA8; font-size: 13px; }
     .about-info .version { font-size: 15px; font-weight: 600; color: #FFB800; margin-bottom: 4px; }
@@ -674,7 +730,7 @@
           </div>
           <span class="header-title">CardGuard</span>
         </div>
-        <span class="header-badge">PREMIUM</span>
+        <span id="plan-badge" class="header-badge badge-free" onclick="switchTab('settings')">FREE</span>
       </div>
 
       <div id="dashboard-content">
@@ -814,6 +870,28 @@
   </div>
 </div>
 
+<!-- ======================== PREMIUM MODAL ======================== -->
+<div id="modal-premium" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-premium')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">CardGuard Premium</div>
+    <p id="premium-reason" class="premium-reason"></p>
+    <div class="premium-price-row">
+      <span id="premium-price" class="premium-price">₹99</span>
+      <span id="premium-period" class="premium-period">per year</span>
+    </div>
+    <ul class="premium-benefits">
+      <li>Unlimited cards (free plan tracks 2)</li>
+      <li>Gmail auto-sync — bills fill themselves in</li>
+      <li>Background reminders keep working</li>
+      <li>Everything stays on your device</li>
+    </ul>
+    <button class="btn-save-card" onclick="buyPremium()">Upgrade for ₹99/year</button>
+    <button class="btn-cancel" onclick="restorePurchases()">Restore purchase</button>
+    <button class="btn-cancel" onclick="closeModal('modal-premium')">Not now</button>
+  </div>
+</div>
+
 <!-- ======================== GMAIL INFO MODAL ======================== -->
 <div id="modal-gmail-info" class="modal-overlay gmail-info-modal" onclick="if(event.target===this)closeModal('modal-gmail-info')">
   <div class="modal-sheet">
@@ -904,7 +982,21 @@ const SOUND_TYPES = [
   { id: 'buzz', name: 'Soft Buzz' }
 ];
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+// Due-date maths, reminder selection and formatting live in reminder-core.js —
+// the service worker runs the same code, so there is exactly one copy.
+const CORE = self.CardGuardCore;
+const MONTHS = CORE.MONTHS;
+
+// ====================== PREMIUM (EXECUTION_PLAN §4.4 P1) ======================
+const FREE_CARD_LIMIT = 2;
+const PREMIUM = {
+  sku: 'cardguard_premium_yearly',
+  price: '₹99',
+  period: 'per year',
+  // Play's Digital Goods endpoint. Only resolvable inside the Play-installed
+  // TWA; on the plain web the unlock button says so instead of faking a sale.
+  billingService: 'https://play.google.com/billing'
+};
 
 // ====================== STATE ======================
 let cards = JSON.parse(localStorage.getItem('cardguard_cards') || '[]');
@@ -915,53 +1007,71 @@ let settings = JSON.parse(localStorage.getItem('cardguard_settings') || 'null') 
   sound: 'chime',
   gmailClientId: '',
   gmailConnected: false,
-  lastSynced: null
+  lastSynced: null,
+  premium: false,
+  premiumSince: null
 };
+// Reminders already shown, keyed `<cardId>_<Y-M-D>`. One record, pruned to
+// today, shared with the worker through the state mirror.
+let notified = CORE.pruneNotified(JSON.parse(localStorage.getItem('cardguard_notified') || '{}'), new Date());
 
 let currentPaymentCardId = null;
 let confirmCallback = null;
 let detectedGmailCards = [];
 let gmailAccessToken = null;
+let backgroundStatus = 'checking';
 
 // ====================== PERSISTENCE ======================
-function saveCards() { localStorage.setItem('cardguard_cards', JSON.stringify(cards)); }
-function saveBills() { localStorage.setItem('cardguard_bills', JSON.stringify(bills)); }
-function saveSettings() { localStorage.setItem('cardguard_settings', JSON.stringify(settings)); }
+function saveCards() { localStorage.setItem('cardguard_cards', JSON.stringify(cards)); syncMirror(); }
+function saveBills() { localStorage.setItem('cardguard_bills', JSON.stringify(bills)); syncMirror(); }
+function saveSettings() { localStorage.setItem('cardguard_settings', JSON.stringify(settings)); syncMirror(); }
+function saveNotified() { localStorage.setItem('cardguard_notified', JSON.stringify(notified)); syncMirror(); }
+
+// ---- state mirror: the only way the service worker can see this data ----
+const STATE_CACHE = 'cardguard-state';
+const STATE_URL = './__cardguard_state';
+
+function mirrorState() {
+  return {
+    cards: cards,
+    settings: { notifications: settings.notifications, remindDays: settings.remindDays },
+    paidCycleKeys: bills.filter(b => b.status === 'paid').map(b => b.cycleKey),
+    notified: notified
+  };
+}
+
+function syncMirror() {
+  if (!self.caches) return Promise.resolve();
+  return caches.open(STATE_CACHE)
+    .then(cache => cache.put(STATE_URL, new Response(JSON.stringify(mirrorState()), {
+      headers: { 'Content-Type': 'application/json' }
+    })))
+    .catch(() => {});
+}
+
+// Pick up anything the worker notified about while the app was closed, so the
+// page does not repeat it.
+function adoptWorkerNotifications() {
+  if (!self.caches) return Promise.resolve();
+  return caches.open(STATE_CACHE)
+    .then(cache => cache.match(STATE_URL))
+    .then(res => res && res.json())
+    .then(state => {
+      if (!state || !state.notified) return;
+      let changed = false;
+      Object.keys(state.notified).forEach(k => { if (!notified[k]) { notified[k] = 1; changed = true; } });
+      notified = CORE.pruneNotified(notified, new Date());
+      if (changed) localStorage.setItem('cardguard_notified', JSON.stringify(notified));
+    })
+    .catch(() => {});
+}
 
 // ====================== DATE UTILITIES ======================
-function getNextDueDate(dayOfMonth) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let day = Math.min(dayOfMonth, new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
-  let dueDate = new Date(today.getFullYear(), today.getMonth(), day);
-  if (dueDate < today) {
-    day = Math.min(dayOfMonth, new Date(today.getFullYear(), today.getMonth() + 2, 0).getDate());
-    dueDate = new Date(today.getFullYear(), today.getMonth() + 1, day);
-  }
-  return dueDate;
-}
-
-function getDaysUntilDue(dayOfMonth) {
-  const due = getNextDueDate(dayOfMonth);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-}
-
-function formatDate(date) {
-  const d = new Date(date);
-  return d.getDate() + ' ' + MONTHS[d.getMonth()].substring(0, 3) + ' ' + d.getFullYear();
-}
-
-function formatCurrency(amount) {
-  if (!amount && amount !== 0) return '₹ --';
-  return '₹' + Number(amount).toLocaleString('en-IN');
-}
-
-function getBillingCycleKey(cardId, dueDay) {
-  const dueDate = getNextDueDate(dueDay);
-  return cardId + '_' + dueDate.getFullYear() + '_' + dueDate.getMonth() + '_' + dueDate.getDate();
-}
+function getNextDueDate(dayOfMonth) { return CORE.nextDueDate(dayOfMonth, new Date()); }
+function getDaysUntilDue(dayOfMonth) { return CORE.daysUntilDue(dayOfMonth, new Date()); }
+function formatDate(date) { return CORE.formatDate(date); }
+function formatCurrency(amount) { return CORE.formatCurrency(amount); }
+function getBillingCycleKey(cardId, dueDay) { return CORE.cycleKey(cardId, dueDay, new Date()); }
 
 function isBillPaidThisCycle(cardId, dueDay) {
   const key = getBillingCycleKey(cardId, dueDay);
@@ -992,6 +1102,87 @@ function genId() { return Date.now().toString(36) + Math.random().toString(36).s
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ====================== PREMIUM ENTITLEMENT ======================
+function isPremium() { return settings.premium === true; }
+
+function cardLimitReached() { return !isPremium() && cards.length >= FREE_CARD_LIMIT; }
+
+function grantPremium(source) {
+  settings.premium = true;
+  settings.premiumSince = settings.premiumSince || new Date().toISOString();
+  settings.premiumSource = source;
+  saveSettings();
+  updateHeaderBadge();
+}
+
+// Play Billing, reached through the Digital Goods API. Resolves to null on the
+// open web, which is the honest answer — there is nothing to charge with there.
+async function billingService() {
+  if (!window.getDigitalGoodsService) return null;
+  try { return await window.getDigitalGoodsService(PREMIUM.billingService); }
+  catch (e) { return null; }
+}
+
+async function buyPremium() {
+  const service = await billingService();
+  if (!service) {
+    showToast('Purchases are only available in the Play Store version');
+    return;
+  }
+  try {
+    const details = await service.getDetails([PREMIUM.sku]);
+    if (!details.length) { showToast('Product not available yet'); return; }
+    const request = new PaymentRequest(
+      [{ supportedMethods: PREMIUM.billingService, data: { sku: PREMIUM.sku } }],
+      { total: { label: 'CardGuard Premium', amount: { currency: details[0].price.currency, value: details[0].price.value } } }
+    );
+    const response = await request.show();
+    // Server-side receipt validation is the Phase C2 job (EXECUTION_PLAN §4.4).
+    // ponytail: acknowledging locally is what a no-backend build can honestly
+    // do; a determined user can unlock for free, which costs nothing real.
+    await response.complete('success');
+    grantPremium('play');
+    closeModal('modal-premium');
+    showToast('Premium unlocked. Thank you!');
+    renderSettings();
+  } catch (e) {
+    showToast('Purchase cancelled');
+  }
+}
+
+async function restorePurchases() {
+  const service = await billingService();
+  if (!service) { showToast('Nothing to restore outside the Play Store version'); return; }
+  try {
+    const purchases = await service.listPurchases();
+    if (purchases.some(p => p.itemId === PREMIUM.sku)) {
+      grantPremium('play-restore');
+      closeModal('modal-premium');
+      showToast('Premium restored');
+      renderSettings();
+    } else {
+      showToast('No previous purchase found');
+    }
+  } catch (e) {
+    showToast('Could not reach Play Billing');
+  }
+}
+
+function openPaywall(reason) {
+  document.getElementById('premium-reason').textContent = reason ||
+    'Unlock everything CardGuard can do.';
+  document.getElementById('premium-price').textContent = PREMIUM.price;
+  document.getElementById('premium-period').textContent = PREMIUM.period;
+  openModal('modal-premium');
+}
+
+function updateHeaderBadge() {
+  const badge = document.getElementById('plan-badge');
+  if (!badge) return;
+  badge.textContent = isPremium() ? 'PREMIUM' : 'FREE';
+  badge.classList.toggle('badge-free', !isPremium());
 }
 
 // ====================== SPLASH SCREEN ======================
@@ -1213,8 +1404,12 @@ function renderHistory() {
   const container = document.getElementById('history-content');
 
   const paidBills = bills.filter(b => b.status === 'paid');
-  const totalBills = bills.length;
-  const onTimeRate = totalBills > 0 ? Math.round((paidBills.length / totalBills) * 100) : 0;
+  // Only bills whose due date has arrived can be judged. Counting a bill due
+  // next week as "not paid" dragged a perfect record down to 50%.
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const decided = bills.filter(b => b.status === 'paid' || new Date(b.dueDate) <= today);
+  const totalBills = decided.length;
+  const onTimeRate = totalBills > 0 ? Math.round((decided.filter(b => b.status === 'paid').length / totalBills) * 100) : 0;
 
   if (bills.length === 0) {
     container.innerHTML = `
@@ -1245,9 +1440,11 @@ function renderHistory() {
       </div>
       <div class="stat-info">
         <h4>On-Time Payment Rate</h4>
-        <p>${paidBills.length} paid out of ${totalBills} total bills</p>
+        <p>${decided.filter(b => b.status === 'paid').length} paid out of ${totalBills} bills due so far</p>
       </div>
     </div>`;
+
+  html += renderInsights(paidBills);
 
   // Group by month
   const grouped = {};
@@ -1296,6 +1493,53 @@ function renderHistory() {
   container.innerHTML = html;
 }
 
+/* Spend insights (EXECUTION_PLAN §4.4 P2) — derived on-device from payments
+   already recorded here. No statement parsing, no upload, no network call.
+   ponytail: recorded payments are the same numbers a statement parser would
+   produce; parse statements only if users start asking for line items. */
+function renderInsights(paidBills) {
+  if (paidBills.length === 0) return '';
+
+  const buckets = new Map();
+  paidBills.forEach(b => {
+    const d = new Date(b.paidAt || b.dueDate);
+    const key = d.getFullYear() + '-' + d.getMonth();
+    const entry = buckets.get(key) || { label: MONTHS[d.getMonth()].substring(0, 3), total: 0, date: new Date(d.getFullYear(), d.getMonth(), 1) };
+    entry.total += Number(b.paidAmount || b.amount || 0);
+    buckets.set(key, entry);
+  });
+
+  const months = [...buckets.values()].sort((a, b) => a.date - b.date).slice(-6);
+  const peak = Math.max(...months.map(m => m.total), 1);
+  const average = months.reduce((sum, m) => sum + m.total, 0) / months.length;
+
+  const perCard = new Map();
+  paidBills.forEach(b => {
+    const card = cards.find(c => c.id === b.cardId);
+    const name = card ? CORE.cardLabel(card) : 'Deleted card';
+    perCard.set(name, (perCard.get(name) || 0) + Number(b.paidAmount || b.amount || 0));
+  });
+  const top = [...perCard.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  const bars = months.map(m => `
+    <div class="insight-bar">
+      <div class="insight-bar-fill" style="height:${Math.max(4, Math.round((m.total / peak) * 100))}%"
+        title="${formatCurrency(m.total)}"></div>
+      <span>${m.label}</span>
+    </div>`).join('');
+
+  return `
+    <div class="section-title">Spend Insights <span class="count">on-device</span></div>
+    <div class="insights-card">
+      <div class="insight-figures">
+        <div><div class="insight-value">${formatCurrency(Math.round(average))}</div><div class="insight-label">Average / month</div></div>
+        <div><div class="insight-value">${formatCurrency(months[months.length - 1].total)}</div><div class="insight-label">${months[months.length - 1].label} total</div></div>
+      </div>
+      <div class="insight-chart">${bars}</div>
+      ${top ? `<div class="insight-top">Highest spend: <strong>${esc(top[0])}</strong> · ${formatCurrency(top[1])}</div>` : ''}
+    </div>`;
+}
+
 function toggleHistoryMonth(el) {
   el.classList.toggle('expanded');
   const entries = el.nextElementSibling;
@@ -1323,7 +1567,30 @@ function renderSettings() {
       </div>`;
   });
 
+  const bg = backgroundStatusText();
+
   container.innerHTML = `
+    <div class="settings-section">
+      <div class="settings-section-title">Plan</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">${isPremium() ? 'CardGuard Premium' : 'Free plan'}</div>
+            <div class="settings-row-sub">${isPremium()
+              ? 'Unlimited cards and Gmail auto-sync' + (settings.premiumSince ? ' · since ' + formatDate(settings.premiumSince) : '')
+              : cards.length + ' of ' + FREE_CARD_LIMIT + ' cards used · manual entry only'}</div>
+          </div>
+          ${isPremium() ? '' : `<button class="btn-upgrade" onclick="openPaywall()">Upgrade</button>`}
+        </div>
+        ${isPremium() ? '' : `
+        <div class="settings-row">
+          <div style="width:100%">
+            <button class="btn-data btn-import" style="margin:0" onclick="restorePurchases()">Restore purchase</button>
+          </div>
+        </div>`}
+      </div>
+    </div>
+
     <div class="settings-section">
       <div class="settings-section-title">Notifications</div>
       <div class="settings-card">
@@ -1333,6 +1600,13 @@ function renderSettings() {
             <div class="settings-row-sub">Get notified before bill due dates</div>
           </div>
           <div class="toggle-switch ${settings.notifications ? 'active' : ''}" onclick="toggleNotifications()"></div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Background Reminders</div>
+            <div class="settings-row-sub" style="color:${bg.ok ? '#00C853' : '#7B8CA8'}">${bg.text}</div>
+          </div>
+          <button class="btn-test-bg" onclick="testBackgroundCheck()">Test</button>
         </div>
         <div class="settings-row">
           <div style="width:100%">
@@ -1348,9 +1622,15 @@ function renderSettings() {
     </div>
 
     <div class="settings-section">
-      <div class="settings-section-title">Gmail Integration</div>
+      <div class="settings-section-title">Gmail Integration <span style="color:#FF9100;font-size:11px">· Advanced</span></div>
       <div class="settings-card">
         <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="gmail-warning">
+            Self-hosted setup. You supply your own Google OAuth client, and the
+            read-only Gmail token stays in this browser — it is never sent anywhere
+            else, but it also is not held by a server that could protect it.
+            ${isPremium() ? '' : 'Gmail auto-sync is a Premium feature.'}
+          </div>
           <div class="settings-row-label">Google OAuth Client ID</div>
           <div class="gmail-input-wrapper" style="width:100%">
             <input type="password" id="settings-gmail-id" class="form-input" placeholder="Enter Client ID"
@@ -1389,7 +1669,8 @@ function renderSettings() {
 
     <div class="settings-section">
       <div class="about-info">
-        <div class="version">CardGuard v1.0</div>
+        <div class="version">CardGuard v1.1</div>
+        <div style="margin-bottom:6px"><a href="privacy.html" style="color:#FFB800;text-decoration:none">Privacy Policy</a></div>
         <div>Never Miss a Bill.</div>
       </div>
     </div>`;
@@ -1524,6 +1805,11 @@ function saveCard() {
   const dueDay = parseInt(document.getElementById('input-dueday').value);
   const amount = parseFloat(document.getElementById('input-amount').value) || 0;
 
+  if (cardLimitReached()) {
+    closeModal('modal-add-card');
+    openPaywall('The free plan tracks ' + FREE_CARD_LIMIT + ' cards. Add unlimited cards with Premium.');
+    return;
+  }
   if (!bank) { showToast('Please select a bank'); return; }
   if (!/^\d{4}$/.test(last4)) { showToast('Enter valid last 4 digits'); return; }
   if (!dueDay || dueDay < 1 || dueDay > 31) { showToast('Enter a valid due date (1-31)'); return; }
@@ -1652,8 +1938,11 @@ function confirmPayment() {
 }
 
 function snoozeBill(cardId) {
-  // Suppress today's reminder — checkAndNotify skips cards with today's notif key set
-  localStorage.setItem('cardguard_notif_' + cardId + '_' + new Date().toDateString(), '1');
+  // Suppress today's reminder in both places at once: dueReminders() skips any
+  // card whose key is already in `notified`, and the mirror carries it to the
+  // worker so the background check stays quiet too.
+  notified[CORE.notifyKey(cardId, new Date())] = 1;
+  saveNotified();
   showToast('Reminder snoozed until tomorrow');
 }
 
@@ -1700,45 +1989,92 @@ function requestNotificationPermission() {
 }
 
 function checkAndNotify() {
-  if (!settings.notifications) return;
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-  cards.forEach(card => {
-    const days = getDaysUntilDue(card.dueDay);
-    const isPaid = isBillPaidThisCycle(card.id, card.dueDay);
+  const due = CORE.dueReminders(mirrorState(), new Date());
+  let fired = false;
 
-    if (!isPaid && days <= settings.remindDays && days >= 0) {
-      const amount = card.typicalAmount ? ' of ' + formatCurrency(card.typicalAmount) : '';
-      const title = 'CardGuard Reminder';
-      const body = `💳 ${card.nickname || card.bank + ' Card'}${amount} due in ${days} day${days !== 1 ? 's' : ''}!`;
-
-      // Check if we already notified today for this card
-      const notifKey = 'cardguard_notif_' + card.id + '_' + new Date().toDateString();
-      if (!localStorage.getItem(notifKey)) {
-        try {
-          const notification = new Notification(title, {
-            body: body,
-            icon: 'icon-192.svg',
-            badge: 'icon-192.svg',
-            tag: 'cardguard-' + card.id,
-            data: { cardId: card.id }
-          });
-          notification.onclick = function () {
-            window.focus();
-            openPaymentModal(card.id);
-          };
-          localStorage.setItem(notifKey, '1');
-          playSound(settings.sound);
-        } catch (e) {
-          console.warn('Notification failed:', e);
-        }
-      }
+  due.forEach(reminder => {
+    try {
+      const notification = new Notification(reminder.title, {
+        body: reminder.body,
+        icon: 'icon-192.svg',
+        badge: 'icon-192.svg',
+        tag: 'cardguard-' + reminder.cardId,
+        data: { cardId: reminder.cardId }
+      });
+      notification.onclick = function () {
+        window.focus();
+        openPaymentModal(reminder.cardId);
+      };
+      notified[reminder.key] = 1;
+      fired = true;
+    } catch (e) {
+      console.warn('Notification failed:', e);
     }
   });
+
+  if (fired) {
+    saveNotified();
+    playSound(settings.sound);
+  }
+}
+
+// Ask the worker to run the same check, so "does the background path work?" is
+// answerable without waiting hours for periodicSync to fire on its own.
+function testBackgroundCheck() {
+  if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+    showToast('Service worker not active yet — reload once');
+    return;
+  }
+  syncMirror().then(() => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = event => {
+      const r = (event.data && event.data.result) || {};
+      if (r.error) showToast('Worker ran, but could not notify: ' + r.error);
+      else if (!r.due) showToast('Worker ran — nothing due right now');
+      else showToast('Worker sent ' + r.shown + ' of ' + r.due + ' reminder' + (r.due === 1 ? '' : 's'));
+    };
+    navigator.serviceWorker.controller.postMessage({ type: 'check-reminders' }, [channel.port2]);
+  });
+}
+
+// periodicSync is what wakes the worker with the app closed. It only exists in
+// installed PWAs on Chromium; elsewhere reminders stay in-app, and the settings
+// screen says so rather than implying background delivery that never happens.
+async function registerBackgroundChecks() {
+  backgroundStatus = 'unsupported';
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.ready;
+    if (!reg.periodicSync) return;
+    const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+    if (status.state !== 'granted') { backgroundStatus = 'blocked'; return; }
+    await reg.periodicSync.register('cardguard-check', { minInterval: 12 * 60 * 60 * 1000 });
+    backgroundStatus = 'active';
+  } catch (e) {
+    backgroundStatus = 'unsupported';
+  } finally {
+    if (document.getElementById('settings-content').innerHTML) renderSettings();
+  }
+}
+
+function backgroundStatusText() {
+  switch (backgroundStatus) {
+    case 'active': return { text: 'Active — reminders fire with the app closed', ok: true };
+    case 'blocked': return { text: 'Install the app to your home screen to enable', ok: false };
+    case 'checking': return { text: 'Checking…', ok: false };
+    default: return { text: 'Not supported here — open the app to get reminders', ok: false };
+  }
 }
 
 // ====================== GMAIL INTEGRATION ======================
 function handleGmailDetect() {
+  if (!isPremium()) {
+    closeModal('modal-add-card');
+    openPaywall('Gmail auto-sync reads your bill emails and fills the cards in for you.');
+    return;
+  }
   if (!settings.gmailClientId) {
     openModal('modal-gmail-info');
     return;
@@ -1905,9 +2241,10 @@ function toggleDetectedCard(idx) {
 }
 
 function importDetectedCards() {
-  let imported = 0;
+  let imported = 0, blocked = 0;
   detectedGmailCards.forEach(dc => {
     if (!dc.selected) return;
+    if (cardLimitReached()) { blocked++; return; }
     // Check for duplicate
     const exists = cards.find(c => c.bank === dc.bank && c.last4 === dc.last4);
     if (exists) return;
@@ -1929,7 +2266,8 @@ function importDetectedCards() {
   saveCards();
   saveBills();
   closeModal('modal-gmail-detected');
-  showToast(`Imported ${imported} card${imported !== 1 ? 's' : ''} from Gmail!`);
+  showToast(`Imported ${imported} card${imported !== 1 ? 's' : ''} from Gmail!` +
+    (blocked > 0 ? ` ${blocked} skipped — free plan limit.` : ''));
   renderCards();
 }
 
@@ -2039,18 +2377,28 @@ function handleUrlParams() {
   if (action === 'markPaid' && cardId) {
     setTimeout(() => openPaymentModal(cardId), 500);
     window.history.replaceState({}, '', window.location.pathname);
+  } else if (action === 'snooze' && cardId) {
+    // The worker's Snooze button lands here; before this it silently did nothing.
+    snoozeBill(cardId);
+    window.history.replaceState({}, '', window.location.pathname);
   }
 }
 
 // ====================== INITIALIZATION ======================
 function init() {
   ensureAllBills();
+  updateHeaderBadge();
   renderDashboard();
 
   // Request notification permission if enabled
   if (settings.notifications) {
     requestNotificationPermission();
   }
+
+  // Make the worker's view of the data current, adopt anything it notified
+  // about while the app was closed, then arrange to be woken up again.
+  syncMirror();
+  adoptWorkerNotifications().then(registerBackgroundChecks);
 
   // Check for pending notifications
   setTimeout(checkAndNotify, 3000);
