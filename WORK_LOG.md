@@ -1,5 +1,144 @@
 # Work Log
 
+## Phase A — deploy config, and two CSP bugs only a browser could find (2026-08-29)
+
+Scope: §7 Phase A, repo side only. No app code touched. Creating the Cloudflare
+Pages project, granting it GitHub access and buying the domain are account actions
+and a purchase — those stay with Karthik.
+
+### The site is not the repo
+Cloudflare Pages serves whatever sits in the output directory. Pointing it at the
+repo root would have published `EXECUTION_PLAN.md`, `WORK_LOG.md`, `PLAYBOOK.html`,
+`MISTAKES.md` and every `test-*.mjs` on the live domain — the revenue plan included.
+
+`scripts/build-site.sh` copies `index.html`, `_headers` and the 7 app folders into
+`dist/`, excluding `*.md`, `tools/` and `test-*.mjs`, then **fails** if anything it
+did not intend is in the output. Pages config: build command
+`bash scripts/build-site.sh`, output directory `dist`.
+
+The exclusion could have been a list of paths in the Pages dashboard. It is a script
+in the repo instead, because a dashboard setting is invisible from here and nothing
+would have caught it drifting.
+
+### Testing the headers instead of reading them
+`_headers` had a CSP for 3 of 7 apps and had never been served to a browser. Rather
+than write the other 4 by inspection, I served `dist/` through a small local server
+that parses `_headers` and applies the matching rules verbatim, then drove the real
+apps against it. Two bugs surfaced that reading would not have shown:
+
+1. **All 7 apps load their typeface from Google Fonts** — including MeterSmart and
+   LingoLocal, whose existing CSPs allowed only `style-src 'self'`. Both would have
+   gone live unstyled.
+
+2. **A service worker inherits its app's CSP, and that governs its pass-through
+   fetch.** `service-worker.js` is served from `/5_lingo_local/`, so the `/5_lingo_local/*`
+   rule applies to it. Its handler ends in `fetch(event.request)` — and from inside a
+   worker that is a `connect-src` fetch, whatever the page's original request was for.
+   With `connect-src 'self'` every webfont failed as `TypeError: Failed to fetch` the
+   moment the SW took control. Allowing the origin in `style-src` and `font-src` is
+   not enough; it has to be in `connect-src` as well.
+
+   This one cost the most time because it looks like a CSP violation and is not one:
+   no `securitypolicyviolation` event fires, the console stays clean, and the only
+   evidence is the rejected promise inside the worker. It also hid behind Chrome's
+   HTTP cache — a re-registered SW kept serving the *old* script with the *old*
+   CSP, so the first verification of the fix still failed. Registering the probe
+   under a fresh filename was what proved the fix.
+
+`scripts/build-site.sh` now fails the build if any per-app CSP loses one of the three
+font allowances. Mutation-checked: dropping `fonts.googleapis.com` from one
+`connect-src` fails the build.
+
+### Verified in a browser, under the real headers
+- **LingoLocal** — SW controlling, Poppins and Noto Sans Kannada both `loaded`, and a
+  bundled clip fetched and decoded to 0.94 s through `connect-src 'self'` /
+  `media-src 'self'`.
+- **PG Buddy** — 8 listings fetched from `pgs.json` and cached, listings rendered, and
+  the response carried `public, max-age=0, must-revalidate` (new rule, matching
+  `fares.json` — a newly verified PG has to reach clients on the next launch).
+- **CardGuard** — `reminder-core.js` loaded under `script-src 'self'`, app rendered.
+- All 4 test suites still PASS.
+
+### Not done, on purpose
+- **SW cache version bump (Phase A item 4)** — nothing is live, so no client holds a
+  stale cache. A bump now is churn. It applies from the second deploy onward.
+- **StockPing's proxy origins** are in its `connect-src`, but the request path was not
+  exercised — driving it would have hit the live CORS proxies and real retail sites.
+
+### Found in the working tree, not mine
+`4_nest_hub/index.html` and `6_stock_ping/index.html` had uncommitted `showToast`
+fixes (`innerHTML = icon + message` → `innerHTML = icon; append(message)`) with
+matching SW bumps, from another session. They are correct and they close a real §0.2
+XSS path, but they are not this change-set — left in place, uncommitted, and reported.
+
+## Browser smoke test of all 7 apps + toast XSS fix (2026-08-29)
+
+The 2026-07-11 review pass shipped fixes to all 7 apps but only ever cleared `node --check`
+— its own log line said the browser smoke test was NOT done. PowerPulse and NestHub were
+still carrying that debt (every other app has been driven in a browser since, during its
+roadmap build). Closed it for all 7.
+
+### New finding — XSS in `showToast()` (NestHub + StockPing)
+
+The 07-11 pass escaped the render paths but missed the toast, which builds its body with
+`toast.innerHTML = icon + message` while callers interpolate user input straight in:
+
+- NestHub `approveVisitor()` → ``showToast(`QR pass generated for ${name}!`)`` — visitor name
+  is free text. **Reproduced live: a visitor named `<img src=x onerror=...>` executed.**
+- StockPing `addProduct()` → ``showToast(`Now tracking: ${name}`)`` — the name comes from
+  `detectedProductData`, i.e. a *scraped remote page*. Worse than user input: the payload
+  arrives from a third-party site the user never typed.
+
+Fixed once in each shared `showToast()` rather than at the five call sites — the icon stays
+markup, the message becomes a text node:
+
+```js
+toast.innerHTML = iconSvg;
+toast.append(message);   // string arg → text node, no parsing
+```
+
+Checked every `showToast` caller in both apps first: none passes markup as the message, so
+nothing regresses. The other 5 apps build their toasts with `textContent` and were never
+affected. SW caches bumped: `nesthub-v1` → `v2`, `stockping-v2` → `v3`.
+
+### Verification (§0.3 gate — all four)
+
+Every app was tested after unregistering its service worker and deleting its caches first —
+the 2026-08-07 entry records a test loop invalidated by a cache-first SW serving stale
+`index.html`, and both apps did have a live SW + populated cache from earlier sessions.
+
+1. **Syntax:** 14 inline blocks + 7 service workers, `node --check` → PASS (before and after
+   the fix).
+2. **Runtime:** served at `:8899`, driven in Chrome.
+   - *PowerPulse:* submitted a report for Hebbal with an `<img onerror>` payload in the
+     description → sheet renders it as an inert text node (0 child elements, handler never
+     fired). Auto-expiry: aged the report to −13h, reload moved it active → resolved
+     (5→4 active, 2→3 resolved), resolved list capped at 10.
+   - *NestHub:* RSVP 18 → 19 attending with all 3 SVG `width`/`height` attributes unchanged
+     (the 07-11 bug corrupted `width="14"`). Visitor pass with an XSS payload: fired before
+     the fix, inert after (toast's only child element is the `<svg>`). Cancel Pass 3 → 2.
+   - *StockPing:* `showToast()` called directly with a payload → inert, 0 injected nodes.
+3. **Persistence:** reload → PowerPulse kept the Hebbal outage (5 active); NestHub kept all
+   3 visitors and still rendered the injected name as text.
+4. **Regression:** every tab of all 7 apps opened and rendered non-empty content —
+   PowerPulse 5, MeterSmart 5, PG Buddy 4, NestHub 5, LingoLocal 3, StockPing 3, CardGuard 4.
+   **0 app console errors anywhere** (only MetaMask extension noise on one load).
+
+Incidental confirmation: LingoLocal shows `{"count":1}` for a first-time visitor — the 07-11
+streak off-by-one is fixed.
+
+### Not fixed (deliberate)
+
+- PowerPulse has no `esc()` helper; its one user-input sink escapes with
+  `.replace(/</g,'&lt;')` inline. That is sufficient — `&lt;` in text content cannot re-open
+  a tag — but it is off-pattern versus §0.2, and a second sink added carelessly would not be
+  covered.
+- PowerPulse `#report-form`: when an active outage already exists for the same area+type, the
+  submission only does `existing.reports += 1` — the user's description and severity are
+  silently discarded. Reasonable as aggregation, invisible as UX.
+
+---
+
 ## CardGuard — backend-free reminders, premium tier, privacy (2026-08-20)
 
 Scope: §4.4 everything that does not require a server, plus §6.2 items 1, 3 and 5

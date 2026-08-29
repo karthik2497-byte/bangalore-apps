@@ -1,7 +1,16 @@
 # Cloudflare Pages headers. Rules are additive: /* applies everywhere,
-# per-app rules add the CSP for apps whose network surface is settled.
+# per-app rules add the CSP for that app's actual network surface.
 # Do NOT add a CSP under /* — two matching CSP headers are enforced as an
-# intersection and would break the apps that still call third-party origins.
+# intersection, and the apps do not share one surface.
+#
+# Every app loads its typeface from Google Fonts, so every per-app CSP needs
+# fonts.googleapis.com in style-src and fonts.gstatic.com in font-src — AND in
+# connect-src. The service worker is served from the same path, so it inherits
+# the app's CSP, and its pass-through `fetch(event.request)` is a connect-src
+# fetch no matter what the page asked for. Leaving the font origins out of
+# connect-src makes every webfont fail with "TypeError: Failed to fetch" the
+# moment a SW controls the page — verified, not theoretical.
+# No app uses an <img> tag, so img-src stays 'self' data: everywhere.
 
 /*
   X-Frame-Options: DENY
@@ -13,25 +22,45 @@
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(self), usb=()
   Cross-Origin-Opener-Policy: same-origin
 
-# MeterSmart: fully self-contained. Only network call is ./fares.json on this origin.
+# PowerPulse: no backend yet. Only network call is the font stylesheet.
+/1_power_pulse/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
+
+# MeterSmart: fully self-contained. Only same-origin call is ./fares.json.
 /2_meter_smart/*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
 
 # Live fare config must never be cached at the edge for long — rate changes
 # have to reach clients on the next launch.
 /2_meter_smart/fares.json
   Cache-Control: public, max-age=0, must-revalidate
 
-# LingoLocal: static content, no network calls.
+# PG Buddy: only same-origin call is ./pgs.json. Contact is a wa.me navigation,
+# which is form-action/navigation, not a fetch — no connect-src entry needed.
+/3_pg_buddy/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
+
+# Same reasoning as fares.json: a newly verified PG has to reach clients on the
+# next launch, so the edge must revalidate every time.
+/3_pg_buddy/pgs.json
+  Cache-Control: public, max-age=0, must-revalidate
+
+# NestHub: no backend yet.
+/4_nest_hub/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
+
+# LingoLocal: audio and phrases are bundled; nothing leaves the origin.
 /5_lingo_local/*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
 
-# CardGuard: network surface is settled — its reminders are computed on-device,
-# so the only third parties are Google Fonts and, for the optional self-hosted
-# Gmail import, Google Identity Services + the Gmail API. No Supabase/Workers
-# origin is listed because nothing here talks to one.
+# StockPing: stock checks go through the two CORS proxies in CORS_PROXIES.
+# This list has to move to the Workers origin when §4.3's server-side checking
+# lands — the proxies are the thing that check replaces.
+/6_stock_ping/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://api.allorigins.win https://corsproxy.io; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
+
+# CardGuard: reminders are computed on-device, so the only third parties are
+# Google Fonts and, for the optional Gmail import, Google Identity Services +
+# the Gmail API. No Supabase/Workers origin, because nothing here talks to one.
 /7_card_guard/*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://gmail.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
-
-# TODO (EXECUTION_PLAN §6.2): CSP for power_pulse / pg_buddy / nest_hub / stock_ping
-# once their backend origins are fixed (Supabase, Workers).
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://gmail.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; form-action 'none'; frame-ancestors 'none'; base-uri 'none'
