@@ -8,3 +8,5 @@
    directly, then reads its last log entries. On session end, append a
    dated entry to that page's `## Log` section and update its `## Status`
    line.
+
+@MISTAKES.md
