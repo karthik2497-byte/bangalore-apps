@@ -64,6 +64,8 @@ node --check <file>                 # syntax-check any extracted inline script
 - **`NEXT_STEPS.md`** — the open-items index. Start here.
 - **`EXECUTION_PLAN.md`** — §4 per-app roadmap, §7 phases, §0.3 verification gate,
   §0.4 audit log (append a row per work session).
+- **`MONETISATION.md`** — which apps can earn passively and which cannot, with the
+  arithmetic. Read before building any revenue feature.
 - **`MISTAKES.md`** — one line per mistake that cost a retry. Read the entries
   covering any area you are about to touch; each ends with a rule to apply.
 

@@ -59,7 +59,8 @@ the ability to run the apps.
 
 ## 3. Config values that must be filled before anything earns
 
-Each of these ships blank on purpose — blank is safe, wrong is not.
+Each of these ships blank on purpose — blank is safe, wrong is not. Why these two are
+the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISATION.md`.
 
 - [ ] `6_stock_ping/index.html` → `const AFFILIATE` (line ~1636). Amazon Associates
       `tag` and Flipkart `affid`. **Until these are set StockPing earns nothing**;
