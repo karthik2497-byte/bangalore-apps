@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 
 rm -rf dist
 mkdir -p dist
-cp index.html _headers dist/
+cp index.html 404.html _headers dist/
 
 # Digital Asset Links must be served from the ORIGIN ROOT, not per app folder —
 # one file carries a statement per TWA, which is how seven Play listings verify
