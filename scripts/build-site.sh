@@ -17,9 +17,13 @@ cp index.html _headers dist/
 # against seven paths on this one origin.
 cp -r .well-known dist/
 
+# rsync is not in the Pages build image, so copy wholesale and prune after.
+# The leak guard below is what proves the prune actually worked.
 for app in [1-7]_*/; do
-  rsync -a --exclude 'test-*.mjs' --exclude 'tools/' --exclude '*.md' "$app" "dist/$app"
+  cp -R "$app" "dist/$app"
 done
+find dist -type d -name 'tools' -prune -exec rm -rf {} +
+find dist \( -name 'test-*.mjs' -o -name '*.md' \) -delete
 
 # Fail loudly rather than shipping a site that leaks the plan.
 leaked=$(find dist \( -name '*.md' -o -name 'test-*' -o -name 'tools' \) -print)
