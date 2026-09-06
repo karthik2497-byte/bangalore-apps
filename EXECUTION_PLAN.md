@@ -91,6 +91,11 @@ Chosen for: generous free tiers that have historically NOT been rug-pulled, mini
 ## 3. GO-LIVE PATH — ANDROID & iOS
 
 ### Phase A — Web live (Week 1) — 🟡 repo side DONE 2026-08-29, account side needs Karthik
+0. ✅ **LIVE at `https://tinkerhouse.uk`** (Pages project `tinkerhouse`, repo-connected, auto-deploys from `main`).
+   Verified in production by `bash scripts/verify-deploy.sh`: 7 apps served, per-app CSPs applied with the font
+   origins in both `font-src` and `connect-src`, `X-Frame-Options: DENY`, valid TLS, http→https 301,
+   assetlinks 7/7 at the origin root, `fares.json`/`pgs.json` `must-revalidate`, real 404s, no repo file reachable.
+   Run that script after every deploy — `_headers` only takes effect on Pages, so nothing in the repo proves it works.
 1. ❌ Create Cloudflare Pages project → connect this GitHub repo. **Needs Karthik** — it is an account login and an OAuth grant, which an agent must not do. Settings to use:
    - Build command: `bash scripts/build-site.sh` · Output directory: `dist`
    - **Do not deploy the repo root.** Pages serves whatever is in the output directory, and the root is not the site: `EXECUTION_PLAN.md`, `WORK_LOG.md`, `PLAYBOOK.html`, `MISTAKES.md` and every `test-*.mjs` would be fetchable on the live domain. `scripts/build-site.sh` copies only `index.html`, `_headers` and the 7 app folders into `dist/`, and **fails the build** if anything else lands there.
