@@ -2,7 +2,7 @@
  * generate-twa.mjs - Programmatically generate a TWA project from a web manifest URL.
  * Bypasses the interactive bubblewrap CLI by using @bubblewrap/core directly.
  *
- * Usage: node generate-twa.mjs <manifest-url> <target-dir> <keystore-path>
+ * Usage: node generate-twa.mjs <manifest-url> <target-dir> <keystore-path> [package-id]
  */
 import { TwaManifest, TwaGenerator, ConsoleLog, BufferedLog } from '@bubblewrap/core';
 import { join } from 'path';
@@ -12,6 +12,7 @@ import { createHash } from 'crypto';
 const manifestUrl = process.argv[2];
 const targetDir = process.argv[3] || '.';
 const keystorePath = process.argv[4] || './android.keystore';
+const packageId = process.argv[5];
 
 if (!manifestUrl) {
   console.error('Usage: node generate-twa.mjs <manifest-url> <target-dir> [keystore-path]');
@@ -24,6 +25,11 @@ async function main() {
 
   // Override signing key to use our CI-generated keystore
   twaManifest.signingKey = { path: keystorePath, alias: 'android' };
+
+  // Bubblewrap derives packageId from the HOST, so every app sharing one origin
+  // gets the same id and only one of them could ever exist on Play. Each app
+  // passes its own, matching /.well-known/assetlinks.json.
+  if (packageId) twaManifest.packageId = packageId;
 
   // Force standalone display and portrait orientation
   twaManifest.display = 'standalone';

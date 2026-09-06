@@ -1,0 +1,58 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.tinkerhouse.powerpulse",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_POWERPULSE_SHA256"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.tinkerhouse.metersmart",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_METERSMART_SHA256"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.tinkerhouse.pgbuddy",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_PGBUDDY_SHA256"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.tinkerhouse.nesthub",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_NESTHUB_SHA256"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.tinkerhouse.lingolocal",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_LINGOLOCAL_SHA256"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.tinkerhouse.stockping",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_STOCKPING_SHA256"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.tinkerhouse.cardguard",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_CARDGUARD_SHA256"]
+    }
+  }
+]

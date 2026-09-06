@@ -17,6 +17,11 @@ on:
           - 5_lingo_local
           - 6_stock_ping
           - 7_card_guard
+      origin:
+        description: 'Origin the TWAs load from (must match the deployed site and its /.well-known/assetlinks.json)'
+        required: true
+        default: 'https://tinkerhouse.uk'
+        type: string
 
 jobs:
   prepare:
@@ -27,11 +32,12 @@ jobs:
       - id: set-matrix
         run: |
           if [ "${{ github.event.inputs.app }}" = "all" ]; then
-            echo 'matrix={"include":[{"name":"PowerPulse","dir":"1_power_pulse"},{"name":"MeterSmart","dir":"2_meter_smart"},{"name":"PGBuddy","dir":"3_pg_buddy"},{"name":"NestHub","dir":"4_nest_hub"},{"name":"LingoLocal","dir":"5_lingo_local"},{"name":"StockPing","dir":"6_stock_ping"},{"name":"CardGuard","dir":"7_card_guard"}]}' >> "$GITHUB_OUTPUT"
+            echo 'matrix={"include":[{"name":"PowerPulse","dir":"1_power_pulse","pkg":"uk.tinkerhouse.powerpulse"},{"name":"MeterSmart","dir":"2_meter_smart","pkg":"uk.tinkerhouse.metersmart"},{"name":"PGBuddy","dir":"3_pg_buddy","pkg":"uk.tinkerhouse.pgbuddy"},{"name":"NestHub","dir":"4_nest_hub","pkg":"uk.tinkerhouse.nesthub"},{"name":"LingoLocal","dir":"5_lingo_local","pkg":"uk.tinkerhouse.lingolocal"},{"name":"StockPing","dir":"6_stock_ping","pkg":"uk.tinkerhouse.stockping"},{"name":"CardGuard","dir":"7_card_guard","pkg":"uk.tinkerhouse.cardguard"}]}' >> "$GITHUB_OUTPUT"
           else
             DIR="${{ github.event.inputs.app }}"
             NAME=$(echo "$DIR" | sed 's/^[0-9]*_//' | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1' | tr -d ' ')
-            echo "matrix={\"include\":[{\"name\":\"$NAME\",\"dir\":\"$DIR\"}]}" >> "$GITHUB_OUTPUT"
+            PKG="uk.tinkerhouse.$(echo "$DIR" | sed 's/^[0-9]*_//' | tr -d '_')"
+            echo "matrix={\"include\":[{\"name\":\"$NAME\",\"dir\":\"$DIR\",\"pkg\":\"$PKG\"}]}" >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -80,14 +86,22 @@ jobs:
 
       - name: Generate TWA project (non-interactive)
         run: |
-          MANIFEST_URL="https://karthik2497-byte.github.io/bangalore-apps/${{ matrix.dir }}/manifest.json"
+          ORIGIN="${{ github.event.inputs.origin }}"
+          MANIFEST_URL="${ORIGIN%/}/${{ matrix.dir }}/manifest.json"
           BUILD_DIR="build_${{ matrix.dir }}"
+
+          # Fail here rather than shipping an AAB whose TWA never verifies: the
+          # origin has to actually serve this app, and its assetlinks must name
+          # this exact package.
+          curl -fsS "$MANIFEST_URL" > /dev/null
+          curl -fsS "${ORIGIN%/}/.well-known/assetlinks.json" | grep -q '${{ matrix.pkg }}'
 
           # Use @bubblewrap/core directly to avoid interactive CLI prompts.
           node scripts/generate-twa.mjs \
             "$MANIFEST_URL" \
             "$BUILD_DIR" \
-            "$GITHUB_WORKSPACE/android.keystore"
+            "$GITHUB_WORKSPACE/android.keystore" \
+            "${{ matrix.pkg }}"
 
           echo "=== Generated files ==="
           ls -la "$BUILD_DIR/"

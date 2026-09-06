@@ -12,6 +12,11 @@ rm -rf dist
 mkdir -p dist
 cp index.html _headers dist/
 
+# Digital Asset Links must be served from the ORIGIN ROOT, not per app folder —
+# one file carries a statement per TWA, which is how seven Play listings verify
+# against seven paths on this one origin.
+cp -r .well-known dist/
+
 for app in [1-7]_*/; do
   rsync -a --exclude 'test-*.mjs' --exclude 'tools/' --exclude '*.md' "$app" "dist/$app"
 done
