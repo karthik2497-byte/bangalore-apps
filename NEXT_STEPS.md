@@ -21,7 +21,43 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
 
-## 2. Config values that must be filled before anything earns
+## 2. Play Store release — blocked on $25 and a signing key
+
+Play App Signing is **mandatory for new apps and free**; the $25 is the one-time
+Google Play Console registration, covering all 7 apps and any future ones. Two
+keys exist: an *upload key* you hold, and the *app signing key* Google holds and
+re-signs with before shipping to devices.
+
+- [ ] Open a Play Console account — **$25, one time.**
+- [ ] Generate ONE upload keystore locally; one key can sign all 7 apps:
+      `keytool -genkey -v -keystore upload.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000`
+      Do **not** commit it. Back it up somewhere you will still have in five years.
+- [ ] Add GitHub repo secrets: `UPLOAD_KEYSTORE_BASE64` (`base64 -i upload.keystore`),
+      `UPLOAD_KEYSTORE_PASSWORD`, `UPLOAD_KEY_ALIAS`, `UPLOAD_KEY_PASSWORD`.
+- [ ] **Rewrite `.github/workflows/build-aab.yml` to restore that keystore instead of
+      running `keytool -genkey` per run, and delete the hardcoded `bangaloreapps123`
+      passwords. This is the actual blocker** — CI currently signs every build with a
+      different throwaway key, so no fingerprint is stable and Play would reject every
+      update.
+- [ ] Build the 7 AABs (workflow dispatch, `origin` = `https://tinkerhouse.uk`), create
+      7 Play listings, upload each to internal testing.
+- [ ] Read each app's **app signing key** SHA-256 from Play Console → Setup → App
+      integrity, and replace the 7 `REPLACE_WITH_*_SHA256` placeholders in
+      `.well-known/assetlinks.json`. **Use Google's app signing key, not the upload
+      key** — the upload key's fingerprint makes TWA verification fail *silently*: the
+      app installs and runs, but shows a browser URL bar.
+- [ ] Re-run `bash scripts/verify-deploy.sh`, then install one AAB on a real device and
+      confirm there is no URL bar.
+
+Ordering note: the fingerprints cannot be read until the apps exist in Play Console,
+so the placeholders necessarily stay in `assetlinks.json` until then. That is expected,
+not an oversight.
+
+Not needed for any of this: users can already install every app from
+`https://tinkerhouse.uk` via Add to Home Screen. The $25 buys Play discovery, not
+the ability to run the apps.
+
+## 3. Config values that must be filled before anything earns
 
 Each of these ships blank on purpose — blank is safe, wrong is not.
 
@@ -36,7 +72,7 @@ Each of these ships blank on purpose — blank is safe, wrong is not.
 - [ ] `REPLACE_WITH_CONTACT_EMAIL` in `2_meter_smart/privacy.html` and
       `7_card_guard/privacy.html`. Play Store listing requires a reachable address.
 
-## 3. Missing artifacts before Play submission
+## 4. Missing artifacts before Play submission
 
 - [ ] `privacy.html` for **LingoLocal** and **StockPing** (`2_meter_smart/privacy.html`
       is the template). Mandatory for the Play listing, and Amazon Associates wants
@@ -51,7 +87,7 @@ Each of these ships blank on purpose — blank is safe, wrong is not.
       name against the installed `@bubblewrap/core` before wiring it into
       `scripts/generate-twa.mjs` — it was not verifiable offline.
 
-## 4. Unblocked only by Phase A / Phase C
+## 5. Unblocked only by Phase A / Phase C
 
 - [ ] **StockPing P0** — server-side checking (Workers cron + KV) + Web Push. The
       client CORS proxies are the #1 reliability *and* privacy problem: they see
@@ -65,7 +101,7 @@ Each of these ships blank on purpose — blank is safe, wrong is not.
 - [ ] **NestHub §4.7** — multi-tenant Supabase + real signed QR passes. Do last;
       it is B2B SaaS, not passive income.
 
-## 5. Verification debt
+## 6. Verification debt
 
 - [ ] **§8 browser smoke test for PowerPulse and NestHub** — never run since the
       2026-07-11 fix pass. MeterSmart, LingoLocal, StockPing, PG Buddy and CardGuard
@@ -82,7 +118,7 @@ Each of these ships blank on purpose — blank is safe, wrong is not.
       is live, so no client holds a stale cache). Applies from the *second* deploy
       onward, per §0.2.
 
-## 6. Design findings — all pre-existing, none introduced by recent work
+## 7. Design findings — all pre-existing, none introduced by recent work
 
 `git blame` puts every one of these in `446e6c1` (2026-04-09) and `012801f`
 (2026-04-10). Run `/impeccable audit` for the authoritative current list.
@@ -107,7 +143,7 @@ Taste calls — Karthik's decision, do not "fix" unasked:
       `3_pg_buddy/index.html:146,395`. The `cubic-bezier(…1.275)` card overshoot is
       the more defensible; the `dotBounce` loader dots are the more dated.
 
-## 7. Standing rule
+## 8. Standing rule
 
 Per `EXECUTION_PLAN.md` §0.2: **one app per change-set.** Design fixes are app code
 and do not belong in an infrastructure commit. Every session appends a §0.4 Audit
