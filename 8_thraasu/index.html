@@ -372,8 +372,8 @@ button:disabled { cursor: default; }
 .price .pan { width: 40px; height: 40px; font-size: 21px; }
 .price .names { flex: 1; }
 .price .names b { font-size: 16px; }
-.price .names small { color: var(--brass-ink); }
-.price.mine .names small { color: var(--ink-2); }
+.price .names small { color: var(--ink-2); }
+.price .names small.sample { color: var(--brass-ink); }
 .price-in { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 15px; color: var(--ink-2); }
 .price-in input {
   width: 72px; height: 48px; padding: 0 8px; border: 1.5px solid var(--field); border-radius: 10px;
@@ -543,6 +543,7 @@ button:disabled { cursor: default; }
         <div class="sheet-title">
           <h2 id="sheetName"></h2>
           <p id="sheetEn" lang="en"></p>
+          <p id="sheetStock" hidden></p>
           <label class="rate-field">നിരക്ക് ₹<input id="rateIn" inputmode="decimal" autocomplete="off"><span id="rateUnit"></span></label>
         </div>
         <button class="icon-btn" id="sheetClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
@@ -656,7 +657,8 @@ const pan = shot('pan'), photo = shot('ph');   // round pan in rows and the bill
 const lineOf = pid => bill.lines.find(l => l.pid === pid);
 
 // ---------- persistence ----------
-function freshBill(no) { return { no, started: new Date().toISOString(), lines: [], discount: 0 }; }
+// `id` names the bill to the shop's server across phones; `sold` once it is printed, shared or closed.
+function freshBill(no) { return { no, id: crypto.randomUUID(), started: new Date().toISOString(), lines: [], discount: 0, sold: false }; }
 function loadBill() {
   try {
     const b = JSON.parse(localStorage.getItem(BILL_KEY));
@@ -666,13 +668,20 @@ function loadBill() {
       b.lines.forEach(l => { l.img = safeImg(l.img); });
       b.discount = Number.isInteger(b.discount) && b.discount > 0 ? b.discount : 0;
       if (isNaN(new Date(b.started))) b.started = new Date().toISOString();
+      if (typeof b.id !== 'string' || !/^[\w-]{1,40}$/.test(b.id)) b.id = crypto.randomUUID();
+      b.sold = b.sold === true;
       return b;
     }
   } catch {}
   return freshBill(1);
 }
 // A failed write (private mode, full storage) keeps the bill in memory; nothing is lost mid-sale.
-function saveBill() { try { localStorage.setItem(BILL_KEY, JSON.stringify(bill)); } catch {} }
+// A sold bill goes to the shop again on every change, and the server moves stock by the difference.
+function saveBill() {
+  try { localStorage.setItem(BILL_KEY, JSON.stringify(bill)); } catch {}
+  if (bill.sold) queue('sale', bill.id, Object.fromEntries(bill.lines.map(l => [l.pid, l.qty])));
+}
+function markSold() { if (!bill.sold) { bill.sold = true; saveBill(); } }
 
 // ---------- price list ----------
 async function loadCatalog() {
@@ -714,9 +723,10 @@ function setMine(p, paise) {         // the sample rate itself is not "mine", wh
   applyPrices();
 }
 const listWord = () => samplePrices ? 'മാതൃക' : 'പട്ടിക';   // the sheet's price: sample, or the shop's list
+const priceNote = p => [p.mine ? `${listWord()} ${fmtMoney(p.base, true)}` : samplePrices ? 'മാതൃകാ വില' : '', stockText(p)].filter(Boolean).join(' · ');
 const priceRow = p => `<li class="price${p.mine ? ' mine' : ''}" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">` +
   `<button class="pan-btn" type="button" data-photo="${esc(p.id)}" aria-label="${esc(p.ml)}: ഫോട്ടോ ${srcOf(p) ? 'മാറ്റുക' : 'ചേർക്കുക'}">${pan(p)}${CAM}</button>` +
-  `<span class="names"><b>${esc(p.ml)}</b>${p.mine ? `<small>${listWord()} ${esc(fmtMoney(p.base, true))}</small>` : samplePrices ? '<small>മാതൃകാ വില</small>' : ''}</span>` +
+  `<span class="names"><b>${esc(p.ml)}</b>${priceNote(p) ? `<small${!p.mine && samplePrices ? ' class="sample"' : ''}>${esc(priceNote(p))}</small>` : ''}</span>` +
   `<label class="price-in"><span class="vh">${esc(p.ml)} വില</span>₹<input inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${p.rate / 100}"><span>${esc(perUnit(p.unit))}</span></label>` +
   (p.mine ? `<button class="icon-btn reset" type="button" aria-label="${esc(p.ml)}: ${listWord()} വില ${esc(fmtMoney(p.base, true))}">↺</button>` : '') + '</li>';
 function renderPrices() {
@@ -795,12 +805,18 @@ async function setPhoto(id, file) {
 // ponytail: two phones changing the same price offline: whichever syncs last wins.
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 const writeJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null });
+const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {} });
 let account = readJSON(SESSION_KEY);                 // { token, code, name } once logged in
 let outbox = { ...freshOutbox(), ...readJSON(OUTBOX_KEY) };
 let synced = readJSON(SYNCED_KEY) || { at: 0, photos: {} };   // when, and the server time of each photo we hold
 let syncing = null, syncError = '', syncTimer = 0;
-const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0);
+const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length;
+// Stock on hand: the shop's count at the last sync, less this phone's bills not sent yet. null: not counted.
+function stockLeft(id) {
+  if (!synced.stock || !Object.hasOwn(synced.stock, id)) return null;
+  return Object.values(outbox.sales).reduce((n, items) => n - (items[id] || 0), synced.stock[id]);
+}
+const stockText = p => { const n = stockLeft(p.id); return n === null ? '' : `സ്റ്റോക്ക് ${fmtQty(n, p.unit)}`; };
 
 // The API sits at the origin root, beside the apps: ../api from /8_thraasu/.
 async function api(path, opts = {}) {
@@ -834,6 +850,7 @@ function queue(kind, id, value) {
   }
   if (kind === 'photo' && !outbox.photos.includes(id)) outbox.photos.push(id);
   if (kind === 'name') outbox.name = id;
+  if (kind === 'sale') outbox.sales[id] = value;
   writeJSON(OUTBOX_KEY, outbox);
   renderSync();
   clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500);
@@ -867,6 +884,14 @@ function sync() {
         if (outbox.name === name) outbox.name = null;
         writeJSON(OUTBOX_KEY, outbox);
       }
+      const bills = Object.keys(outbox.sales);
+      for (let i = 0; i < bills.length; i += 100) {
+        const sales = Object.fromEntries(bills.slice(i, i + 100).map(k => [k, outbox.sales[k]]));
+        const r = await api('sales', { method: 'POST', body: JSON.stringify({ sales }) });
+        if (!r.ok) throw new Error(r.status);
+        for (const k in sales) if (outbox.sales[k] === sales[k]) delete outbox.sales[k];   // unless changed meanwhile
+        writeJSON(OUTBOX_KEY, outbox);
+      }
       const r = await api('state');
       if (!r.ok) throw new Error(r.status);
       const st = await r.json();
@@ -887,7 +912,7 @@ function sync() {
       if (!$('shopName').value.trim() && st.shop.name) { $('shopName').value = st.shop.name; try { localStorage.setItem(SHOP_KEY, st.shop.name); } catch {} }
       account = { ...account, name: st.shop.name }; writeJSON(SESSION_KEY, account);
       const listChanged = st.catalog !== (synced.catalog ?? null);
-      synced = { ...synced, at: Date.now(), catalog: st.catalog };
+      synced = { ...synced, at: Date.now(), catalog: st.catalog, stock: st.stock || {} };
       writeJSON(SYNCED_KEY, synced);
       if (listChanged) await loadCatalog(); else applyPrices();
       renderShelf(); renderBill(); if (pricesEl.open) renderPrices();
@@ -1039,6 +1064,8 @@ function openSheet(item, fromSearch = false) {
   sheetEl.dataset.cat = item.cat || '';
   $('sheetName').textContent = item.ml;
   $('sheetEn').textContent = item.en || '';
+  $('sheetStock').textContent = stockText({ id: item.pid, unit: item.unit });
+  $('sheetStock').hidden = !$('sheetStock').textContent;
   $('panItem').textContent = item.icon || '';
   $('rateIn').value = String((line ? line.rate : item.rate) / 100);
   $('rateUnit').textContent = perUnit(item.unit);
@@ -1194,6 +1221,7 @@ function receiptCanvas() {
 // WhatsApp and Files. Synchronous to the tap (toDataURL, not toBlob), so the share keeps
 // its user activation.
 function shareBill() {
+  markSold();
   renderReceipt();
   const name = `Thraasu-Bill-${billNo(bill.no)}.png`, url = receiptCanvas().toDataURL('image/png');
   const file = new File([Uint8Array.from(atob(url.split(',')[1]), ch => ch.charCodeAt(0))], name, { type: 'image/png' });
@@ -1211,12 +1239,14 @@ function removeLine(i) {
 }
 function newBill() {
   if (!bill.lines.length) return;
+  markSold();
   undoState = JSON.stringify(bill);
   bill = freshBill(bill.no + 1);
   saveBill(); renderBill(); renderShelf();
   toast(`പുതിയ ബിൽ നം. ${billNo(bill.no)}`);
 }
 function printBill() {
+  markSold();
   renderReceipt();                                       // stamps the print time
   const title = document.title;
   document.title = `Thraasu-Bill-${billNo(bill.no)}`;   // Save as PDF names the file from this

@@ -8,14 +8,16 @@ import { handle, pinHash } from '../functions/api/thraasu/[[path]].js';
 const raw = new DatabaseSync(':memory:');
 raw.exec(readFileSync(new URL('./tools/schema.sql', import.meta.url), 'utf8'));
 // The D1 surface the function uses: prepare().bind().first/all/run, and batch().
+// `queries` counts every statement run, each one inside a batch too: the Free plan allows 50 per invocation.
 const db = {
+  queries: 0,
   prepare(sql) {
     const st = raw.prepare(sql);
     const bound = (args = []) => ({
       bind: (...a) => bound(a),
-      first: async col => { const r = st.get(...args); return r === undefined ? null : col ? r[col] : { ...r }; },
-      all: async () => ({ results: st.all(...args).map(r => ({ ...r })) }),
-      run: async () => st.run(...args),
+      first: async col => { db.queries++; const r = st.get(...args); return r === undefined ? null : col ? r[col] : { ...r }; },
+      all: async () => (db.queries++, { results: st.all(...args).map(r => ({ ...r })) }),
+      run: async () => (db.queries++, st.run(...args)),
     });
     return bound();
   },
@@ -50,7 +52,7 @@ await t('login: wrong PIN and unknown code answer alike; the right PIN gets a to
 });
 
 await t('every other route needs a session', async () => {
-  for (const [m, p] of [['GET', 'state'], ['POST', 'prices'], ['PUT', 'photo'], ['GET', 'catalog'], ['PUT', 'shop']]) {
+  for (const [m, p] of [['GET', 'state'], ['POST', 'prices'], ['POST', 'sales'], ['PUT', 'photo'], ['GET', 'catalog'], ['PUT', 'shop']]) {
     assert.equal((await call(m, p)).status, 401, p);
     assert.equal((await call(m, p, { token: 'f'.repeat(64) })).status, 401, p + ' with a made-up token');
   }
@@ -64,6 +66,20 @@ await t('prices: set and clear, junk ignored, state returns them', async () => {
   assert.deepEqual(s.data.prices, { P2: 9000 });
   assert.deepEqual(s.data.shop, { code: 'NANMA', name: 'Nanma Store' });
   assert.equal(s.data.catalog, null);
+});
+
+await t('a big push stays a handful of D1 queries (Free plan: 50 per invocation)', async () => {
+  const set = Object.fromEntries(Array.from({ length: 400 }, (_, i) => ['Q' + i, 100 + i]));
+  db.queries = 0;
+  assert.equal((await call('POST', 'prices', { token, body: { set, clear: Array.from({ length: 60 }, (_, i) => 'Z' + i) } })).status, 200);
+  assert.ok(db.queries <= 5, `prices used ${db.queries} queries`);
+  const s = await call('GET', 'state', { token });
+  assert.equal(Object.keys(s.data.prices).length, 401);
+  assert.equal(s.data.prices.Q399, 499);
+  db.queries = 0;
+  await call('POST', 'prices', { token, body: { set: {}, clear: Object.keys(set) } });
+  assert.ok(db.queries <= 5, `clear used ${db.queries} queries`);
+  assert.deepEqual((await call('GET', 'state', { token })).data.prices, { P2: 9000 });
 });
 
 await t('photos: only data: images within the size cap; fetched in batches by id', async () => {
@@ -89,6 +105,27 @@ await t("catalog: 404 until the shop has its own list; parts join back into the 
   assert.equal(c.text, list);
 });
 
+await t('sales lower stock; a bill sent again moves it by the difference; a retry moves nothing', async () => {
+  raw.prepare("INSERT INTO stock (shop, id, qty) VALUES ('NANMA', 'P1', 25000), ('NANMA', 'P2', 10), ('OTHER', 'P1', 7)").run();
+  const sell = sales => call('POST', 'sales', { token, body: { sales } });
+  const left = async () => (await call('GET', 'state', { token })).data.stock;
+  assert.equal((await sell({ b1: { P1: 1500, P2: 2, P9: 4 }, b2: { P2: 1 } })).status, 200);
+  assert.deepEqual(await left(), { P1: 23500, P2: 7 });          // P9 is not counted: no row, no change
+  await sell({ b1: { P1: 1500, P2: 2, P9: 4 } });                // the same bill again: a retry
+  assert.deepEqual(await left(), { P1: 23500, P2: 7 });
+  await sell({ b1: { P1: 500 } });                               // edited after printing: P2 back, P1 by 1000
+  assert.deepEqual(await left(), { P1: 24500, P2: 9 });
+  await sell({ b2: {}, 'bad id!': { P1: 1 }, b3: { P1: -5, P2: 1.5, 'x y': 1 } });   // emptied; junk ignored
+  assert.deepEqual(await left(), { P1: 24500, P2: 10 });
+  db.queries = 0;
+  await sell(Object.fromEntries(Array.from({ length: 100 }, (_, i) => ['n' + i, { P1: 1, P2: 0 }])));
+  assert.ok(db.queries <= 5, `100 bills used ${db.queries} queries`);
+  assert.equal((await left()).P1, 24400);
+  const many = Object.fromEntries(Array.from({ length: 101 }, (_, i) => ['m' + i, { P1: 1 }]));
+  assert.equal((await sell(many)).status, 413);
+  assert.equal(raw.prepare("SELECT qty FROM stock WHERE shop = 'OTHER'").get().qty, 7, "another shop's stock is untouched");
+});
+
 await t('shop name: trimmed, capped, never empty', async () => {
   assert.equal((await call('PUT', 'shop', { token, body: { name: '   ' } })).status, 400);
   await call('PUT', 'shop', { token, body: { name: '  നന്മ സ്റ്റോർ  ' } });
@@ -99,7 +136,7 @@ await t('one shop never sees another', async () => {
   raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created) VALUES (?, ?, ?, ?, ?)').run('OTHER', 'Other', 's2', await pinHash('1111', 's2'), Date.now());
   const other = (await call('POST', 'login', { body: { code: 'OTHER', pin: '1111' } })).data.token;
   const s = await call('GET', 'state', { token: other });
-  assert.deepEqual([s.data.prices, s.data.photos], [{}, {}]);
+  assert.deepEqual([s.data.prices, s.data.photos, s.data.stock], [{}, {}, { P1: 7 }]);
   assert.equal((await call('GET', 'catalog', { token: other })).status, 404);
   assert.deepEqual((await call('GET', 'photos?ids=P1', { token: other })).data, {});
 });

@@ -2,12 +2,14 @@
 // `connect-src 'self'` covers it) over one D1 database bound as THRAASU_DB; schema in
 // 8_thraasu/tools/schema.sql. Shops are created by hand with 8_thraasu/tools/shop-admin.mjs:
 // there is no sign-up route. A shop's list, its prices and its photos are kept per shop; the
-// app works offline and pushes when it can. Last write wins per item.
+// app works offline and pushes when it can. Last write wins per item. Bills lower the shop's
+// stock (POST sales). On the Free plan an invocation gets 50 D1 queries, so no route's query
+// count grows with its input: lists go in as one JSON parameter through json_each.
 // Pages does not apply _headers to Functions: every response sets its own headers.
 
 const PBKDF2_ITER = 20000;   // ponytail: a 4-8 digit PIN falls to offline guessing at any cost; the lockout is the guard
 const LOCK_AFTER = 5, LOCK_MS = 15 * 60e3, SESSION_MS = 365 * 864e5;
-const MAX_PHOTO = 300000, MAX_PHOTOS = 3000, MAX_PRICES = 5000, IDS_PER_GET = 30;
+const MAX_PHOTO = 300000, MAX_PHOTOS = 3000, MAX_PRICES = 5000, IDS_PER_GET = 30, BILLS_PER_POST = 100;
 const ID = /^[\w-]{1,40}$/, PHOTO = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
@@ -69,10 +71,12 @@ export async function handle(request, db, path) {
       const s = await db.prepare('SELECT name, catalog_at FROM shops WHERE code = ?').bind(shop).first();
       const prices = await db.prepare('SELECT id, paise FROM prices WHERE shop = ?').bind(shop).all();
       const photos = await db.prepare('SELECT id, at FROM photos WHERE shop = ?').bind(shop).all();
+      const stock = await db.prepare('SELECT id, qty FROM stock WHERE shop = ?').bind(shop).all();
       return json({
         shop: { code: shop, name: s.name }, catalog: s.catalog_at ?? null,
         prices: Object.fromEntries(prices.results.map(r => [r.id, r.paise])),
         photos: Object.fromEntries(photos.results.map(r => [r.id, r.at])),
+        stock: Object.fromEntries(stock.results.map(r => [r.id, r.qty])),
       });
     }
     case 'POST prices': {
@@ -81,12 +85,36 @@ export async function handle(request, db, path) {
       const clear = (Array.isArray(b?.clear) ? b.clear : []).filter(id => typeof id === 'string' && ID.test(id));
       if (set.length + clear.length > MAX_PRICES || await count('prices') + set.length > MAX_PRICES) return json({ error: 'too many' }, 413);
       const at = Date.now();
-      const writes = [
-        ...set.map(([id, v]) => db.prepare('INSERT INTO prices (shop, id, paise, at) VALUES (?, ?, ?, ?) ON CONFLICT (shop, id) DO UPDATE SET paise = excluded.paise, at = excluded.at').bind(shop, id, v, at)),
-        ...clear.map(id => db.prepare('DELETE FROM prices WHERE shop = ? AND id = ?').bind(shop, id)),
-      ];
-      if (writes.length) await db.batch(writes);
+      if (set.length + clear.length) await db.batch([
+        db.prepare('INSERT INTO prices (shop, id, paise, at) SELECT ?, key, value, ? FROM json_each(?) WHERE true ON CONFLICT (shop, id) DO UPDATE SET paise = excluded.paise, at = excluded.at')
+          .bind(shop, at, JSON.stringify(Object.fromEntries(set))),
+        db.prepare('DELETE FROM prices WHERE shop = ? AND id IN (SELECT value FROM json_each(?))').bind(shop, JSON.stringify(clear)),
+      ]);
       return json({ ok: true, at });
+    }
+    case 'POST sales': {
+      // {sales: {billId: {productId: qty}}}. A bill replaces what was sent for it before, so stock
+      // moves by the difference: an edit after printing corrects it, a retry changes nothing.
+      const b = await readJson(request);
+      const sales = Object.entries(b?.sales && typeof b.sales === 'object' ? b.sales : {}).filter(([k]) => ID.test(k))
+        .map(([k, items]) => [k, Object.fromEntries(Object.entries(items && typeof items === 'object' ? items : {})
+          .filter(([id, q]) => ID.test(id) && Number.isInteger(q) && q > 0 && q < 1e9))]);
+      if (sales.length > BILLS_PER_POST) return json({ error: 'too many' }, 413);
+      if (!sales.length) return json({ ok: true });
+      const was = await db.prepare('SELECT items FROM sales WHERE shop = ? AND bill IN (SELECT value FROM json_each(?))')
+        .bind(shop, JSON.stringify(sales.map(([k]) => k))).all();
+      const delta = {};
+      const add = (items, sign) => { for (const [id, q] of Object.entries(items)) delta[id] = (delta[id] || 0) + sign * q; };
+      for (const r of was.results) add(JSON.parse(r.items), -1);
+      for (const [, items] of sales) add(items, 1);
+      // ponytail: read, then write; safe because a bill id belongs to one phone, which syncs one request at a time
+      await db.batch([
+        db.prepare('INSERT INTO sales (shop, bill, items, at) SELECT ?, key, value, ? FROM json_each(?) WHERE true ON CONFLICT (shop, bill) DO UPDATE SET items = excluded.items, at = excluded.at')
+          .bind(shop, Date.now(), JSON.stringify(Object.fromEntries(sales))),
+        db.prepare('UPDATE stock SET qty = qty - d.value FROM json_each(?) AS d WHERE stock.shop = ? AND stock.id = d.key')
+          .bind(JSON.stringify(delta), shop),
+      ]);
+      return json({ ok: true });
     }
     case 'PUT photo': {
       const b = await readJson(request);

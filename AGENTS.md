@@ -41,7 +41,7 @@ this repo, auto-deploys on every push to `main`. Each app is a path:
 bash scripts/build-site.sh          # build dist/ (also the CI build command)
 bash scripts/verify-deploy.sh       # verify the live origin; exit code is the verdict
 for t in [1-8]_*/test-*.mjs; do node "$t"; done   # 8 suites (test-sync runs the API on node:sqlite)
-bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (240 checks)
+bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (244 checks)
 node --check <file>                 # syntax-check any extracted inline script
 ```
 

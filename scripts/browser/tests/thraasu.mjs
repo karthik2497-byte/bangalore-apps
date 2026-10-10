@@ -314,7 +314,7 @@ export default async (t) => {
   const sy = await t.evaluate(async () => {
     const $ = id => document.getElementById(id);
     const until = async ok => { for (let i = 0; i < 60 && !ok(); i++) await new Promise(r => setTimeout(r, 50)); };
-    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false,
+    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false, stock: { onion: 3000, tomato: 5000 }, sales: {},
       catalog: { sample: false, categories: [{ id: 'veg', ml: 'പച്ചക്കറി', en: 'Vegetables', icon: '🥬' }], products: [
         { id: 'tomato', cat: 'veg', ml: 'തക്കാളി', en: 'Tomato', icon: '🍅', unit: 'kg', rate: 44 },
         { id: 'onion', cat: 'veg', ml: 'സവാള', en: 'Onion', icon: '🧅', unit: 'kg', rate: 50 },
@@ -331,8 +331,16 @@ export default async (t) => {
       if (o.headers?.authorization !== 'Bearer ' + server.token) return res({ error: 'login' }, 401);
       if (m === 'GET catalog') return res(JSON.stringify(server.catalog));
       if (m === 'GET state') return res({ shop: { code: 'NANMA', name: server.name }, catalog: 1, prices: server.prices,
-        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])) });
+        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])), stock: server.stock });
       if (m === 'POST prices') { Object.assign(server.prices, body.set); body.clear.forEach(id => delete server.prices[id]); return res({ ok: true }); }
+      if (m === 'POST sales') {
+        for (const [k, items] of Object.entries(body.sales)) {
+          const was = server.sales[k] || {};
+          for (const id of new Set([...Object.keys(was), ...Object.keys(items)])) if (id in server.stock) server.stock[id] -= (items[id] || 0) - (was[id] || 0);
+          server.sales[k] = items;
+        }
+        return res({ ok: true });
+      }
       if (m === 'PUT photo') { server.photos[body.id] = { data: body.data, at: Date.now() }; return res({ ok: true, at: server.photos[body.id].at }); }
       if (m === 'GET photos') return res(Object.fromEntries(new URLSearchParams(qs).get('ids').split(',').filter(id => server.photos[id]).map(id => [id, server.photos[id]])));
       if (m === 'PUT shop') { server.name = body.name; return res({ ok: true }); }
@@ -356,6 +364,19 @@ export default async (t) => {
     server.prices.shallot = 9900; server.photos.onion = { data: 'data:image/jpeg;base64,/9j/AAAA', at: Date.now() };
     await sync();
     r.pull = [mine.shallot, (photos.get('onion') || '').slice(0, 15), byId.get('shallot').rate];
+    // Stock: an open bill is not sold; closing it lowers stock, and later changes to it move stock by the difference.
+    bill = freshBill(1); saveBill(); renderBill();
+    openSheet(asItem(byId.get('onion'))); r.sheetStock = $('sheetStock').hidden ? '' : $('sheetStock').textContent;
+    setQty(500); commit();
+    r.unsold = [pending(), stockLeft('onion')];
+    newBill(); r.queued = [stockLeft('onion'), pending()];
+    await sync(); r.sold = [server.stock.onion, stockLeft('onion'), pending(), Object.keys(server.sales).length];
+    $('toastUndo').click(); openSheet(asItem(byId.get('onion'))); setQty(1000); commit(); await sync();
+    r.edited = server.stock.onion;
+    removeLine(0); await sync();
+    r.emptied = [server.stock.onion, server.stock.tomato, pending()];
+    openPrices(); r.row = $('priceList').querySelector('[data-pid="onion"] small')?.textContent; pricesEl.close();
+    bill = freshBill(1); saveBill(); renderBill(); hideToast();
     server.fail = true; setMine(byId.get('onion'), 5600); await sync();
     r.offline = [pending(), $('acctBtn').dataset.state];
     r.blocked = [!!(await logout()), !!account];
@@ -381,6 +402,10 @@ export default async (t) => {
   t.check("login loads the shop's own list and sends up what the phone had", sy.login.join() === 'NANMA,3,വിലകൾ,4200,false,ok,', sy.login);
   t.check('a price changed on the phone reaches the shop', sy.push.join() === '5500,0', sy.push);
   t.check("another phone's price and photo come down", sy.pull.join() === '9900,data:image/jpeg,9900', sy.pull);
+  t.check('stock shows in the quantity sheet and the price list', sy.sheetStock === 'സ്റ്റോക്ക് 3 kg' && sy.row === 'പട്ടിക ₹50 · സ്റ്റോക്ക് 3 kg', [sy.sheetStock, sy.row]);
+  t.check('an open bill is not sold: nothing goes to the shop', sy.unsold.join() === '0,3000', sy.unsold);
+  t.check('a closed bill lowers stock on the phone at once, on the server at sync', sy.queued.join() === '2500,1' && sy.sold.join() === '2500,2500,0,1', sy);
+  t.check('an edit after closing moves stock by the difference; emptying the bill puts it back', sy.edited === 2000 && sy.emptied.join() === '3000,5000,0', sy);
   t.check('offline, the change waits on the phone', sy.offline.join() === '1,wait', sy.offline);
   t.check('logout refuses while a change is unsent', sy.blocked.join() === 'true,true', sy.blocked);
   t.check('back online, the waiting change goes up', sy.back.join() === '5600,0,ok', sy.back);
@@ -409,7 +434,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v6', sw === 'thraasu-v6', sw);
+  t.check('service worker precached thraasu-v7', sw === 'thraasu-v7', sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a

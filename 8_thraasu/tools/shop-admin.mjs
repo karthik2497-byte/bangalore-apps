@@ -2,6 +2,7 @@
 //   node 8_thraasu/tools/shop-admin.mjs add CODE "Shop name" [PIN]   new shop; prints the PIN once
 //   node 8_thraasu/tools/shop-admin.mjs pin CODE [PIN]               new PIN, ends every session
 //   node 8_thraasu/tools/shop-admin.mjs catalog CODE list.json       the shop's own product list
+//   node 8_thraasu/tools/shop-admin.mjs stock CODE list.json         counts from the list's stock fields (a stocktake: replaces all)
 //   node 8_thraasu/tools/shop-admin.mjs remove CODE                  the shop and all its data
 //   node 8_thraasu/tools/shop-admin.mjs list
 // A PIN given on the command line lands in shell history; leave it out to get a random one.
@@ -51,11 +52,18 @@ DELETE FROM sessions WHERE shop = ${q(code)};`);
     ...parts.map((p, i) => `INSERT INTO catalog_parts (shop, part, body) VALUES (${q(code)}, ${i}, ${q(p)});`),
     `UPDATE shops SET catalog_at = ${Date.now()} WHERE code = ${q(code)};`].join('\n'));
   console.log(`${code}: ${list.products.length} products in ${parts.length} parts`);
+} else if (cmd === 'stock') {
+  needCode(); if (!arg) die('list.json required');
+  const counted = (JSON.parse(readFileSync(arg, 'utf8')).products || []).filter(p => /^[\w-]{1,40}$/.test(p.id) && Number.isInteger(p.stock));
+  if (!counted.length) die('no stock fields in that list');
+  d1([`DELETE FROM stock WHERE shop = ${q(code)};`,
+    ...counted.map(p => `INSERT INTO stock (shop, id, qty) VALUES (${q(code)}, ${q(p.id)}, ${p.stock});`)].join('\n'));
+  console.log(`${code}: stock set for ${counted.length} products; bills lower it from here`);
 } else if (cmd === 'remove') {
   needCode();
-  d1(['shops WHERE code', 'sessions WHERE shop', 'prices WHERE shop', 'photos WHERE shop', 'catalog_parts WHERE shop']
+  d1(['shops WHERE code', 'sessions WHERE shop', 'prices WHERE shop', 'photos WHERE shop', 'catalog_parts WHERE shop', 'stock WHERE shop', 'sales WHERE shop']
     .map(w => `DELETE FROM ${w} = ${q(code)};`).join('\n'));
-  console.log(`${code} removed with its prices, photos, list and sessions`);
+  console.log(`${code} removed with its prices, photos, list, stock, sales and sessions`);
 } else if (cmd === 'list') {
-  console.table(d1read(`SELECT s.code, s.name, (SELECT COUNT(*) FROM prices p WHERE p.shop = s.code) AS prices, (SELECT COUNT(*) FROM photos f WHERE f.shop = s.code) AS photos, s.catalog_at IS NOT NULL AS own_list FROM shops s ORDER BY s.code`));
-} else die(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 7).join('\n'));
+  console.table(d1read(`SELECT s.code, s.name, (SELECT COUNT(*) FROM prices p WHERE p.shop = s.code) AS prices, (SELECT COUNT(*) FROM photos f WHERE f.shop = s.code) AS photos, (SELECT COUNT(*) FROM stock k WHERE k.shop = s.code) AS counted, (SELECT COUNT(*) FROM sales b WHERE b.shop = s.code) AS bills, s.catalog_at IS NOT NULL AS own_list FROM shops s ORDER BY s.code`));
+} else die(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 8).join('\n'));

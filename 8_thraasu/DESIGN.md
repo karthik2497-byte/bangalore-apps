@@ -305,7 +305,7 @@ The door to the price list, top right. Brass-wash "മാതൃകാ വില�
 A product with no photo at all keeps its emoji, 46px, on the sack tint, with a camera button (34px white circle, 48px target) on the photo's top-left corner. The tile and the camera are siblings in a `.slot` wrapper, since a button cannot hold a button. A photo taken or picked there replaces the placeholder.
 
 ### Price list ("വിലയും ഫോട്ടോയും", prices and photos)
-A tall sheet (same sheet shell, `min(92dvh, 820px)`): title and an "n/459 … ഫോട്ടോയിൽ തൊട്ടാൽ മാറ്റാം" line, the shelf search, then every product grouped under sticky category headings in the category's tint-ink. A row: 40px pan inside a 48px photo button with a small camera badge, Malayalam name (16px) over "മാതൃകാ വില" (brass, sample lists only) or "പട്ടിക ₹40" / "മാതൃക ₹40" (ink-2) once changed, a 72px rate input with its per-unit label, and a ↺ reset only on changed rows (no empty slot, so names keep the width). A shop price fills its input leaf-wash with a leaf edge. Saves on change; a non-price entry puts the old value back.
+A tall sheet (same sheet shell, `min(92dvh, 820px)`): title and an "n/459 … ഫോട്ടോയിൽ തൊട്ടാൽ മാറ്റാം" line, the shelf search, then every product grouped under sticky category headings in the category's tint-ink. A row: 40px pan inside a 48px photo button with a small camera badge, Malayalam name (16px) over "മാതൃകാ വില" (brass, sample lists only) or "പട്ടിക ₹40" / "മാതൃക ₹40" (ink-2) once changed, then " · സ്റ്റോക്ക് 25 kg" (ink-2) for a counted item, a 72px rate input with its per-unit label, and a ↺ reset only on changed rows (no empty slot, so names keep the width). A shop price fills its input leaf-wash with a leaf edge. Saves on change; a non-price entry puts the old value back.
 
 ### Keep-rate row
 In the quantity sheet, after the rate field is edited away from the shelf price: a 48px checkbox row in leaf-deep, "ഈ നിരക്ക് എന്റെ വിലയായി സൂക്ഷിക്കുക", checked by default.
@@ -314,7 +314,7 @@ In the quantity sheet, after the rate field is edited away from the shelf price:
 Fixed at the bottom on narrow screens: leaf, 18px radius, item count over the live total (750 / 23px) and a translucent "view bill" pill. Empty, it turns to slip white with ink-2 text and the lift shadow. Adding an item bumps it (scale 1.035, 280ms).
 
 ### Quantity sheet
-A native `<dialog>`; no drag grip. Header: the brass balance drawing beside the product name and an editable rate. Body: preset chips, then a custom quantity row with the unit toggle. Footer on paper: the computed line and amount in display type, then a danger remove button (only when editing a line already on the bill) and a full-width primary.
+A native `<dialog>`; no drag grip. Header: the brass balance drawing beside the product name (with "സ്റ്റോക്ക് 25 kg" under the English name for a counted item) and an editable rate. Body: preset chips, then a custom quantity row with the unit toggle. Footer on paper: the computed line and amount in display type, then a danger remove button (only when editing a line already on the bill) and a full-width primary.
 
 **The One Settle Rule.** The beam settle (760ms: dip to -7deg, swing past level to 3.2deg, rest) is the single authored motion moment, replayed each time the valid quantity changes. Everything else is functional feedback: press scale, bar bump, sheet rise (260ms), bill slide (280ms), toast. All share `--ease` and collapse under `prefers-reduced-motion`.
 
