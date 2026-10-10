@@ -9,7 +9,9 @@ routinely break the other seven.
 ## What this is
 
 Eight standalone PWAs, each a single `index.html` with inline JS plus a service
-worker and manifest. No framework, no bundler, no backend, no npm install.
+worker and manifest. No framework, no bundler, no npm install. One backend, Thraasu's shop sync:
+`functions/api/thraasu/[[path]].js` (a Pages Function on the same origin) over the D1 database
+`thraasu`, bound in `wrangler.toml`; shops are made with `8_thraasu/tools/shop-admin.mjs`.
 `node` is used only to run the test files.
 
 ```
@@ -18,7 +20,8 @@ worker and manifest. No framework, no bundler, no backend, no npm install.
 ```
 
 - `index.html` — landing page listing all 8
-- `_headers` — Cloudflare Pages headers; a separate CSP per app
+- `_headers` — Cloudflare Pages headers; a separate CSP per app (not applied to Functions responses)
+- `wrangler.toml` — Pages bindings (D1 `THRAASU_DB`); with it present, the dashboard's bindings are ignored
 - `.well-known/assetlinks.json` — Digital Asset Links, one statement per Android app
 - `scripts/build-site.sh` — assembles `dist/`; **fails the build** if a private file or an under-specified CSP gets through
 - `scripts/verify-deploy.sh` — checks the deployed origin
@@ -37,8 +40,8 @@ this repo, auto-deploys on every push to `main`. Each app is a path:
 ```bash
 bash scripts/build-site.sh          # build dist/ (also the CI build command)
 bash scripts/verify-deploy.sh       # verify the live origin; exit code is the verdict
-for t in [1-8]_*/test-*.mjs; do node "$t"; done   # 7 suites
-bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (229 checks)
+for t in [1-8]_*/test-*.mjs; do node "$t"; done   # 8 suites (test-sync runs the API on node:sqlite)
+bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (240 checks)
 node --check <file>                 # syntax-check any extracted inline script
 ```
 
@@ -49,7 +52,7 @@ node --check <file>                 # syntax-check any extracted inline script
    Changing it silently destroys user data and breaks every published app.
 2. **Namespace every `localStorage` key and every Cache Storage name.** All 8 apps
    share one origin and therefore one storage bucket. Existing prefixes: `pp_`,
-   `meterSmart`, `pgbuddy_`, `nesthub_state`, `ll_`, `stockping_`, `cardguard_`, `thraasu_`.
+   `meterSmart`, `pgbuddy_`, `nesthub_state`, `ll_`, `stockping_`, `cardguard_`, `thraasu_` (and IndexedDB `thraasu-photos`).
    An unprefixed key will collide with another app. Cache Storage is per origin
    too. A service worker's `activate` may delete only caches with its own prefix
    (`powerpulse-`, `metersmart-`, `pgbuddy-`, `nesthub-`, `lingolocal-`, `stockping-`,

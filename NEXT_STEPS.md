@@ -79,13 +79,18 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       verified. The 8 current rows are the original demo data. Numbers were left
       blank deliberately: inventing plausible Indian mobile numbers would point
       real users at real strangers.
-- [ ] **Thraasu carries Nanma Store's real list**: 433 items live (`sample: false`). **27 sheet rows
+- [ ] **Thraasu shop accounts are live** (2026-10-10): Nanma Store is shop `NANMA` (PIN given to Karthik;
+      reset with `node 8_thraasu/tools/shop-admin.mjs pin NANMA`). Its own list (real prices, stock)
+      is on the server; the public `products.json` is now the labelled template without stock. New
+      shop: `shop-admin.mjs add CODE "Name"`, then `catalog CODE list.json` if it has its own list.
+      Open: a shop must log in once on each phone; a shop changing its *list* (adding items) still
+      goes through me (sheet → import → `catalog`).
+- [ ] **Thraasu carries Nanma Store's real list**: 433 items (template public, real list on the server). **27 sheet rows
       are held back until the shop clarifies them**, each with its sheet row and reason in
       **`8_thraasu/NANMA-IMPORT-NOTES.md`**: all UK/Hyza coconut oil and Milma ghee rows (prices
       shifted), Punerva gingelly 200 ml (₹1), glucose (₹0), 8 double entries, 3 shared SKUs, and the
       unclear "con flower" / "savoonari". Karthik fixed sugar ₹59, jaggery ₹85, kaima rice ₹190,
-      Robusta ₹45 per kg. Prices and photos set on a phone have **no backup yet**: add export/import
-      before shops rely on them.
+      Robusta ₹45 per kg.
       A corrected sheet re-imports with `python3 8_thraasu/tools/nanma-import.py "<sheet>.xlsx"`
       (names/categories live in `tools/nanma-table.txt`, one line per sheet row).
 - [ ] `REPLACE_WITH_CONTACT_EMAIL` in all four `privacy.html` files: MeterSmart,
