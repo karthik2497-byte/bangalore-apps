@@ -17,6 +17,7 @@ on:
           - 5_lingo_local
           - 6_stock_ping
           - 7_card_guard
+          - 8_thraasu
       origin:
         description: 'Origin the TWAs load from (must match the deployed site and its /.well-known/assetlinks.json)'
         required: true
@@ -32,7 +33,7 @@ jobs:
       - id: set-matrix
         run: |
           if [ "${{ github.event.inputs.app }}" = "all" ]; then
-            echo 'matrix={"include":[{"name":"PowerPulse","dir":"1_power_pulse","pkg":"uk.tinkerhouse.powerpulse"},{"name":"MeterSmart","dir":"2_meter_smart","pkg":"uk.tinkerhouse.metersmart"},{"name":"PGBuddy","dir":"3_pg_buddy","pkg":"uk.tinkerhouse.pgbuddy"},{"name":"NestHub","dir":"4_nest_hub","pkg":"uk.tinkerhouse.nesthub"},{"name":"LingoLocal","dir":"5_lingo_local","pkg":"uk.tinkerhouse.lingolocal"},{"name":"StockPing","dir":"6_stock_ping","pkg":"uk.tinkerhouse.stockping"},{"name":"CardGuard","dir":"7_card_guard","pkg":"uk.tinkerhouse.cardguard"}]}' >> "$GITHUB_OUTPUT"
+            echo 'matrix={"include":[{"name":"PowerPulse","dir":"1_power_pulse","pkg":"uk.tinkerhouse.powerpulse"},{"name":"MeterSmart","dir":"2_meter_smart","pkg":"uk.tinkerhouse.metersmart"},{"name":"PGBuddy","dir":"3_pg_buddy","pkg":"uk.tinkerhouse.pgbuddy"},{"name":"NestHub","dir":"4_nest_hub","pkg":"uk.tinkerhouse.nesthub"},{"name":"LingoLocal","dir":"5_lingo_local","pkg":"uk.tinkerhouse.lingolocal"},{"name":"StockPing","dir":"6_stock_ping","pkg":"uk.tinkerhouse.stockping"},{"name":"CardGuard","dir":"7_card_guard","pkg":"uk.tinkerhouse.cardguard"},{"name":"Thraasu","dir":"8_thraasu","pkg":"uk.tinkerhouse.thraasu"}]}' >> "$GITHUB_OUTPUT"
           else
             DIR="${{ github.event.inputs.app }}"
             NAME=$(echo "$DIR" | sed 's/^[0-9]*_//' | sed 's/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1' | tr -d ' ')

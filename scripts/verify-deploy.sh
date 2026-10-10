@@ -14,7 +14,7 @@ hdr(){ curl -sI --max-time 20 "$1"; }
 
 [ "$(code "$B/")" = 200 ] || say "root / not 200"
 
-for app in 1_power_pulse 2_meter_smart 3_pg_buddy 4_nest_hub 5_lingo_local 6_stock_ping 7_card_guard; do
+for app in 1_power_pulse 2_meter_smart 3_pg_buddy 4_nest_hub 5_lingo_local 6_stock_ping 7_card_guard 8_thraasu; do
   c=$(code "$B/$app/"); [ "$c" = 200 ] || say "$app -> HTTP $c"
   h=$(hdr "$B/$app/")
   csp=$(printf '%s' "$h" | grep -i '^content-security-policy:')
@@ -27,13 +27,13 @@ for app in 1_power_pulse 2_meter_smart 3_pg_buddy 4_nest_hub 5_lingo_local 6_sto
   printf '%s' "$h" | grep -qi '^x-frame-options: *DENY'            || say "$app: no X-Frame-Options"
 done
 
-# One statement per TWA, served from the origin root — this is what lets seven
-# Play listings verify against seven paths on this one host.
+# One statement per TWA, served from the origin root — this is what lets eight
+# Play listings verify against eight paths on this one host.
 n=$(curl -s --max-time 20 "$B/.well-known/assetlinks.json" | grep -c 'uk.tinkerhouse.')
-[ "$n" = 7 ] || say "assetlinks: $n/7 package ids"
+[ "$n" = 8 ] || say "assetlinks: $n/8 package ids"
 
-# A rate revision or a newly verified PG must reach clients on next launch.
-for j in 2_meter_smart/fares.json 3_pg_buddy/pgs.json; do
+# A rate revision, a newly verified PG or a price change must reach clients on next launch.
+for j in 2_meter_smart/fares.json 3_pg_buddy/pgs.json 8_thraasu/products.json; do
   hdr "$B/$j" | grep -qi 'cache-control:.*must-revalidate' || say "$j: not must-revalidate"
 done
 
@@ -42,9 +42,9 @@ done
 # HTTP 200, and a status code proves nothing — verified the hard way.
 [ "$(code "$B/nonexistent-probe-$$")" = 404 ] || say "no 404.html: unmatched paths soft-404, leak check below is meaningless"
 for leak in EXECUTION_PLAN.md WORK_LOG.md MISTAKES.md PLAYBOOK.html CLAUDE.md \
-            scripts/build-site.sh .gitignore 2_meter_smart/test-fares.mjs 7_card_guard/TODO.md; do
+            scripts/build-site.sh .gitignore 2_meter_smart/test-fares.mjs 7_card_guard/TODO.md 8_thraasu/test-bill.mjs 8_thraasu/PRODUCT.md 8_thraasu/.impeccable/design.json; do
   c=$(code "$B/$leak"); [ "$c" = 404 ] || say "LEAKED $leak -> HTTP $c"
 done
 
-[ $fail = 0 ] && echo "PASS — 7 apps, CSPs applied, assetlinks 7/7, 404s real, no leaks" || echo "FAILED"
+[ $fail = 0 ] && echo "PASS — 8 apps, CSPs applied, assetlinks 8/8, 404s real, no leaks" || echo "FAILED"
 exit $fail

@@ -13,20 +13,20 @@ mkdir -p dist
 cp index.html 404.html _headers dist/
 
 # Digital Asset Links must be served from the ORIGIN ROOT, not per app folder —
-# one file carries a statement per TWA, which is how seven Play listings verify
-# against seven paths on this one origin.
+# one file carries a statement per TWA, which is how eight Play listings verify
+# against eight paths on this one origin.
 cp -r .well-known dist/
 
 # rsync is not in the Pages build image, so copy wholesale and prune after.
 # The leak guard below is what proves the prune actually worked.
-for app in [1-7]_*/; do
+for app in [1-8]_*/; do
   cp -R "$app" "dist/$app"
 done
-find dist -type d -name 'tools' -prune -exec rm -rf {} +
+find dist -type d \( -name 'tools' -o -name '.impeccable' \) -prune -exec rm -rf {} +
 find dist \( -name 'test-*.mjs' -o -name '*.md' \) -delete
 
 # Fail loudly rather than shipping a site that leaks the plan.
-leaked=$(find dist \( -name '*.md' -o -name 'test-*' -o -name 'tools' \) -print)
+leaked=$(find dist \( -name '*.md' -o -name 'test-*' -o -name 'tools' -o -name '.impeccable' \) -print)
 if [ -n "$leaked" ]; then
   echo "FAIL: build output contains files that must not be public" >&2
   echo "$leaked" >&2
