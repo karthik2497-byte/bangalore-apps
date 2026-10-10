@@ -105,6 +105,17 @@ function cleanPrices(raw) {
   return out;
 }
 
+// A backup file, checked before any of it reaches the phone: prices as cleanPrices, photos
+// only as data: images (jpeg/png/webp, under 300 KB) under a plain product id, a short name.
+function cleanBackup(raw) {
+  if (!raw || typeof raw !== 'object' || raw.app !== 'thraasu' || raw.kind !== 'backup') return null;
+  const photos = Object.create(null);
+  if (raw.photos && typeof raw.photos === 'object' && !Array.isArray(raw.photos))
+    for (const [id, url] of Object.entries(raw.photos))
+      if (/^[\w-]{1,40}$/.test(id) && typeof url === 'string' && url.length < 3e5 && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)) photos[id] = url;
+  return { shop: typeof raw.shop === 'string' ? raw.shop.trim().slice(0, 60) : '', prices: cleanPrices(raw.prices), photos };
+}
+
 // products.json is hand-edited: drop any row the bill maths cannot price.
 function validProducts(data) {
   const cats = new Set(((data && data.categories) || []).map(c => c && c.id));

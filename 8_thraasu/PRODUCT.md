@@ -32,10 +32,12 @@ phone can already reach.
 - Installed via Add to Home Screen from tinkerhouse.uk/8_thraasu/; Play Store via TWA later.
 
 ## Capabilities and Constraints
-- Single-file PWA, no backend: the price list is `products.json` on the same origin.
+- Single-file PWA. The public `products.json` is a template; a shop that logs in (code + PIN) gets
+  its own list, prices and photos from the sync API on the same origin (Pages Function + D1).
 - Units: kg (priced per kg), L (per litre), pc (per piece). Money in integer paise.
-- Current bill persists on the device. The shop's own prices persist on the device too (no backup or sync yet). No
-  bill history, GST or customers in v1 (deliberately deferred, not forgotten).
+- Local first: the bill, prices and photos save on the phone at once and sync when online; a backup
+  file (share to WhatsApp/Drive) carries prices and photos without an account. No bill history, GST
+  or customers in v1 (deliberately deferred, not forgotten).
 - localStorage keys prefixed `thraasu_`; Cache Storage prefixed `thraasu-` (shared origin).
 
 ## Brand Commitments

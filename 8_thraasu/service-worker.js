@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thraasu-v5';
+const CACHE_NAME = 'thraasu-v6';
 const urlsToCache = ['./', './index.html', './bill-core.js', './products.json', './manifest.json', './icon-192.svg', './icon-512.svg'];
 const FONTS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
 
@@ -16,6 +16,7 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) return;   // shop sync: always the network, never a cache
 
   // Prices are network-first so a price change reaches the counter on the next
   // launch; the cached copy keeps billing working when the shop is offline.

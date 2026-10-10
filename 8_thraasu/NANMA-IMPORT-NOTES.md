@@ -17,35 +17,35 @@ clarifies them. Row numbers are the sheet's own (row 1 is the header).
 
 ## Held back (27)
 
-| Sheet row | SKU | Sheet name | Sheet price | Inventory | Why |
-|---|---|---|---|---|---|
-| 38 | P0000000037 | con flower | 0.2 | 1500.0 | Name unclear: "con flower" (corn flour? ₹200/kg is high for it) |
-| 44 | P0000000043 | savoonari | 0.13 | 1000.0 | Name unclear: "savoonari" (sago / chowari?) |
-| 45 | P0000000044 | savoonari small | 0.13 | 1000.0 | Name unclear: "savoonari small" (small sago?) |
-| 127 | P0000000129 | biriyani masala swam | 46.0 | 4.0 | SKU P0000000129 is also on sheet row 117 (Rasam powder): needs its own SKU |
-| 129 | P0000000131 | chilly powderhyza | 38.0 | 2.0 | Same name and price as sheet row 113 (Hyza chilli powder ₹38): double entry? |
-| 147 | P0000000149 | chiken masala hyza | 10.0 | 10.0 | Same name and price as sheet row 111 (Hyza chicken masala ₹10): double entry? |
-| 154 | P0000000156 | pineapple asence choz | 38.0 | 4.0 | SKU P0000000156 is also on sheet row 153 (Food colour): needs its own SKU |
-| 164 | P0000000166 | glucose packet | 0.0 | 1.0 | Price 0.0: cannot be billed |
-| 167 | P0000000169 | bambino vermeceli | 36.0 | 2.0 | Same name and price as sheet row 75 (Bambino vermicelli ₹36): double entry? |
-| 168 | P0000000170 | bambino vermeceli | 58.0 | 6.0 | Same name and price as sheet row 76 (Bambino vermicelli ₹58): double entry? |
-| 171 | P0000000173 | swamees pappad pkt | 33.0 | 2.0 | Same name and price as sheet row 74 (Swamees pappadam ₹33): double entry? |
-| 179 | P0000000181 | co co nut oil uk 1 ltr | 47.0 | 2.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
-| 180 | P0000000182 | co co nut oil uk.5ltr | 320.0 | 3.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
-| 181 | P0000000183 | co co nut oil uk 200 ml | 160.0 | 3.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
-| 182 | P0000000184 | co co nut oil uk .5 pkt | 75.0 | 4.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
-| 183 | P0000000185 | co co nut oil hyza.5 ltr | 75.0 | 5.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
-| 184 | P0000000186 | co co nut oil hyza 200 ml | 160.0 | 3.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
-| 185 | P0000000187 | co co nut oil hyza.5pkt | 155.0 | 4.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
-| 187 | P0000000189 | ghee milma 1 ltrbottlle | 157.0 | 3.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
-| 188 | P0000000190 | ghee milma200 ml | 81.0 | 2.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
-| 189 | P0000000191 | ghee milma 100 ml | 44.0 | 4.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
-| 190 | P0000000192 | ghee milma 50 ml | 110.0 | 1.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
-| 196 | P0000000198 | jingly oil punerva 200 ml | 1.0 | 1.0 | Price ₹1 for a 200 ml bottle |
-| 199 | P0000000201 | jingly oil rg .5 ltr | 160.0 | 2.0 | SKU P0000000201 is also on sheet row 99 (Eastern Adimali coffee): needs its own SKU |
-| 228 | P0000000230 | su feast moms magic | 10.0 | 15.0 | Same name and price as sheet row 225 (Sunfeast Mom's Magic ₹10): double entry? |
-| 404 | P0000000409 | ujala cloth whitner | 10.0 | 2.0 | Same name and price as sheet row 403 (Ujala whitener ₹10): double entry? |
-| 428 | P0000000433 | butter milky mist | 85.0 |  | Same name and price as sheet row 427 (Milky Mist butter ₹85): double entry? |
+| Sheet row | SKU | Sheet name | Sheet price | Why |
+|---|---|---|---|---|
+| 38 | P0000000037 | con flower | 0.2 | Name unclear: "con flower" (corn flour? ₹200/kg is high for it) |
+| 44 | P0000000043 | savoonari | 0.13 | Name unclear: "savoonari" (sago / chowari?) |
+| 45 | P0000000044 | savoonari small | 0.13 | Name unclear: "savoonari small" (small sago?) |
+| 127 | P0000000129 | biriyani masala swam | 46.0 | SKU P0000000129 is also on sheet row 117 (Rasam powder): needs its own SKU |
+| 129 | P0000000131 | chilly powderhyza | 38.0 | Same name and price as sheet row 113 (Hyza chilli powder ₹38): double entry? |
+| 147 | P0000000149 | chiken masala hyza | 10.0 | Same name and price as sheet row 111 (Hyza chicken masala ₹10): double entry? |
+| 154 | P0000000156 | pineapple asence choz | 38.0 | SKU P0000000156 is also on sheet row 153 (Food colour): needs its own SKU |
+| 164 | P0000000166 | glucose packet | 0.0 | Price 0.0: cannot be billed |
+| 167 | P0000000169 | bambino vermeceli | 36.0 | Same name and price as sheet row 75 (Bambino vermicelli ₹36): double entry? |
+| 168 | P0000000170 | bambino vermeceli | 58.0 | Same name and price as sheet row 76 (Bambino vermicelli ₹58): double entry? |
+| 171 | P0000000173 | swamees pappad pkt | 33.0 | Same name and price as sheet row 74 (Swamees pappadam ₹33): double entry? |
+| 179 | P0000000181 | co co nut oil uk 1 ltr | 47.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
+| 180 | P0000000182 | co co nut oil uk.5ltr | 320.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
+| 181 | P0000000183 | co co nut oil uk 200 ml | 160.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
+| 182 | P0000000184 | co co nut oil uk .5 pkt | 75.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
+| 183 | P0000000185 | co co nut oil hyza.5 ltr | 75.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
+| 184 | P0000000186 | co co nut oil hyza 200 ml | 160.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
+| 185 | P0000000187 | co co nut oil hyza.5pkt | 155.0 | Coconut oil prices look shifted between rows (1 L ₹47, 500 ml ₹320, 200 ml ₹160); the whole block waits |
+| 187 | P0000000189 | ghee milma 1 ltrbottlle | 157.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
+| 188 | P0000000190 | ghee milma200 ml | 81.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
+| 189 | P0000000191 | ghee milma 100 ml | 44.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
+| 190 | P0000000192 | ghee milma 50 ml | 110.0 | Milma ghee prices look shifted between rows (1 L ₹157 is about a 200 ml price, 50 ml ₹110); the whole block waits |
+| 196 | P0000000198 | jingly oil punerva 200 ml | 1.0 | Price ₹1 for a 200 ml bottle |
+| 199 | P0000000201 | jingly oil rg .5 ltr | 160.0 | SKU P0000000201 is also on sheet row 99 (Eastern Adimali coffee): needs its own SKU |
+| 228 | P0000000230 | su feast moms magic | 10.0 | Same name and price as sheet row 225 (Sunfeast Mom's Magic ₹10): double entry? |
+| 404 | P0000000409 | ujala cloth whitner | 10.0 | Same name and price as sheet row 403 (Ujala whitener ₹10): double entry? |
+| 428 | P0000000433 | butter milky mist | 85.0 | Same name and price as sheet row 427 (Milky Mist butter ₹85): double entry? |
 
 ## Also worth a look
 

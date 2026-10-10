@@ -11,11 +11,11 @@ import assert from 'node:assert/strict';
 
 const APP = dirname(fileURLToPath(import.meta.url));
 const core = vm.runInNewContext(readFileSync(join(APP, 'bill-core.js'), 'utf8') +
-  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg, cleanPrices })');
+  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg, cleanPrices, cleanBackup })');
 // Objects made inside the vm realm have its prototypes, which deepStrictEqual rejects: copy them out.
 const plain = f => (...args) => JSON.parse(JSON.stringify(f(...args)));
 const { lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, autoSmall, safeImg } = core;
-const [totals, search, validProducts, cleanPrices] = [core.totals, core.search, core.validProducts, core.cleanPrices].map(plain);
+const [totals, search, validProducts, cleanPrices, cleanBackup] = [core.totals, core.search, core.validProducts, core.cleanPrices, core.cleanBackup].map(plain);
 const data = JSON.parse(readFileSync(join(APP, 'products.json'), 'utf8'));
 // Search behaviour is pinned on the frozen sample list; the shop's list is checked as data below.
 const sample = JSON.parse(readFileSync(join(APP, '../scripts/browser/fixtures/thraasu-sample.json'), 'utf8'));
@@ -109,7 +109,8 @@ t('Manglish, English and Malayalam all find the product', () => {
 });
 
 t('shop list: every row is billable, every category stocked, stock is whole units', () => {
-  assert.equal(data.sample, false, 'Nanma Store prices are real: the sample label stays off');
+  assert.equal(data.sample, true, 'the public list is a template until a shop logs in');
+  assert.ok(!data.products.some(p => 'stock' in p), 'stock counts belong to the shop list on the server, not the public file');
   assert.equal(shop.length, data.products.length, 'a row in products.json was rejected');
   for (const c of data.categories) assert.ok(shop.some(p => p.cat === c.id), `empty category ${c.id}`);
   for (const p of shop) if ('stock' in p) assert.ok(Number.isInteger(p.stock) && p.stock >= 0, `${p.id} stock ${p.stock}`);
@@ -156,6 +157,15 @@ t('shop list: the prices Karthik confirmed are in, the rows held back are out', 
   for (const held of [/^(UK|Hyza) coconut oil/, /^Milma ghee/, /^Punerva gingelly oil 200 ml/, /^Corn flour$/, /^Sago/, /Swamees biriyani/])
     assert.ok(!data.products.some(p => held.test(p.en)), `${held} should be held back`);
   assert.ok(!data.products.some(p => /\(2\)$/.test(p.en)), 'a double entry slipped in');
+});
+
+t('backup file: only a Thraasu backup, only clean entries', () => {
+  const jpg = 'data:image/jpeg;base64,/9j/4AAQ';
+  const ok = cleanBackup({ app: 'thraasu', kind: 'backup', v: 1, shop: '  Nanma  ', prices: { P1: 5900, P2: 'x' },
+    photos: { P1: jpg, P2: 'https://evil.test/a.jpg', P3: 'data:image/svg+xml;base64,PHN2Zz4=', '../x': jpg, P4: 'data:image/jpeg;base64,' + 'A'.repeat(3e5) } });
+  assert.deepEqual(ok, { shop: 'Nanma', prices: { P1: 5900 }, photos: { P1: jpg } });
+  for (const junk of [null, {}, { app: 'thraasu' }, { app: 'other', kind: 'backup' }, [], 'x']) assert.equal(cleanBackup(junk), null);
+  assert.deepEqual(cleanBackup({ app: 'thraasu', kind: 'backup', shop: 42, photos: [jpg] }), { shop: '', prices: {}, photos: {} });
 });
 
 t('every photo named is a safe path to a file that ships; every category has one', () => {

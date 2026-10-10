@@ -124,14 +124,25 @@ report = {'held': len(held), 'doubles': doubles,
 for p in products: p.pop('_row'); p.pop('_price')
 
 cats = [{'id': c, 'ml': ml, 'en': en, 'icon': ic, **({'img': img('cat-' + c)} if img('cat-' + c) else {})} for c, ml, en, ic in CATS]
-data = {'version': 2, 'updated': '2026-10-10', 'sample': False, 'shop': 'Nanma Store',
-        'source': 'Inventory - Nanma store .xlsx', 'categories': cats, 'products': products}
-
 def line(o): return json.dumps(o, ensure_ascii=False)
-out = '{\n' + ''.join(f'  {json.dumps(k)}: {json.dumps(data[k], ensure_ascii=False)},\n' for k in ('version', 'updated', 'sample', 'shop', 'source'))
-out += '  "categories": [\n' + ',\n'.join('    ' + line(c) for c in cats) + '\n  ],\n'
-out += '  "products": [\n' + ',\n'.join('    ' + line(p) for p in products) + '\n  ]\n}\n'
-open(os.path.join(APP, 'products.json'), 'w').write(out)
+def write(path, head, items):
+    out = '{\n' + ''.join(f'  {json.dumps(k)}: {json.dumps(v, ensure_ascii=False)},\n' for k, v in head.items())
+    out += '  "categories": [\n' + ',\n'.join('    ' + line(c) for c in cats) + '\n  ],\n'
+    out += '  "products": [\n' + ',\n'.join('    ' + line(p) for p in items) + '\n  ]\n}\n'
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    open(path, 'w').write(out)
+
+# Two outputs. The shop's own list (real prices, stock) goes to the server with
+#   node 8_thraasu/tools/shop-admin.mjs catalog NANMA 8_thraasu/tools/catalogs/NANMA.json
+# and stays out of git (the repo is public). products.json is the public template every shop
+# sees until it logs in: the same items, labelled sample, without stock.
+data = {'source': 'Inventory - Nanma store .xlsx'}
+write(os.path.join(HERE, 'catalogs', 'NANMA.json'),
+      {'version': 2, 'updated': '2026-10-10', 'sample': False, 'shop': 'Nanma Store', 'source': data['source']}, products)
+write(os.path.join(APP, 'products.json'),
+      {'version': 3, 'updated': '2026-10-10', 'sample': True,
+       'note': 'Template for shops that have not logged in; a logged-in shop gets its own list from the server.'},
+      [{k: v for k, v in p.items() if k != 'stock'} for p in products])
 icons = ''.join(sorted({ch for x in cats + products for ch in x['icon']}))
 print('emoji subset (index.html &text=, test-bill checks it):', icons)
 print(len(products), 'products,', len(cats), 'categories,', sum('img' in p for p in products), 'with photos,',
@@ -155,9 +166,9 @@ clarifies them. Row numbers are the sheet's own (row 1 is the header).
 ''' + ''.join(f'| {r} | {cell(n)} | {p} | ₹{v}/kg |\n' for r, n, p, v in fixed) + f'''
 ## Held back ({len(held)})
 
-| Sheet row | SKU | Sheet name | Sheet price | Inventory | Why |
-|---|---|---|---|---|---|
-''' + ''.join(f'| {r} | {k} | {cell(n)} | {p} | {v} | {cell(w)} |\n' for r, k, n, p, v, w in sorted(held)) + '''
+| Sheet row | SKU | Sheet name | Sheet price | Why |
+|---|---|---|---|---|
+''' + ''.join(f'| {r} | {k} | {cell(n)} | {p} | {cell(w)} |\n' for r, k, n, p, v, w in sorted(held)) + '''
 ## Also worth a look
 
 - **Odds & ends (പലവക)** holds items the sheet names but does not describe: Body Guard, Ria, Power,

@@ -295,6 +295,9 @@ A 50px circle (44px in search rows, 40px in the price list, 38px on bill lines) 
 ### Logo (home)
 The scale mark and ത്രാസ് are one button: back to the category grid from a category or a search. 48px tall inside the 40px top row (negative block margin), pressed scale 0.97.
 
+### Shop button and sheet ("കട")
+A 48px storefront icon at the top right, after the price pill, with an 11px status dot: field-grey on this phone only, leaf when synced, brass while a change waits. It opens a tall sheet (the price list's shell): an account box (code and PIN fields, 52px, and a full-width leaf login button; signed in: shop name and code, a sync line in leaf-deep or brass-ink, sync-now and logout side by side) and a backup box (save and restore side by side). Boxes are paper-ground with a divider edge on the slip-white sheet.
+
 ### Price pill
 The door to the price list, top right. Brass-wash "മാതൃകാ വിലകൾ" while every price is the sample; brass "സ്വന്തം വില n/68" once some are the shop's own; leaf-wash "വിലകൾ" when none are sample (or the list is not sample at all). A 7px transparent border with padding-box background keeps a 34px pill on a 48px target. A trailing chevron says it opens something.
 

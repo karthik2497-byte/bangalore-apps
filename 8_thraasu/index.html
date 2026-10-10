@@ -385,6 +385,28 @@ button:disabled { cursor: default; }
 .price .reset { flex: none; width: 48px; color: var(--leaf-deep); font-size: 20px; }
 .price-none { padding: 24px 0; color: var(--ink-2); text-align: center; }
 
+/* ---------- shop: account, sync and backup ---------- */
+.acct { position: relative; display: grid; place-items: center; flex: none; width: 48px; height: 48px; margin: -4px -8px -4px 0; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--leaf-deep); }
+.acct svg { width: 25px; height: 25px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+/* the dot: grey on this phone only, leaf when synced, brass while something waits */
+.acct::after { content: ''; position: absolute; top: 9px; right: 7px; width: 11px; height: 11px; border: 2px solid var(--paper); border-radius: 50%; background: var(--field); }
+.acct[data-state="ok"]::after { background: var(--leaf); }
+.acct[data-state="wait"]::after, .acct[data-state="busy"]::after { background: var(--brass); }
+.shop[open] { display: flex; flex-direction: column; }
+.shop-body { display: grid; gap: 14px; overflow-y: auto; padding: 4px 16px calc(20px + env(safe-area-inset-bottom)); }
+.box { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); }
+.box[hidden] { display: none; }
+.box h3 { font-size: 18px; font-weight: 700; line-height: 1.3; }
+.box p { font-size: 15px; color: var(--ink-2); }
+.box form { display: grid; gap: 10px; }
+.box .hint { margin: 0; }
+.field { display: grid; gap: 4px; font-size: 14px; font-weight: 560; color: var(--ink-2); }
+.field input { height: 52px; padding: 0 14px; border: 1.5px solid var(--field); border-radius: 12px; background: var(--slip); font-size: 18px; font-weight: 600; color: var(--ink); }
+.field input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#syncState { font-weight: 620; color: var(--leaf-deep); }
+#syncState[data-state="wait"] { color: var(--brass-ink); }
+
 /* ---------- toast ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); z-index: 30;
@@ -452,6 +474,7 @@ button:disabled { cursor: default; }
         ത്രാസ്
       </button></h1>
       <button class="sample" id="samplePill" type="button" aria-haspopup="dialog" hidden><span id="pillText">മാതൃകാ വിലകൾ</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+      <button class="acct" id="acctBtn" type="button" aria-haspopup="dialog" aria-label="കട: ലോഗിൻ, സിങ്ക്, ബാക്കപ്പ്" data-state="out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5 5.6 4.5h12.8L20 9.5M4 9.5h16M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5M5.5 12v7.5h13V12M10 19.5v-4.5h4v4.5"/></svg></button>
     </div>
     <div class="search" role="search">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -562,6 +585,37 @@ button:disabled { cursor: default; }
   <ol class="price-list" id="priceList"></ol>
 </dialog>
 
+<dialog class="sheet shop" id="shopSheet" aria-labelledby="shopTitle">
+  <div class="prices-head">
+    <div><h2 id="shopTitle" tabindex="-1" autofocus>കട</h2><p id="shopSub"></p></div>
+    <button class="icon-btn" id="shopClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
+  </div>
+  <div class="shop-body">
+    <section class="box" id="signedOut">
+      <h3>കടയുടെ അക്കൗണ്ട്</h3>
+      <p>ലോഗിൻ ചെയ്താൽ കടയുടെ സാധനങ്ങളും വിലയും ഫോട്ടോയും സെർവറിൽ സൂക്ഷിക്കും; കടയിലെ എല്ലാ ഫോണിലും ഒരുപോലെ കിട്ടും.</p>
+      <form id="loginForm" novalidate>
+        <label class="field">കടയുടെ കോഡ്<input id="shopCode" autocomplete="username" autocapitalize="characters" spellcheck="false" maxlength="20" enterkeyhint="next"></label>
+        <label class="field">പിൻ<input id="shopPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="8" enterkeyhint="go"></label>
+        <p class="hint" id="loginMsg" role="alert" hidden></p>
+        <button class="btn primary" id="loginBtn" type="submit">ലോഗിൻ</button>
+      </form>
+    </section>
+    <section class="box" id="signedIn" hidden>
+      <h3 id="acctName"></h3>
+      <p id="syncState" role="status"></p>
+      <div class="two"><button class="btn ghost" id="syncNow" type="button">ഇപ്പോൾ സിങ്ക്</button><button class="btn quiet" id="logoutBtn" type="button">ലോഗൗട്ട്</button></div>
+      <p class="hint" id="logoutMsg" role="alert" hidden></p>
+    </section>
+    <section class="box">
+      <h3>ബാക്കപ്പ് ഫയൽ</h3>
+      <p>ഈ ഫോണിലെ വിലയും ഫോട്ടോയും ഒരു ഫയലായി WhatsApp-ലോ Drive-ലോ സൂക്ഷിക്കാം; ഫോൺ മാറുമ്പോൾ അതിൽ നിന്ന് തിരികെ എടുക്കാം.</p>
+      <div class="two"><button class="btn ghost" id="backupBtn" type="button">ബാക്കപ്പ് എടുക്കുക</button><button class="btn ghost" id="restoreBtn" type="button">തിരികെ എടുക്കുക</button></div>
+      <p id="backupMsg" role="status"></p>
+    </section>
+  </div>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastUndo" type="button">പഴയപടി</button></div>
 
 <section id="receipt" aria-hidden="true"></section>
@@ -573,8 +627,9 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Every key and cache on this origin is shared with the other tinkerhouse apps: prefix everything.
 const BILL_KEY = 'thraasu_bill', SHOP_KEY = 'thraasu_shop', PRICES_KEY = 'thraasu_prices';
+const SESSION_KEY = 'thraasu_session', OUTBOX_KEY = 'thraasu_outbox', SYNCED_KEY = 'thraasu_synced', CATALOG_KEY = 'thraasu_catalog';
 const wide = matchMedia('(min-width: 900px)');
-const sheetEl = $('sheet'), pricesEl = $('prices');
+const sheetEl = $('sheet'), pricesEl = $('prices'), shopEl = $('shopSheet');
 
 let cats = [], products = [], byId = new Map(), catById = new Map();
 let bill = loadBill();
@@ -623,9 +678,7 @@ function saveBill() { try { localStorage.setItem(BILL_KEY, JSON.stringify(bill))
 async function loadCatalog() {
   $('shelf').innerHTML = `<div class="shelf-head"><h2>വിഭാഗങ്ങൾ</h2></div><div class="grid" aria-busy="true">${'<div class="sk"></div>'.repeat(8)}</div>`;
   try {
-    const res = await fetch('./products.json', { cache: 'no-cache' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
+    const data = await fetchCatalog();
     cats = (data.categories || []).filter(c => c && typeof c.id === 'string' && typeof c.ml === 'string');
     products = validProducts(data).map(p => ({ ...p, base: Math.round(p.rate * 100) }));
     byId = new Map(products.map(p => [p.id, p]));
@@ -657,6 +710,7 @@ function applyPrices() {
 function setMine(p, paise) {         // the sample rate itself is not "mine", which keeps the count honest
   if (paise === p.base) delete mine[p.id]; else mine[p.id] = paise;
   try { localStorage.setItem(PRICES_KEY, JSON.stringify(mine)); } catch {}
+  queue('price', p.id, mine[p.id] || 0);
   applyPrices();
 }
 const listWord = () => samplePrices ? 'മാതൃക' : 'പട്ടിക';   // the sheet's price: sample, or the shop's list
@@ -716,7 +770,7 @@ function pickPhoto(id) {
   const inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.className = 'photo-in'; inp.hidden = true;
   inp.addEventListener('change', () => { if (inp.files[0]) setPhoto(id, inp.files[0]); inp.remove(); });
-  (pricesEl.open ? pricesEl : document.body).append(inp);
+  topLayer().append(inp);
   inp.click();
 }
 async function setPhoto(id, file) {
@@ -727,11 +781,210 @@ async function setPhoto(id, file) {
     const url = c.toDataURL('image/jpeg', .82);
     await idb('readwrite', st => st.put(url, id));
     photos.set(id, url);
+    queue('photo', id);
   } catch { return toast('ഫോട്ടോ ചേർക്കാനായില്ല'); }
   renderShelf(); renderBill();
   const row = $('priceList').querySelector(`.price[data-pid="${CSS.escape(id)}"]`);
   if (row && byId.has(id)) row.outerHTML = priceRow(byId.get(id));
 }
+
+// ---------- the shop's account: its own list, and sync of what the phone changes ----------
+// Local first: prices and photos are saved on the phone at once and billing never waits.
+// Each change also joins an outbox; sync() pushes the outbox, then pulls the shop's state,
+// so every phone of the shop converges. Last write wins per item (server order).
+// ponytail: two phones changing the same price offline: whichever syncs last wins.
+const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+const writeJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null });
+let account = readJSON(SESSION_KEY);                 // { token, code, name } once logged in
+let outbox = { ...freshOutbox(), ...readJSON(OUTBOX_KEY) };
+let synced = readJSON(SYNCED_KEY) || { at: 0, photos: {} };   // when, and the server time of each photo we hold
+let syncing = null, syncError = '', syncTimer = 0;
+const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0);
+
+// The API sits at the origin root, beside the apps: ../api from /8_thraasu/.
+async function api(path, opts = {}) {
+  const res = await fetch('../api/thraasu/' + path, {
+    ...opts, cache: 'no-store',
+    headers: { 'content-type': 'application/json', ...(account ? { authorization: 'Bearer ' + account.token } : {}) },
+  });
+  if (res.status === 401 && account && path !== 'login') signOut(false);   // PIN changed or session gone
+  return res;
+}
+async function fetchCatalog() {
+  if (account) {
+    try {
+      const r = await api('catalog');
+      if (r.ok) { const text = await r.text(), list = JSON.parse(text); try { localStorage.setItem(CATALOG_KEY, text); } catch {} return list; }
+      if (r.status === 404) writeJSON(CATALOG_KEY, null);          // no own list yet: the template it is
+    } catch {
+      const cached = readJSON(CATALOG_KEY);                      // offline: the list from the last sync
+      if (cached) return cached;
+    }
+  }
+  const res = await fetch('./products.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+function queue(kind, id, value) {
+  if (!account) return;
+  if (kind === 'price') {
+    delete outbox.set[id]; outbox.clear = outbox.clear.filter(x => x !== id);
+    if (value) outbox.set[id] = value; else outbox.clear.push(id);
+  }
+  if (kind === 'photo' && !outbox.photos.includes(id)) outbox.photos.push(id);
+  if (kind === 'name') outbox.name = id;
+  writeJSON(OUTBOX_KEY, outbox);
+  renderSync();
+  clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500);
+}
+function sync() {
+  if (!account) return Promise.resolve();
+  if (syncing) return syncing;
+  syncing = (async () => {
+    renderSync();
+    try {
+      const { set, clear } = outbox;
+      if (Object.keys(set).length || clear.length) {
+        const r = await api('prices', { method: 'POST', body: JSON.stringify({ set, clear }) });
+        if (!r.ok) throw new Error(r.status);
+        for (const id in set) if (outbox.set[id] === set[id]) delete outbox.set[id];
+        outbox.clear = outbox.clear.filter(id => !clear.includes(id));
+        writeJSON(OUTBOX_KEY, outbox);
+      }
+      for (const id of [...outbox.photos]) {
+        if (photos.has(id)) {
+          const r = await api('photo', { method: 'PUT', body: JSON.stringify({ id, data: photos.get(id) }) });
+          if (!r.ok && r.status !== 400) throw new Error(r.status);     // 400: not a photo the server keeps; drop it
+          if (r.ok) synced.photos[id] = (await r.json()).at;
+        }
+        outbox.photos = outbox.photos.filter(x => x !== id);
+        writeJSON(OUTBOX_KEY, outbox);
+      }
+      if (outbox.name) {
+        const name = outbox.name, r = await api('shop', { method: 'PUT', body: JSON.stringify({ name }) });
+        if (!r.ok) throw new Error(r.status);
+        if (outbox.name === name) outbox.name = null;
+        writeJSON(OUTBOX_KEY, outbox);
+      }
+      const r = await api('state');
+      if (!r.ok) throw new Error(r.status);
+      const st = await r.json();
+      // The shop's prices, with anything changed here since the push still on top.
+      mine = cleanPrices({ ...st.prices, ...outbox.set });
+      for (const id of outbox.clear) delete mine[id];
+      writeJSON(PRICES_KEY, mine);
+      const want = Object.keys(st.photos).filter(id => !(synced.photos[id] >= st.photos[id]) && !outbox.photos.includes(id));
+      for (let i = 0; i < want.length; i += 30) {
+        const g = await api('photos?ids=' + want.slice(i, i + 30).join(','));
+        if (!g.ok) throw new Error(g.status);
+        for (const [id, x] of Object.entries(await g.json())) {
+          if (typeof x.data !== 'string' || !x.data.startsWith('data:image/')) continue;
+          await idb('readwrite', st2 => st2.put(x.data, id));
+          photos.set(id, x.data); synced.photos[id] = x.at;
+        }
+      }
+      if (!$('shopName').value.trim() && st.shop.name) { $('shopName').value = st.shop.name; try { localStorage.setItem(SHOP_KEY, st.shop.name); } catch {} }
+      account = { ...account, name: st.shop.name }; writeJSON(SESSION_KEY, account);
+      const listChanged = st.catalog !== (synced.catalog ?? null);
+      synced = { ...synced, at: Date.now(), catalog: st.catalog };
+      writeJSON(SYNCED_KEY, synced);
+      if (listChanged) await loadCatalog(); else applyPrices();
+      renderShelf(); renderBill(); if (pricesEl.open) renderPrices();
+      syncError = '';
+    } catch { syncError = navigator.onLine === false ? 'offline' : 'server'; }
+    syncing = null;
+    renderSync();
+  })();
+  return syncing;
+}
+async function login(code, pin) {
+  let r;
+  try { r = await api('login', { method: 'POST', body: JSON.stringify({ code, pin }) }); } catch { return 'ഇന്റർനെറ്റ് കിട്ടിയില്ല, വീണ്ടും ശ്രമിക്കൂ'; }
+  if (r.status === 429) return 'പലതവണ തെറ്റി: 15 മിനിറ്റ് കഴിഞ്ഞ് ശ്രമിക്കൂ';
+  if (!r.ok) return r.status === 401 ? 'കോഡ് അല്ലെങ്കിൽ പിൻ തെറ്റാണ്' : 'സെർവർ കിട്ടിയില്ല, വീണ്ടും ശ്രമിക്കൂ';
+  const { token, shop } = await r.json();
+  account = { token, code: shop.code, name: shop.name };
+  writeJSON(SESSION_KEY, account);
+  synced = { at: 0, photos: {} }; writeJSON(SYNCED_KEY, synced);
+  // What this phone had before logging in goes up to the shop, not lost.
+  for (const [id, v] of Object.entries(mine)) queue('price', id, v);
+  for (const id of photos.keys()) queue('photo', id);
+  await loadCatalog();
+  await sync();
+  return '';
+}
+// Logging out leaves nothing of the shop on the phone, so it waits until nothing is unsent.
+async function logout() {
+  await sync();
+  if (pending()) return `${pending()} മാറ്റം ഇനിയും സെർവറിൽ എത്തിയിട്ടില്ല: ഇന്റർനെറ്റ് ഉള്ളപ്പോൾ ലോഗൗട്ട് ചെയ്യൂ`;
+  try { await api('logout', { method: 'POST' }); } catch {}
+  signOut(true);
+  return '';
+}
+function signOut(wipe) {
+  account = null; outbox = freshOutbox(); synced = { at: 0, photos: {} };
+  for (const k of [SESSION_KEY, OUTBOX_KEY, SYNCED_KEY, CATALOG_KEY]) writeJSON(k, null);
+  if (wipe) {
+    mine = cleanPrices(null); writeJSON(PRICES_KEY, null);
+    photos.clear(); idb('readwrite', st => st.clear()).catch(() => {});
+  }
+  loadCatalog(); renderBill(); renderSync();
+}
+function renderSync() {
+  const n = pending();
+  const state = !account ? 'out' : syncing ? 'busy' : syncError || n ? 'wait' : 'ok';
+  $('acctBtn').dataset.state = state;
+  $('signedOut').hidden = !!account; $('signedIn').hidden = !account;
+  $('shopSub').textContent = account ? 'സെർവറിൽ സൂക്ഷിക്കുന്നു · ഫോണിലും' : 'ഇപ്പോൾ ഈ ഫോണിൽ മാത്രം';
+  if (!account) return;
+  $('acctName').textContent = `${account.name} · ${account.code}`;
+  $('syncState').dataset.state = state;
+  $('syncState').textContent = state === 'busy' ? 'സിങ്ക് ചെയ്യുന്നു…'
+    : syncError === 'offline' ? `ഓഫ്‌ലൈൻ · ${n} മാറ്റം കാത്തിരിക്കുന്നു`
+    : syncError ? `സെർവർ കിട്ടിയില്ല · ${n} മാറ്റം കാത്തിരിക്കുന്നു`
+    : n ? `${n} മാറ്റം കാത്തിരിക്കുന്നു`
+    : synced.at ? `എല്ലാം സിങ്ക് ആയി · ${fmtDate(synced.at)}` : '';
+}
+
+// ---------- backup file: prices, photos and the shop name, to keep anywhere ----------
+function backupFile() {
+  const body = JSON.stringify({ app: 'thraasu', kind: 'backup', v: 1, at: new Date().toISOString(),
+    shop: $('shopName').value.trim(), prices: mine, photos: Object.fromEntries(photos) });
+  return new File([body], `thraasu-backup-${new Date().toISOString().slice(0, 10)}.json`, { type: 'application/json' });
+}
+function saveBackup() {                                  // synchronous to the tap, so the share keeps its activation
+  const file = backupFile();
+  $('backupMsg').textContent = `${Object.keys(mine).length} വില, ${photos.size} ഫോട്ടോ · ${Math.ceil(file.size / 1024)} KB`;
+  if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: file.name }).catch(() => {});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = file.name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30e3);
+}
+function pickBackup() {
+  document.querySelector('.backup-in')?.remove();
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json,.json'; inp.className = 'backup-in'; inp.hidden = true;
+  inp.addEventListener('change', async () => { if (inp.files[0]) await restoreBackup(await inp.files[0].text()); inp.remove(); });
+  topLayer().append(inp);
+  inp.click();
+}
+// The file is merged in (its prices and photos win), never trusted: cleanBackup checks every entry.
+async function restoreBackup(text) {
+  let b = null;
+  try { b = cleanBackup(JSON.parse(text)); } catch {}
+  if (!b) { $('backupMsg').textContent = 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല'; return; }
+  for (const [id, v] of Object.entries(b.prices)) { mine[id] = v; queue('price', id, v); }
+  writeJSON(PRICES_KEY, mine);
+  for (const [id, url] of Object.entries(b.photos)) {
+    try { await idb('readwrite', st => st.put(url, id)); } catch { continue; }
+    photos.set(id, url); queue('photo', id);
+  }
+  if (b.shop && !$('shopName').value.trim()) { $('shopName').value = b.shop; try { localStorage.setItem(SHOP_KEY, b.shop); } catch {} }
+  applyPrices(); renderShelf(); renderBill();
+  $('backupMsg').textContent = `${Object.keys(b.prices).length} വിലയും ${Object.keys(b.photos).length} ഫോട്ടോയും തിരികെ എടുത്തു`;
+}
+const topLayer = () => [...document.querySelectorAll('dialog[open]')].pop() || document.body;   // an open modal makes the rest inert
 
 // ---------- shelf: categories, one category, or search results ----------
 function renderShelf() {
@@ -1050,6 +1303,27 @@ $('removeBtn').addEventListener('click', () => {
 });
 sheetEl.addEventListener('click', e => { if (e.target === sheetEl) sheetEl.close(); });   // backdrop tap
 $('samplePill').addEventListener('click', openPrices);
+$('acctBtn').addEventListener('click', () => { renderSync(); $('loginMsg').hidden = $('logoutMsg').hidden = true; shopEl.showModal(); if (account) sync(); });
+$('shopClose').addEventListener('click', () => shopEl.close());
+shopEl.addEventListener('click', e => { if (e.target === shopEl) shopEl.close(); });
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('loginBtn').disabled = true; $('loginMsg').hidden = true;
+  const err = await login($('shopCode').value, $('shopPin').value);
+  $('loginBtn').disabled = false;
+  if (err) { $('loginMsg').textContent = err; $('loginMsg').hidden = false; return; }
+  $('shopPin').value = '';
+});
+$('syncNow').addEventListener('click', () => sync());
+$('logoutBtn').addEventListener('click', async () => {
+  const err = await logout();
+  $('logoutMsg').textContent = err; $('logoutMsg').hidden = !err;
+});
+$('backupBtn').addEventListener('click', saveBackup);
+$('restoreBtn').addEventListener('click', pickBackup);
+addEventListener('online', () => sync());
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && account) sync(); });
+
 $('pricesClose').addEventListener('click', () => pricesEl.close());
 pricesEl.addEventListener('click', e => { if (e.target === pricesEl) pricesEl.close(); });
 $('pq').addEventListener('input', renderPrices);
@@ -1085,7 +1359,10 @@ $('discount').addEventListener('change', () => {
   bill.discount = totals(bill.lines, bill.discount).discount;   // clamp to the subtotal once typing is done
   saveBill(); renderBill();
 });
-$('shopName').addEventListener('input', () => { try { localStorage.setItem(SHOP_KEY, $('shopName').value); } catch {} });
+$('shopName').addEventListener('input', () => {
+  try { localStorage.setItem(SHOP_KEY, $('shopName').value); } catch {}
+  if ($('shopName').value.trim()) queue('name', $('shopName').value.trim());
+});
 $('printBtn').addEventListener('click', printBill);
 $('shareBtn').addEventListener('click', shareBill);
 $('homeBtn').addEventListener('click', goHome);
@@ -1103,6 +1380,7 @@ addEventListener('popstate', () => {
   const s = history.state || {};
   if (sheetEl.open) sheetEl.close();
   if (pricesEl.open) pricesEl.close();
+  if (shopEl.open) shopEl.close();
   cat = s.cat || null;
   showBill(s.layer === 'bill');
   renderShelf();
@@ -1119,8 +1397,10 @@ try { $('shopName').value = localStorage.getItem(SHOP_KEY) || ''; } catch {}
 cat = (history.state && history.state.cat) || null;
 history.replaceState({ cat }, '');                        // a reload never reopens the bill layer
 renderBill();
-loadCatalog();
+loadCatalog().then(() => account && sync());
 loadPhotos().then(() => { renderShelf(); renderBill(); });
+renderSync();
+navigator.storage?.persist?.().catch(() => {});      // ask the browser not to clear this phone's data under storage pressure
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {});
 </script>
 </body>

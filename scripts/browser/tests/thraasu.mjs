@@ -308,6 +308,86 @@ export default async (t) => {
   t.check('a rate typed in the sheet can be kept as the shop price', pr.keep0 && pr.keep1 && pr.kept.join() === '5200,5200,false', pr);
   t.check('receipt says sample prices only while a billed line used one', pr.metaMixed === 2 && pr.metaOwn === 1, pr);
 
+  // The shop account against a fake server in the page: login sends up what the phone had and
+  // loads the shop's own list; changes go up, another phone's come down; offline they wait;
+  // logout waits for them and then leaves nothing behind; a backup file carries and restores.
+  const sy = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    const until = async ok => { for (let i = 0; i < 60 && !ok(); i++) await new Promise(r => setTimeout(r, 50)); };
+    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false,
+      catalog: { sample: false, categories: [{ id: 'veg', ml: 'പച്ചക്കറി', en: 'Vegetables', icon: '🥬' }], products: [
+        { id: 'tomato', cat: 'veg', ml: 'തക്കാളി', en: 'Tomato', icon: '🍅', unit: 'kg', rate: 44 },
+        { id: 'onion', cat: 'veg', ml: 'സവാള', en: 'Onion', icon: '🧅', unit: 'kg', rate: 50 },
+        { id: 'shallot', cat: 'veg', ml: 'ചെറിയ ഉള്ളി', en: 'Shallots', icon: '🧅', unit: 'kg', rate: 90 }] } };
+    const realFetch = window.fetch;
+    window.fetch = async (u, o = {}) => {
+      const url = String(u);
+      if (!url.includes('/api/thraasu/')) return realFetch(u, o);
+      if (server.fail) throw new TypeError('Failed to fetch');
+      const [route, qs] = url.split('/api/thraasu/')[1].split('?'), m = (o.method || 'GET') + ' ' + route, body = o.body ? JSON.parse(o.body) : null;
+      const res = (b, status = 200) => new Response(typeof b === 'string' ? b : JSON.stringify(b), { status });
+      if (m === 'POST login') return body.code.trim().toUpperCase() === 'NANMA' && body.pin === '482913'
+        ? res({ token: server.token = 'a'.repeat(64), shop: { code: 'NANMA', name: server.name } }) : res({ error: 'wrong' }, 401);
+      if (o.headers?.authorization !== 'Bearer ' + server.token) return res({ error: 'login' }, 401);
+      if (m === 'GET catalog') return res(JSON.stringify(server.catalog));
+      if (m === 'GET state') return res({ shop: { code: 'NANMA', name: server.name }, catalog: 1, prices: server.prices,
+        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])) });
+      if (m === 'POST prices') { Object.assign(server.prices, body.set); body.clear.forEach(id => delete server.prices[id]); return res({ ok: true }); }
+      if (m === 'PUT photo') { server.photos[body.id] = { data: body.data, at: Date.now() }; return res({ ok: true, at: server.photos[body.id].at }); }
+      if (m === 'GET photos') return res(Object.fromEntries(new URLSearchParams(qs).get('ids').split(',').filter(id => server.photos[id]).map(id => [id, server.photos[id]])));
+      if (m === 'PUT shop') { server.name = body.name; return res({ ok: true }); }
+      if (m === 'POST logout') { server.token = null; return res({ ok: true }); }
+      return res({ error: 'nf' }, 404);
+    };
+    const r = {};
+    localStorage.removeItem('thraasu_prices'); mine = loadPrices(); applyPrices();
+    r.btn = [$('acctBtn').dataset.state, Math.round($('acctBtn').getBoundingClientRect().height)];
+    setMine(byId.get('tomato'), 4200);                     // set on the phone before logging in
+    $('acctBtn').click();
+    r.open = shopEl.open && !$('signedOut').hidden;
+    $('shopCode').value = 'nanma'; $('shopPin').value = '000000'; $('loginForm').requestSubmit();
+    await until(() => !$('loginMsg').hidden);
+    r.wrong = [$('loginMsg').textContent, account];
+    $('shopPin').value = '482913'; $('loginForm').requestSubmit();
+    await until(() => account && synced.at && !syncing);
+    r.login = [account?.code, products.length, $('pillText').textContent, server.prices.tomato, $('signedIn').hidden, $('acctBtn').dataset.state, $('shopPin').value];
+    setMine(byId.get('onion'), 5500); await sync();
+    r.push = [server.prices.onion, pending()];
+    server.prices.shallot = 9900; server.photos.onion = { data: 'data:image/jpeg;base64,/9j/AAAA', at: Date.now() };
+    await sync();
+    r.pull = [mine.shallot, (photos.get('onion') || '').slice(0, 15), byId.get('shallot').rate];
+    server.fail = true; setMine(byId.get('onion'), 5600); await sync();
+    r.offline = [pending(), $('acctBtn').dataset.state];
+    r.blocked = [!!(await logout()), !!account];
+    server.fail = false; await sync();
+    r.back = [server.prices.onion, pending(), $('acctBtn').dataset.state];
+    let shared = null; navigator.canShare = () => true; navigator.share = async d => { shared = d.files[0]; };
+    $('backupBtn').click();
+    const backup = JSON.parse(await shared.text());
+    r.backup = [backup.app, backup.prices.onion, !!backup.photos.onion, shared.name.startsWith('thraasu-backup-')];
+    r.logout = await logout();
+    await until(() => products.length > 3);
+    r.out = [account, Object.keys(mine).length, photos.size, products.length, $('acctBtn').dataset.state, localStorage.getItem('thraasu_session')];
+    await restoreBackup(JSON.stringify(backup));
+    r.restored = [mine.onion, photos.has('onion')];
+    await restoreBackup('{"app":"other"}');
+    r.junk = $('backupMsg').textContent;
+    localStorage.removeItem('thraasu_prices'); mine = loadPrices(); photos.clear(); await idb('readwrite', st => st.clear());
+    applyPrices(); renderShelf(); shopEl.close(); window.fetch = realFetch;
+    return r;
+  });
+  t.check('shop button: 48 px, "this phone only" until login', sy.btn[0] === 'out' && sy.btn[1] >= 48 && sy.open, sy);
+  t.check('a wrong PIN says so and stays logged out', sy.wrong[0] === 'കോഡ് അല്ലെങ്കിൽ പിൻ തെറ്റാണ്' && sy.wrong[1] === null, sy.wrong);
+  t.check("login loads the shop's own list and sends up what the phone had", sy.login.join() === 'NANMA,3,വിലകൾ,4200,false,ok,', sy.login);
+  t.check('a price changed on the phone reaches the shop', sy.push.join() === '5500,0', sy.push);
+  t.check("another phone's price and photo come down", sy.pull.join() === '9900,data:image/jpeg,9900', sy.pull);
+  t.check('offline, the change waits on the phone', sy.offline.join() === '1,wait', sy.offline);
+  t.check('logout refuses while a change is unsent', sy.blocked.join() === 'true,true', sy.blocked);
+  t.check('back online, the waiting change goes up', sy.back.join() === '5600,0,ok', sy.back);
+  t.check('backup file carries prices and photos', sy.backup.join() === 'thraasu,5600,true,true', sy.backup);
+  t.check('logout leaves nothing of the shop on the phone', sy.logout === '' && sy.out.join() === ',0,0,68,out,', sy.out);
+  t.check('a backup file restores; anything else is refused', sy.restored.join() === '5600,true' && sy.junk === 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല', sy);
+
   // The logo goes home: out of a category and out of a search, back to the grid.
   const home = await t.evaluate(async () => {
     const $ = id => document.getElementById(id);
@@ -329,7 +409,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v5', sw === 'thraasu-v5', sw);
+  t.check('service worker precached thraasu-v6', sw === 'thraasu-v6', sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a
@@ -367,7 +447,7 @@ export default async (t) => {
   t.check('every photo in products.json loads under the CSP', real.n > 100 && real.bad.length === 0, { n: real.n, bad: real.bad });
   t.check('every category tile carries its photo', real.catPhotos === real.want[1], real.catPhotos);
   t.check('a viewed photo is cached for offline', real.controlled && real.cached, real);
-  t.check('real prices: no sample label on the pill or the receipt', real.pill === 'വിലകൾ' && !real.receiptSample, real.pill);
+  t.check('the public list is the labelled template until a shop logs in', real.pill === 'മാതൃകാ വിലകൾ', real.pill);
   t.check('a product without a photo shows its emoji and a 48 px camera button', real.bare[0] && real.bare[1] && real.bare[2] >= 48, real.bare);
   t.check('a photo added on the phone replaces the placeholder', real.after.every(Boolean), real.after);
   await t.reload(); await ready(t);
