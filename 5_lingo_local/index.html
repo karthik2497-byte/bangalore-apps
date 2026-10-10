@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LingoLocal - Kannada Phrasebook for Bangalore</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +18,8 @@
   --bg: #FAFAF9;
   --bg-card: #FFFFFF;
   --text: #1C1917;
-  --text-secondary: #78716C;
-  --text-light: #A8A29E;
+  --text-secondary: #57534E;
+  --text-light: #6F6863; /* was #A8A29E: 2.52:1 on white */
   --success: #10B981;
   --danger: #EF4444;
   --purple-gradient: linear-gradient(135deg, #7C3AED, #A78BFA);
@@ -46,8 +46,8 @@
   --bg: #1C1917;
   --bg-card: #292524;
   --text: #FAFAF9;
-  --text-secondary: #A8A29E;
-  --text-light: #78716C;
+  --text-secondary: #D6D3D1;
+  --text-light: #A8A29E; /* was #78716C: 3.16:1 on #292524 */
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
@@ -114,7 +114,7 @@ body {
 @media (min-width: 500px) {
   body { background: #F0EDFF; }
   #app {
-    box-shadow: 0 0 60px rgba(124,58,237,0.15);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
     border-left: 1px solid rgba(124,58,237,0.1);
     border-right: 1px solid rgba(124,58,237,0.1);
   }
@@ -230,7 +230,8 @@ body {
   overflow: hidden;
 }
 .scenario-card .card-progress-fill {
-  height: 100%; border-radius: 2px; transition: width 0.5s;
+  width: 100%; height: 100%; border-radius: 2px;
+  transform-origin: left; transition: transform 0.5s;
 }
 .scenario-card[data-theme="purple"] .card-progress-fill { background: var(--purple-gradient); }
 .scenario-card[data-theme="green"] .card-progress-fill { background: var(--green-gradient); }
@@ -424,8 +425,8 @@ body {
 }
 [data-theme="dark"] .progress-bar-wrap { background: rgba(255,255,255,0.08); }
 .progress-bar-fill {
-  height: 100%; border-radius: 4px; background: var(--purple-gradient);
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%; height: 100%; border-radius: 4px; background: var(--purple-gradient);
+  transform-origin: left; transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .progress-text { font-size: 13px; color: var(--text-secondary); }
 .progress-text strong { color: var(--primary); font-weight: 700; }
@@ -655,9 +656,29 @@ body {
 
 /* ===== UTILITIES ===== */
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+/* Quiz readable without the script; search; saved phrases you can hear. */
+.quiz-translit { text-align: center; color: var(--text-secondary); font-size: 15px; margin: -12px 0 12px; }
+.quiz-speak, .hit-btn {
+  border: 1px solid rgba(124,58,237,0.25); background: transparent; color: var(--primary);
+  border-radius: 999px; padding: 6px 14px; font: 600 13px var(--font-en); cursor: pointer;
+}
+.quiz-speak { display: block; margin: -4px auto 14px; }
+.phrase-search {
+  width: calc(100% - 32px); margin: 0 16px 14px; padding: 12px 14px; border-radius: var(--radius-sm);
+  border: 2px solid rgba(124,58,237,0.15); background: var(--bg-card); color: var(--text);
+  font: 15px var(--font-en);
+}
+.search-hit { display: flex; align-items: center; gap: 8px; margin: 0 16px 10px; padding: 12px 14px; background: var(--bg-card); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
+.search-hit .search-text { flex: 1; min-width: 0; }
+.search-hit .saved-en { font-size: 14px; font-weight: 600; }
+.search-hit .saved-kn { font-family: var(--font-kn); font-size: 16px; color: var(--primary); margin-top: 2px; }
+.search-tr, .saved-tr { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.daily-play { margin-top: 10px; border: 0; border-radius: 999px; padding: 6px 14px; background: rgba(255,255,255,0.2); color: inherit; font: 600 13px var(--font-en); cursor: pointer; }
+:root :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#7C3AED">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="LingoLocal">
@@ -700,6 +721,8 @@ body {
       <h2>Scenarios</h2>
       <p>Tap a card to learn phrases for real situations</p>
     </div>
+    <input type="search" class="phrase-search" id="phraseSearch" placeholder="Search phrases — stop, water, how much…" aria-label="Search phrases" oninput="renderSearch()">
+    <div id="searchResults"></div>
     <div id="scenariosList"></div>
   </div>
 
@@ -715,6 +738,7 @@ body {
       <div class="daily-en" id="dailyEn"></div>
       <div class="daily-kn" id="dailyKn"></div>
       <div class="daily-translit" id="dailyTranslit"></div>
+      <button class="daily-play" onclick="playDaily()" aria-label="Play the phrase of the day">🔊 Listen</button>
     </div>
 
     <!-- Streak -->
@@ -731,7 +755,7 @@ body {
       <div class="progress-card">
         <h3>📊 Overall Progress</h3>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="overallProgressBar" style="width:0%"></div>
+          <div class="progress-bar-fill" id="overallProgressBar" style="transform:scaleX(0)"></div>
         </div>
         <p class="progress-text">You've learned <strong id="learnedCount">0</strong> of <strong id="totalCount">0</strong> phrases</p>
       </div>
@@ -748,7 +772,9 @@ body {
         <h3>🧠 Quiz Me!</h3>
         <p class="quiz-subtitle">Match the Kannada phrase to the English meaning</p>
         <div class="quiz-score" id="quizScore">Score: <strong>0</strong> / <strong>0</strong></div>
-        <div class="quiz-prompt" id="quizPrompt"></div>
+        <div class="quiz-prompt" id="quizPrompt" lang="kn"></div>
+        <div class="quiz-translit" id="quizTranslit"></div>
+        <button class="quiz-speak" onclick="playQuiz()" aria-label="Play the phrase">🔊 Listen</button>
         <div class="quiz-options" id="quizOptions"></div>
         <button class="quiz-next" id="quizNext" onclick="nextQuiz()">Next Question →</button>
       </div>
@@ -802,7 +828,7 @@ body {
           <div class="setting-label">Dark Mode</div>
           <div class="setting-desc">Easy on the eyes at night</div>
         </div>
-        <div class="toggle-switch" id="darkToggle" onclick="toggleDarkMode()"></div>
+        <div class="toggle-switch" id="darkToggle" onclick="toggleDarkMode()" role="switch" tabindex="0" aria-checked="false" aria-label="Dark mode"></div>
       </div>
       <div class="setting-item">
         <div>
@@ -826,6 +852,7 @@ body {
       <div class="funfact-item"><span class="fact-emoji">🍛</span>Must-try dishes: Masala Dosa, Bisi Bele Bath, Ragi Mudde, and Mangalore Buns.</div>
       <div class="funfact-item"><span class="fact-emoji">🗣️</span>Kannada is one of the oldest Dravidian languages with a literary history of over 1500 years.</div>
     </div>
+    <p style="text-align:center;margin:8px 0 24px;font-size:13px;"><a href="./privacy.html" style="color:var(--primary);font-weight:600;">Privacy Policy</a></p>
   </div>
 
   <!-- Bottom Navigation -->
@@ -850,19 +877,19 @@ body {
 
 <!-- SCENARIO DETAIL MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
-  <div class="modal-container">
+  <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-header" id="modalHeader">
       <div>
         <h2 id="modalTitle">Scenario</h2>
         <div class="modal-count" id="modalCount"></div>
       </div>
-      <button class="modal-close" onclick="closeModal()">
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
       <div class="flashcard-wrapper" id="flashcardWrapper">
-        <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="flashcard" id="flashcard" onclick="flipCard()" role="button" tabindex="0" aria-label="Flip card to reveal the Kannada">
           <div class="flashcard-front">
             <div class="scenario-emoji" id="fcEmoji"></div>
             <div class="en-phrase" id="fcEnglish"></div>
@@ -889,17 +916,17 @@ body {
           <svg class="check-pop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
           <span id="learnBtnText">Learned</span>
         </button>
-        <button class="fc-action-btn bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()">
+        <button class="fc-action-btn bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()" aria-label="Bookmark this phrase">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
         </button>
       </div>
 
       <div class="swipe-nav">
-        <button class="swipe-btn" id="prevBtn" onclick="prevPhrase()">
+        <button class="swipe-btn" id="prevBtn" onclick="prevPhrase()" aria-label="Previous phrase">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <span class="swipe-counter" id="swipeCounter">1 / 6</span>
-        <button class="swipe-btn" id="nextBtn" onclick="nextPhrase()">
+        <button class="swipe-btn" id="nextBtn" onclick="nextPhrase()" aria-label="Next phrase">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
@@ -934,7 +961,7 @@ const SCENARIOS = [
     id: 'auto_stand', name: 'At the Auto Stand', icon: '🛺', category: 'Getting Around',
     theme: 'purple', difficulty: 'Beginner',
     phrases: [
-      { en: 'I need to go to [place]', kn: 'ನನಗೆ [place] ಗೆ ಹೋಗ್ಬೇಕು', tr: 'Nanage [place] ge hogbekku', tip: 'Replace [place] with your destination. "Hogbekku" = need to go.' },
+      { en: 'I need to go to [place]', kn: 'ನನಗೆ [place] ಗೆ ಹೋಗ್ಬೇಕು', tr: 'Nanage [place] ge hogbeku', tip: 'Replace [place] with your destination. "Hogbeku" = need to go.' },
       { en: 'How much to go to [place]?', kn: '[place] ಗೆ ಎಷ್ಟು?', tr: '[place] ge eshtu?', tip: '"Eshtu" means "how much" — one of the most useful words!' },
       { en: "That's too much", kn: 'ತುಂಬಾ ಜಾಸ್ತಿ', tr: 'Tumba jaasti', tip: '"Tumba" = very/too much. Use this when bargaining!' },
       { en: 'Please use the meter', kn: 'ಮೀಟರ್ ಹಾಕಿ', tr: 'Meter haki', tip: '"Haki" means "put on/start". Direct but polite.' },
@@ -1050,7 +1077,7 @@ const SCENARIOS = [
       { en: 'Power has gone', kn: 'ಕರೆಂಟ್ ಹೋಗಿದೆ', tr: 'Current hogide', tip: '"Current" is commonly used for electricity in India.' },
       { en: 'When will you fix this?', kn: 'ಯಾವಾಗ ಸರಿ ಮಾಡ್ತೀರಾ?', tr: 'Yaavaaga sari maadtira?', tip: '"Yaavaaga" = when, "Sari maadtira" = will you fix.' },
       { en: "I'll pay the rent tomorrow", kn: 'ನಾಳೆ ಬಾಡಿಗೆ ಕೊಡ್ತೀನಿ', tr: 'Naale baadige kodtini', tip: '"Naale" = tomorrow, "Baadige" = rent.' },
-      { en: 'The tap is leaking', kn: 'ಟ್ಯಾಪ್ ಸೋರುತ್ತಿದೆ', tr: 'Tap soritide', tip: '"Soritide" = is leaking.' },
+      { en: 'The tap is leaking', kn: 'ಟ್ಯಾಪ್ ಸೋರುತ್ತಿದೆ', tr: 'Tap soruttide', tip: '"Soruttide" = is leaking.' },
       { en: "I'm moving out next month", kn: 'ಮುಂದಿನ ತಿಂಗಳು ಖಾಲಿ ಮಾಡ್ತೀನಿ', tr: 'Mundina tingalu khaali maadtini', tip: '"Mundina tingalu" = next month, "Khaali maadtini" = I will vacate.' }
     ]
   },
@@ -1199,15 +1226,27 @@ const CATEGORIES = [
 /* ============================================= */
 /*                 APP STATE                     */
 /* ============================================= */
+// One corrupt value used to throw here, before anything rendered.
+function load(key, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
+  catch (e) { return fallback; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value)); } catch (e) {}
+}
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 let state = {
   currentScenario: null,
   currentPhraseIdx: 0,   // position in state.deck, NOT an index into s.phrases
   deck: [],              // original phrase indices, in review order
   isFlipped: false,
-  learned: JSON.parse(localStorage.getItem('ll_learned') || '{}'),
-  srs: JSON.parse(localStorage.getItem('ll_srs') || '{}'),
-  bookmarks: JSON.parse(localStorage.getItem('ll_bookmarks') || '{}'),
-  streak: JSON.parse(localStorage.getItem('ll_streak') || '{"count":0,"lastDate":""}'),
+  learned: load('ll_learned', {}),
+  srs: load('ll_srs', {}),
+  bookmarks: load('ll_bookmarks', {}),
+  streak: load('ll_streak', { count: 0, lastDate: '' }),
   difficulty: localStorage.getItem('ll_difficulty') || 'beginner',
   darkMode: localStorage.getItem('ll_darkMode') === 'true',
   quizScore: 0,
@@ -1220,16 +1259,11 @@ let state = {
 /*              INITIALIZATION                   */
 /* ============================================= */
 document.addEventListener('DOMContentLoaded', () => {
-  // Splash screen
-  setTimeout(() => {
-    document.getElementById('splash').classList.add('hide');
-    setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
-  }, 1800);
-
   // Apply saved settings
   if (state.darkMode) {
     document.documentElement.setAttribute('data-theme', 'dark');
     document.getElementById('darkToggle').classList.add('active');
+    document.getElementById('darkToggle').setAttribute('aria-checked', 'true');
   }
 
   // Update streak
@@ -1245,27 +1279,35 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStats();
   setupDifficulty();
   setupSwipeGestures();
+
+  // The splash covers first paint only; everything above is local and instant.
+  document.getElementById('splash').classList.add('hide');
+  setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
 });
 
 /* ============================================= */
 /*            STREAK MANAGEMENT                  */
 /* ============================================= */
+// A streak day is a day a phrase was practised (marked learned or quizzed).
+// Opening the app used to count, which the "keep learning" copy contradicted.
 function updateStreak() {
   const today = new Date().toDateString();
   const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (state.streak.lastDate !== today && state.streak.lastDate !== yesterday) state.streak.count = 0;
+  renderStreak();
+}
 
-  if (state.streak.lastDate === today) {
-    // Already visited today
-  } else if (state.streak.lastDate === yesterday) {
-    state.streak.count++;
-    state.streak.lastDate = today;
-  } else {
-    // First visit ever, or streak broken — today counts as day 1
-    state.streak.count = 1;
-    state.streak.lastDate = today;
-  }
+function touchStreak() {
+  const today = new Date().toDateString();
+  if (state.streak.lastDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  state.streak.count = state.streak.lastDate === yesterday ? state.streak.count + 1 : 1;
+  state.streak.lastDate = today;
+  save('ll_streak', state.streak);
+  renderStreak();
+}
 
-  localStorage.setItem('ll_streak', JSON.stringify(state.streak));
+function renderStreak() {
   document.getElementById('streakCount').textContent = state.streak.count;
   document.getElementById('streakText').textContent = `${state.streak.count} Day Streak!`;
   document.getElementById('statStreak').textContent = state.streak.count;
@@ -1334,7 +1376,7 @@ function renderScenarios() {
       const learnedCount = s.phrases.filter((_, i) => state.learned[s.id + '_' + i]).length;
       const pct = total > 0 ? Math.round((learnedCount / total) * 100) : 0;
 
-      html += `<div class="scenario-card" data-theme="${s.theme}" onclick="openScenario('${s.id}')">
+      html += `<div class="scenario-card" data-theme="${s.theme}" onclick="openScenario('${s.id}')" role="button" tabindex="0" aria-label="${esc(s.name)}, ${total} phrases, ${pct}% learned">
         <div class="card-icon">${s.icon}</div>
         <div class="card-title">${s.name}</div>
         <div class="card-meta">
@@ -1342,7 +1384,7 @@ function renderScenarios() {
           <span class="card-count">${total} phrases</span>
         </div>
         <div class="card-progress">
-          <div class="card-progress-fill" style="width:${pct}%"></div>
+          <div class="card-progress-fill" style="transform:scaleX(${pct / 100})"></div>
         </div>
       </div>`;
     });
@@ -1351,6 +1393,48 @@ function renderScenarios() {
   });
 
   container.innerHTML = html;
+}
+
+/* ============================================= */
+/*                 PHRASE SEARCH                 */
+/* ============================================= */
+// A phrasebook is opened in the moment — "how do I say stop here?" — so every
+// phrase is one search away instead of a guess at which scenario holds it.
+let searchHits = [];
+function renderSearch() {
+  const q = document.getElementById('phraseSearch').value.trim().toLowerCase();
+  const out = document.getElementById('searchResults');
+  document.getElementById('scenariosList').hidden = !!q;
+  if (!q) { out.innerHTML = ''; searchHits = []; return; }
+  searchHits = [];
+  SCENARIOS.forEach(s => s.phrases.forEach((p, i) => {
+    if ((p.en + ' ' + p.tr).toLowerCase().includes(q) || p.kn.includes(q)) searchHits.push({ s, p, key: s.id + '_' + i });
+  }));
+  out.innerHTML = searchHits.length ? searchHits.slice(0, 40).map((h, i) => `
+    <div class="search-hit">
+      <div class="search-text">
+        <div class="saved-en">${esc(h.p.en)}</div>
+        <div class="saved-kn" lang="kn">${esc(h.p.kn)}</div>
+        <div class="search-tr">${esc(h.p.tr)} · ${esc(h.s.name)}</div>
+      </div>
+      <button class="hit-btn" onclick="playHit(${i})" aria-label="Play">🔊</button>
+      <button class="hit-btn" onclick="bookmarkHit(${i}, this)" aria-label="Bookmark" aria-pressed="${!!state.bookmarks[h.key]}">${state.bookmarks[h.key] ? '★' : '☆'}</button>
+    </div>`).join('') : `<div class="saved-empty">No phrase matches "${esc(q)}".</div>`;
+}
+
+function playHit(i) { const h = searchHits[i]; if (h) playPhrase(h.key, h.p); }
+
+function bookmarkHit(i, btn) {
+  const h = searchHits[i];
+  if (!h) return;
+  if (state.bookmarks[h.key]) delete state.bookmarks[h.key];
+  else state.bookmarks[h.key] = { en: h.p.en, kn: h.p.kn, tr: h.p.tr };
+  save('ll_bookmarks', state.bookmarks);
+  const on = !!state.bookmarks[h.key];
+  btn.textContent = on ? '★' : '☆';
+  btn.setAttribute('aria-pressed', String(on));
+  renderSavedPhrases();
+  renderStats();
 }
 
 /* ============================================= */
@@ -1535,8 +1619,8 @@ function toggleLearned() {
   const key = s.id + '_' + state.deck[state.currentPhraseIdx];
   state.learned[key] = !state.learned[key];
   if (!state.learned[key]) delete state.learned[key];
-  else gradeSrs(key, 5); // marking it known pushes it out; unmarking leaves the schedule alone
-  localStorage.setItem('ll_learned', JSON.stringify(state.learned));
+  else { gradeSrs(key, 5); touchStreak(); } // marking it known pushes it out; unmarking leaves the schedule alone
+  save('ll_learned', state.learned);
   renderFlashcard();
 }
 
@@ -1551,7 +1635,7 @@ function toggleBookmark() {
     const p = s.phrases[idx];
     state.bookmarks[key] = { en: p.en, kn: p.kn, tr: p.tr };
   }
-  localStorage.setItem('ll_bookmarks', JSON.stringify(state.bookmarks));
+  save('ll_bookmarks', state.bookmarks);
   renderFlashcard();
 }
 
@@ -1637,11 +1721,12 @@ function switchTab(tab, btn) {
 /* ============================================= */
 /*              DAILY PHRASE                     */
 /* ============================================= */
+let dailyItem = null;
 function renderDailyPhrase() {
-  const allPhrases = SCENARIOS.flatMap(s => s.phrases);
+  const allPhrases = SCENARIOS.flatMap(s => s.phrases.map((p, i) => ({ p, key: s.id + '_' + i })));
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-  const idx = dayOfYear % allPhrases.length;
-  const p = allPhrases[idx];
+  dailyItem = allPhrases[dayOfYear % allPhrases.length];
+  const p = dailyItem.p;
 
   document.getElementById('dailyEn').textContent = p.en;
   document.getElementById('dailyKn').textContent = p.kn;
@@ -1656,7 +1741,7 @@ function renderProgress() {
   const learnedCount = Object.keys(state.learned).length;
   const pct = totalPhrases > 0 ? Math.round((learnedCount / totalPhrases) * 100) : 0;
 
-  document.getElementById('overallProgressBar').style.width = pct + '%';
+  document.getElementById('overallProgressBar').style.transform = 'scaleX(' + pct / 100 + ')';
   document.getElementById('learnedCount').textContent = learnedCount;
   document.getElementById('totalCount').textContent = totalPhrases;
 
@@ -1718,6 +1803,8 @@ function renderQuiz() {
   quizAnswered = false;
 
   document.getElementById('quizPrompt').textContent = quizPhrase.kn;
+  // Beginner mode is "I can't read the script yet": show how it sounds, too.
+  document.getElementById('quizTranslit').textContent = state.difficulty === 'intermediate' ? '' : quizPhrase.tr;
   document.getElementById('quizScore').innerHTML = `Score: <strong>${state.quizScore}</strong> / <strong>${state.quizTotal}</strong>`;
   document.getElementById('quizNext').style.display = 'none';
 
@@ -1736,16 +1823,22 @@ function renderQuiz() {
     [options[i], options[j]] = [options[j], options[i]];
   }
 
+  // Answers are passed by index: quoting phrase text into an inline handler
+  // breaks on the first phrase with a double quote (§0.2).
+  quizOptions = options;
   const optionsContainer = document.getElementById('quizOptions');
-  optionsContainer.innerHTML = options.map(opt =>
-    `<button class="quiz-option" onclick="answerQuiz(this, '${opt.replace(/'/g, "\\'")}')">${opt}</button>`
+  optionsContainer.innerHTML = options.map((opt, i) =>
+    `<button class="quiz-option" onclick="answerQuiz(this, ${i})">${esc(opt)}</button>`
   ).join('');
 }
 
-function answerQuiz(btn, answer) {
+let quizOptions = [];
+function answerQuiz(btn, i) {
   if (quizAnswered) return;
+  const answer = quizOptions[i];
   quizAnswered = true;
   state.quizTotal++;
+  touchStreak();
 
   if (answer === quizPhrase.en) {
     btn.classList.add('correct');
@@ -1768,6 +1861,9 @@ function answerQuiz(btn, answer) {
 function nextQuiz() {
   renderQuiz();
 }
+
+function playQuiz() { if (quizPhrase) playPhrase(quizKey, quizPhrase); }
+function playDaily() { if (dailyItem) playPhrase(dailyItem.key, dailyItem.p); }
 
 /* ============================================= */
 /*            CONFETTI EFFECT                    */
@@ -1818,14 +1914,17 @@ function renderSavedPhrases() {
     return;
   }
 
-  list.innerHTML = keys.map(key => {
+  savedKeys = keys;
+  list.innerHTML = keys.map((key, i) => {
     const b = state.bookmarks[key];
     return `<div class="saved-item">
       <div class="saved-text">
-        <div class="saved-en">${b.en}</div>
-        <div class="saved-kn">${b.kn}</div>
+        <div class="saved-en">${esc(b.en)}</div>
+        <div class="saved-kn" lang="kn">${esc(b.kn)}</div>
+        ${b.tr ? `<div class="saved-tr">${esc(b.tr)}</div>` : ''}
       </div>
-      <button class="remove-btn" onclick="removeBookmark('${key}')">
+      <button class="hit-btn" onclick="playSaved(${i})" aria-label="Play">🔊</button>
+      <button class="remove-btn" onclick="removeBookmark(savedKeys[${i}])" aria-label="Remove bookmark">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>`;
@@ -1834,9 +1933,24 @@ function renderSavedPhrases() {
   document.getElementById('statSaved').textContent = keys.length;
 }
 
+let savedKeys = [];
+
+// Bookmarks are keyed "<scenarioId>_<index>", the same key as the audio clip.
+function phraseFor(key) {
+  const m = /^(.*)_(\d+)$/.exec(key);
+  const s = m && SCENARIOS.find(x => x.id === m[1]);
+  return (s && s.phrases[+m[2]]) || state.bookmarks[key];
+}
+
+function playSaved(i) {
+  const key = savedKeys[i];
+  const p = key && phraseFor(key);
+  if (p) playPhrase(key, p);
+}
+
 function removeBookmark(key) {
   delete state.bookmarks[key];
-  localStorage.setItem('ll_bookmarks', JSON.stringify(state.bookmarks));
+  save('ll_bookmarks', state.bookmarks);
   renderSavedPhrases();
   renderStats();
 }
@@ -1856,16 +1970,30 @@ function renderStats() {
 function toggleDarkMode() {
   state.darkMode = !state.darkMode;
   document.documentElement.setAttribute('data-theme', state.darkMode ? 'dark' : '');
-  document.getElementById('darkToggle').classList.toggle('active');
-  localStorage.setItem('ll_darkMode', state.darkMode);
+  document.getElementById('darkToggle').classList.toggle('active', state.darkMode);
+  document.getElementById('darkToggle').setAttribute('aria-checked', String(state.darkMode));
+  save('ll_darkMode', String(state.darkMode));
 }
 
 function setDifficulty(level, btn) {
   state.difficulty = level;
-  localStorage.setItem('ll_difficulty', level);
+  save('ll_difficulty', level);
+  if (quizPhrase) document.getElementById('quizTranslit').textContent = level === 'intermediate' ? '' : quizPhrase.tr;
   document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
+
+// Escape closes the open sheet; Enter/Space operate role="button"/"switch" elements.
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('pronPopup').classList.contains('show')) document.getElementById('pronPopup').classList.remove('show');
+    else if (document.getElementById('modalOverlay').classList.contains('show')) closeModal();
+  }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"], [role="switch"]')) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
 
 function setupDifficulty() {
   if (state.difficulty === 'intermediate') {
