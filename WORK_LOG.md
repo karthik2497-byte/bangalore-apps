@@ -1,5 +1,32 @@
 # Work Log
 
+## Thraasu (ത്രാസ്) — app 8, Kerala shop billing (2026-10-10)
+
+A Malayalam-first counter billing PWA at `tinkerhouse.uk/8_thraasu/`. Product truth is in
+`8_thraasu/PRODUCT.md`; the roadmap is EXECUTION_PLAN §4.8. What matters for the next person:
+
+- **The maths lives in `bill-core.js`, not the page.** Money is integer paise, quantity is
+  integer g / ml / pieces, each line rounds once, and the bill rounds to the nearest rupee
+  with the round-off shown. `test-bill.mjs` runs the same file in `node:vm`.
+- **The kg/g toggle reinterprets the typed number** ("250" is 250 g or 250 kg). Typing a
+  whole number ≥ 50 while on kg/L flips to g/ml, unless the shopkeeper set the toggle by
+  hand. `ponytail:` comment on `autoSmall` names the ceiling (a 50 kg sack needs the toggle).
+- **Prices are `products.json`, network-first in the service worker**, served
+  must-revalidate. `"sample": true` puts a മാതൃകാ വിലകൾ pill on screen and a "sample
+  prices" line on the printed bill. An optional `img` (relative path, `safeImg`) puts a
+  photo over the emoji; a missing photo falls back to the emoji.
+- **Printing is `window.print()`** on a receipt-only print stylesheet. Android's dialog
+  supplies Save as PDF, Wi-Fi printers and RawBT for Bluetooth receipt printers. Malayalam
+  prints because the page is rasterised, which a raw ESC/POS path could not do.
+- **Phones:** the bill is a full-screen layer with a history entry, so Android back closes
+  it. **≥900 px:** it is a side column.
+
+### How it was verified
+
+`node 8_thraasu/test-bill.mjs` (11 checks) and `bash scripts/browser-smoke.sh thraasu`
+(50 checks). A `Math.floor` round-off mutant failed both. Headless Chrome needs
+`Emulation.setFocusEmulationEnabled` before any focus-handler test (MISTAKES.md).
+
 ## Per-app review + fixes (2026-10-10)
 
 Every app got a `REVIEW.md` in its folder (findings P0–P3, what to keep, a Status block).

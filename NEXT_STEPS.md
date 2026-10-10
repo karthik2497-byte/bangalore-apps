@@ -79,6 +79,9 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       verified. The 8 current rows are the original demo data. Numbers were left
       blank deliberately: inventing plausible Indian mobile numbers would point
       real users at real strangers.
+- [ ] **Thraasu `8_thraasu/products.json` is sample data** (67 Kerala items, `"sample": true` shows
+      a മാതൃകാ വിലകൾ pill). Replace with a real shop's prices, then set `sample: false`.
+      `test-bill.mjs` asserts the flag, so flipping it means updating that check too.
 - [ ] `REPLACE_WITH_CONTACT_EMAIL` in all four `privacy.html` files: MeterSmart,
       LingoLocal, StockPing, CardGuard. Play Store listing requires a reachable address.
 - [ ] *(review)* MeterSmart now uses the **Aug 2025 Bengaluru tariff** (₹36 + ₹18/km,
@@ -96,6 +99,9 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       no Kannada TTS at all — but not accent. A native speaker should review all 108
       phrases (is ನೇರೆ ಹೋಗಿ idiomatic?) and re-record; replacements are a drop-in under
       the same filenames, then re-run the tool for the manifest.
+- [ ] **Thraasu Malayalam is unreviewed.** The UI copy and the 67 product names were written
+      by the build agent. A native speaker should read every label in `8_thraasu/index.html`
+      and every `ml` field in `products.json`. Thraasu also needs a `privacy.html` before Play.
 - [ ] **CardGuard Play Billing**: create the `cardguard_premium_yearly` product in
       Play Console, and verify bubblewrap's `alphaDependencies.playBilling` field
       name against the installed `@bubblewrap/core` before wiring it into
@@ -131,6 +137,9 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 - [ ] **LingoLocal `clip.play()` under a real user gesture** — not verifiable in
       automation (the tab stays `visibilityState: hidden` and Chrome blocks media
       there). Decode is proven end to end; one tap on a real device closes it.
+- [ ] **Thraasu printing on a real phone.** `window.print()` is proven to fire with the PDF
+      title `Thraasu-Bill-NNNN`, and print media is proven to show only the receipt. Not proven:
+      Android's dialog itself, a Wi-Fi printer, and a 58 mm Bluetooth printer through RawBT.
 - [ ] **CardGuard notification actually painting** — same shape: proven up to and
       including the `showNotification` call; needs one tap on a real device.
 

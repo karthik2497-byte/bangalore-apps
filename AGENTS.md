@@ -4,25 +4,25 @@ Read this first. It is written to be agent-agnostic: Claude Code, Codex, Cursor,
 Aider, Gemini and anything else that reads `AGENTS.md` get the same brief. Open
 this repo at its **root**, never inside a single app folder — the apps share one
 origin, one headers file and one build, and changes made from inside one folder
-routinely break the other six.
+routinely break the other seven.
 
 ## What this is
 
-Seven standalone PWAs, each a single `index.html` with inline JS plus a service
+Eight standalone PWAs, each a single `index.html` with inline JS plus a service
 worker and manifest. No framework, no bundler, no backend, no npm install.
 `node` is used only to run the test files.
 
 ```
 1_power_pulse  2_meter_smart  3_pg_buddy  4_nest_hub
-5_lingo_local  6_stock_ping   7_card_guard
+5_lingo_local  6_stock_ping   7_card_guard   8_thraasu
 ```
 
-- `index.html` — landing page listing all 7
+- `index.html` — landing page listing all 8
 - `_headers` — Cloudflare Pages headers; a separate CSP per app
 - `.well-known/assetlinks.json` — Digital Asset Links, one statement per Android app
 - `scripts/build-site.sh` — assembles `dist/`; **fails the build** if a private file or an under-specified CSP gets through
 - `scripts/verify-deploy.sh` — checks the deployed origin
-- `scripts/browser-smoke.sh` — §0.3 runtime gate for all 7 apps in headless Chrome (suites in `scripts/browser/tests/`)
+- `scripts/browser-smoke.sh` — §0.3 runtime gate for all 8 apps in headless Chrome (suites in `scripts/browser/tests/`)
 - `EXECUTION_PLAN.md` — roadmap, audit log, per-app backlog. **The source of truth for what to do next**
 - `MISTAKES.md` — one line per mistake that cost a retry. Read before touching an area it names
 
@@ -37,8 +37,8 @@ this repo, auto-deploys on every push to `main`. Each app is a path:
 ```bash
 bash scripts/build-site.sh          # build dist/ (also the CI build command)
 bash scripts/verify-deploy.sh       # verify the live origin; exit code is the verdict
-for t in [1-7]_*/test-*.mjs; do node "$t"; done   # 6 suites
-bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (162 checks)
+for t in [1-8]_*/test-*.mjs; do node "$t"; done   # 7 suites
+bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (212 checks)
 node --check <file>                 # syntax-check any extracted inline script
 ```
 
@@ -47,13 +47,13 @@ node --check <file>                 # syntax-check any extracted inline script
 1. **Never change the origin.** `tinkerhouse.uk` is baked into every user's
    `localStorage` (scoped per origin) and into every signed Android bundle.
    Changing it silently destroys user data and breaks every published app.
-2. **Namespace every `localStorage` key and every Cache Storage name.** All 7 apps
+2. **Namespace every `localStorage` key and every Cache Storage name.** All 8 apps
    share one origin and therefore one storage bucket. Existing prefixes: `pp_`,
-   `meterSmart`, `pgbuddy_`, `nesthub_state`, `ll_`, `stockping_`, `cardguard_`.
+   `meterSmart`, `pgbuddy_`, `nesthub_state`, `ll_`, `stockping_`, `cardguard_`, `thraasu_`.
    An unprefixed key will collide with another app. Cache Storage is per origin
    too. A service worker's `activate` may delete only caches with its own prefix
    (`powerpulse-`, `metersmart-`, `pgbuddy-`, `nesthub-`, `lingolocal-`, `stockping-`,
-   `cardguard-v`). "Delete everything but mine" wiped the other six apps' caches,
+   `cardguard-v`, `thraasu-`). "Delete everything but mine" wiped the other six apps' caches,
    including CardGuard's reminder state, until 2026-10-10.
 3. **Keep paths relative.** `./service-worker.js`, `start_url: "./index.html"`.
    An absolute path escapes the app's subpath and lands on the site root.
@@ -83,5 +83,5 @@ is blocked on one $25 spend and a signing decision — see `NEXT_STEPS.md` §2.
 ## Package ids
 
 `uk.tinkerhouse.<app>` — powerpulse, metersmart, pgbuddy, nesthub, lingolocal,
-stockping, cardguard. Permanent once first published. Set in two places that must
+stockping, cardguard, thraasu. Permanent once first published. Set in two places that must
 agree: the matrix in `.github/workflows/build-aab.yml` and `.well-known/assetlinks.json`.
