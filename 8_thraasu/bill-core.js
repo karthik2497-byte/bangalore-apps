@@ -95,6 +95,16 @@ function safeImg(path) {
   return typeof path === 'string' && /^(?:[\w-]+\/)*[\w-]+\.(?:webp|png|jpe?g|svg)$/i.test(path) ? path : '';
 }
 
+// The shop's own prices as saved on this phone: { productId: paise }. A corrupted or
+// hand-edited entry is dropped rather than billed. Null prototype: ids are data, not keys
+// that could reach Object.prototype.
+function cleanPrices(raw) {
+  const out = Object.create(null);
+  if (raw && typeof raw === 'object' && !Array.isArray(raw))
+    for (const [id, v] of Object.entries(raw)) if (Number.isInteger(v) && v > 0 && v < 1e9) out[id] = v;
+  return out;
+}
+
 // products.json is hand-edited: drop any row the bill maths cannot price.
 function validProducts(data) {
   const cats = new Set(((data && data.categories) || []).map(c => c && c.id));

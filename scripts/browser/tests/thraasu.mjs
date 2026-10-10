@@ -162,7 +162,7 @@ export default async (t) => {
     $('q').value = 'x'; $('q').dispatchEvent(new Event('input')); m('clear', $('clearQ'));
     $('q').value = ''; $('q').dispatchEvent(new Event('input'));
     m('lineX', document.querySelector('.line-x')); m('discount', $('discount')); m('newBill', $('newBill'));
-    m('billClose', $('billClose')); m('undo', $('toastUndo')); m('share', $('shareBtn'));
+    m('billClose', $('billClose')); m('undo', $('toastUndo')); m('share', $('shareBtn')); m('home', $('homeBtn')); m('pill', $('samplePill'));
     if (!$('backBtn')) document.querySelector('.cat').click();   // a reload restores the open category
     m('back', $('backBtn'));
     return out;
@@ -251,6 +251,65 @@ export default async (t) => {
   }));
   t.check('≥900 px: bill is a visible side column, bar hidden', w.bar === 'none' && w.bill === 'visible' && w.x >= 800, w);
 
+  // The shop's own prices: the pill opens the list; a price typed there replaces the sample
+  // rate on the shelf, is stored and can be reset; a rate changed in the quantity sheet can
+  // be kept; the receipt says "sample prices" only while a billed line used one.
+  const pr = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    const fire = (el, type) => el.dispatchEvent(new Event(type, { bubbles: true }));
+    const tomato = () => document.querySelector('#priceList .price[data-pid="tomato"]');
+    const r = {};
+    localStorage.removeItem('thraasu_prices'); mine = loadPrices(); applyPrices();   // an earlier rate edit was kept
+    cat = null; renderShelf();
+    r.pill0 = [$('samplePill').tagName, $('pillText').textContent];
+    $('samplePill').click();
+    r.open = [pricesEl.open, document.querySelectorAll('#priceList .price').length];
+    tomato().querySelector('input').value = '50'; fire(tomato().querySelector('input'), 'change');
+    r.set = [tomato().classList.contains('mine'), $('pillText').textContent, localStorage.getItem('thraasu_prices'), byId.get('tomato').rate];
+    tomato().querySelector('input').value = 'abc'; fire(tomato().querySelector('input'), 'change');
+    r.bad = [tomato().querySelector('input').value, byId.get('tomato').rate];
+    $('pq').value = 'thak'; fire($('pq'), 'input');
+    r.search = [...document.querySelectorAll('#priceList .price')].map(x => x.dataset.pid);
+    pricesEl.close();
+    openCat('veg');
+    r.tile = document.querySelector('.prod[data-pid="tomato"] .rate').textContent;
+    $('samplePill').click(); tomato().querySelector('button.reset').click(); pricesEl.close();
+    r.reset = [byId.get('tomato').rate, localStorage.getItem('thraasu_prices'), $('pillText').textContent];
+    document.querySelector('.prod[data-pid="onion"]').click();
+    r.keep0 = $('keepRow').hidden;
+    $('rateIn').value = '52'; fire($('rateIn'), 'input');
+    r.keep1 = !$('keepRow').hidden && $('keepRate').checked;
+    $('addBtn').click();
+    const onion = bill.lines.find(l => l.pid === 'onion');
+    r.kept = [byId.get('onion').rate, onion.rate, onion.sample];
+    const flags = bill.lines.map(l => l.sample);
+    r.metaMixed = receiptData().meta.length;
+    bill.lines.forEach(l => { l.sample = false; });
+    r.metaOwn = receiptData().meta.length;
+    bill.lines.forEach((l, i) => { l.sample = flags[i]; });
+    localStorage.removeItem('thraasu_prices'); mine = loadPrices(); applyPrices(); renderShelf();   // back to sample prices
+    return r;
+  });
+  t.check('price pill is a button that opens all 68 prices', pr.pill0[0] === 'BUTTON' && pr.pill0[1] === 'മാതൃകാ വിലകൾ' && pr.open[0] && pr.open[1] === 68, pr);
+  t.check('a price typed in the list becomes the shop price', pr.set[0] && pr.set[1] === 'സ്വന്തം വില 1/68' && pr.set[2] === '{"tomato":5000}' && pr.set[3] === 5000 && pr.tile === '₹50 / kg', pr);
+  t.check('a non-price entry puts the old price back', pr.bad[0] === '50' && pr.bad[1] === 5000, pr.bad);
+  t.check('price list search takes Manglish', pr.search[0] === 'tomato', pr.search);
+  t.check('reset returns to the sample price', pr.reset[0] === 4000 && pr.reset[1] === '{}' && pr.reset[2] === 'മാതൃകാ വിലകൾ', pr.reset);
+  t.check('a rate typed in the sheet can be kept as the shop price', pr.keep0 && pr.keep1 && pr.kept.join() === '5200,5200,false', pr);
+  t.check('receipt says sample prices only while a billed line used one', pr.metaMixed === 2 && pr.metaOwn === 1, pr);
+
+  // The logo goes home: out of a category and out of a search, back to the grid.
+  const home = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    history.replaceState({ cat: null }, ''); cat = null; renderShelf();   // a clean entry under the category
+    openCat('veg');
+    $('q').value = 'thak'; renderShelf();
+    $('homeBtn').click();
+    await new Promise(r => setTimeout(r, 300));
+    return { q: $('q').value, cats: document.querySelectorAll('.cat').length, state: history.state && history.state.cat, name: $('homeBtn').getAttribute('aria-label') };
+  });
+  t.check('tapping the logo returns to the category grid', home.q === '' && home.cats === 8 && !home.state && home.name.startsWith('ത്രാസ്'), home);
+
   // Offline shell: the worker precached under its own prefix.
   const sw = await t.evaluate(async () => {
     for (let i = 0; i < 50; i++) {
@@ -260,7 +319,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v3', sw === 'thraasu-v3', sw);
+  t.check('service worker precached thraasu-v4', sw === 'thraasu-v4', sw);
 
   // Photos: every one in products.json loads under the real CSP, categories show theirs,
   // and a photo viewed online is kept for offline use.

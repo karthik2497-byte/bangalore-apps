@@ -290,7 +290,19 @@ Slip white, divider border, lift shadow: a 4:3 photo across the top (the 46px em
 `img/<id>.webp`, 400×400 WebP, named per product and category in `products.json`. Every photo covers its emoji and is removed if it fails to load, so the emoji always shows through. Photos are cached on first view, not at install.
 
 ### Pan
-A 50px circle (44px in search rows, 38px on bill lines) in the category tint with a brass rim, holding the product emoji, or its photo in search rows and on the bill.
+A 50px circle (44px in search rows, 40px in the price list, 38px on bill lines) in the category tint with a brass rim, holding the product emoji, or its photo in search rows and on the bill.
+
+### Logo (home)
+The scale mark and ത്രാസ് are one button: back to the category grid from a category or a search. 48px tall inside the 40px top row (negative block margin), pressed scale 0.97.
+
+### Price pill
+The door to the price list, top right. Brass-wash "മാതൃകാ വിലകൾ" while every price is the sample; brass "സ്വന്തം വില n/68" once some are the shop's own; leaf-wash "വിലകൾ" when none are sample (or the list is not sample at all). A 7px transparent border with padding-box background keeps a 34px pill on a 48px target. A trailing chevron says it opens something.
+
+### Price list
+A tall sheet (same sheet shell, `min(92dvh, 820px)`): title and an "n/68 … ഈ ഫോണിൽ മാത്രം" line, the shelf search, then every product grouped under sticky category headings in the category's tint-ink. A row: 40px pan, Malayalam name over "മാതൃകാ വില" (brass) or "മാതൃക ₹40" (ink-2) once changed, a 72px rate input with its per-unit label, and a ↺ reset for shop prices. A shop price fills its input leaf-wash with a leaf edge. Saves on change; a non-price entry puts the old value back.
+
+### Keep-rate row
+In the quantity sheet, after the rate field is edited away from the shelf price: a 48px checkbox row in leaf-deep, "ഈ നിരക്ക് എന്റെ വിലയായി സൂക്ഷിക്കുക", checked by default.
 
 ### Bill bar
 Fixed at the bottom on narrow screens: leaf, 18px radius, item count over the live total (750 / 23px) and a translucent "view bill" pill. Empty, it turns to slip white with ink-2 text and the lift shadow. Adding an item bumps it (scale 1.035, 280ms).

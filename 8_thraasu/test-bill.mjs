@@ -11,11 +11,11 @@ import assert from 'node:assert/strict';
 
 const APP = dirname(fileURLToPath(import.meta.url));
 const core = vm.runInNewContext(readFileSync(join(APP, 'bill-core.js'), 'utf8') +
-  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg })');
+  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg, cleanPrices })');
 // Objects made inside the vm realm have its prototypes, which deepStrictEqual rejects: copy them out.
 const plain = f => (...args) => JSON.parse(JSON.stringify(f(...args)));
 const { lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, autoSmall, safeImg } = core;
-const [totals, search, validProducts] = [core.totals, core.search, core.validProducts].map(plain);
+const [totals, search, validProducts, cleanPrices] = [core.totals, core.search, core.validProducts, core.cleanPrices].map(plain);
 const data = JSON.parse(readFileSync(join(APP, 'products.json'), 'utf8'));
 const html = readFileSync(join(APP, 'index.html'), 'utf8');
 
@@ -127,6 +127,14 @@ t('every emoji in the price list is in the subset webfont request', () => {
   const subset = new Set([...decodeURIComponent(m[1])]);
   const icons = [...data.categories, ...data.products].map(x => x.icon);
   for (const icon of icons) for (const ch of icon) assert.ok(subset.has(ch), `${icon} U+${ch.codePointAt(0).toString(16)} not in &text=`);
+});
+
+t('saved prices: only positive whole paise survive', () => {
+  assert.deepEqual(cleanPrices({ tomato: 5000, onion: 4550 }), { tomato: 5000, onion: 4550 });
+  assert.deepEqual(cleanPrices({ a: '50', b: -1, c: 0, d: 12.5, e: null, f: 1e9, g: [1], h: 1 }), { h: 1 });
+  for (const junk of [null, undefined, 'x', 42, [5000], true]) assert.deepEqual(cleanPrices(junk), {});
+  assert.deepEqual(cleanPrices(JSON.parse('{"__proto__": 5000}')), { ['__proto__']: 5000 });
+  assert.equal(({}).polluted, undefined);
 });
 
 t('every product and category photo is a safe path to a file that ships', () => {

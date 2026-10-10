@@ -25,7 +25,8 @@ phone can already reach.
 
 ## Operating Context
 - Counter in daylight or under tube lights; quick taps, possibly wet or floury fingers.
-- Prices change often (vegetables daily); a line's rate can be overridden on the spot.
+- Prices change often (vegetables daily); a line's rate can be overridden on the spot and kept
+  as the shop's price, and every price can be set from the price list behind the price pill.
 - Printing goes through Android's system print dialog: Save as PDF, Wi-Fi printers via
   Mopria/vendor print services, Bluetooth receipt printers via the RawBT print service.
 - Installed via Add to Home Screen from tinkerhouse.uk/8_thraasu/; Play Store via TWA later.
@@ -33,8 +34,8 @@ phone can already reach.
 ## Capabilities and Constraints
 - Single-file PWA, no backend: the price list is `products.json` on the same origin.
 - Units: kg (priced per kg), L (per litre), pc (per piece). Money in integer paise.
-- Current bill persists on the device. No bill history, GST, customers or in-app price
-  editing in v1 (deliberately deferred, not forgotten).
+- Current bill persists on the device. The shop's own prices persist on the device too (no backup or sync yet). No
+  bill history, GST or customers in v1 (deliberately deferred, not forgotten).
 - localStorage keys prefixed `thraasu_`; Cache Storage prefixed `thraasu-` (shared origin).
 
 ## Brand Commitments
@@ -43,7 +44,9 @@ phone can already reach.
   ground, chilli red for removal; Anek Malayalam; light theme only.
 
 ## Evidence on Hand
-- `products.json` prices are **sample data**, not market prices; the app labels them so.
+- `products.json` prices are **sample data**, not market prices; the app labels them so until
+  the shop sets its own (stored on the phone, `thraasu_prices`), and the receipt says "sample
+  prices" only while a billed line used one.
 - Malayalam copy and product names were written by the build agent and need a native
   speaker's proofread before release.
 
