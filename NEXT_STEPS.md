@@ -80,7 +80,8 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       blank deliberately: inventing plausible Indian mobile numbers would point
       real users at real strangers.
 - [ ] **Thraasu `8_thraasu/products.json` is sample data** (68 Kerala items, `"sample": true` shows
-      a മാതൃകാ വിലകൾ pill). Replace with a real shop's prices, then set `sample: false`.
+      a മാതൃകാ വിലകൾ pill). Shops now set their own prices in-app (pill → price list, stored on
+      the phone as `thraasu_prices`); **no backup yet**: add export/import before shops rely on it.
       `test-bill.mjs` asserts the flag, so flipping it means updating that check too.
 - [ ] `REPLACE_WITH_CONTACT_EMAIL` in all four `privacy.html` files: MeterSmart,
       LingoLocal, StockPing, CardGuard. Play Store listing requires a reachable address.
