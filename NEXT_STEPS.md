@@ -25,7 +25,7 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
       effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-10,
-      after the Thraasu sync deploy (`main` at `7e61d48`): PASS — 8 apps, CSPs applied,
+      after the Thraasu stock deploy (`main` at `1561c60`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
@@ -85,6 +85,12 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       shop: `shop-admin.mjs add CODE "Name"`, then `catalog CODE list.json` if it has its own list.
       Open: a shop must log in once on each phone; a shop changing its *list* (adding items) still
       goes through me (sheet → import → `catalog`).
+- [ ] **Thraasu stock goes down as bills are sold (live 2026-10-10, `1561c60`).** A bill counts once
+      printed, shared or closed (പുതിയ ബിൽ); later edits move stock by the difference. Counts show in
+      the quantity sheet and price list. NANMA has 394 counts from the sheet (`shop-admin.mjs stock
+      NANMA 8_thraasu/tools/catalogs/NANMA.json`; re-running it is a stocktake that replaces all).
+      Open: restocking from the phone; loose vegetables/bananas have no count in the sheet. **No
+      Nanma phone had logged in as of the deploy** (0 sessions), so nothing at the shop syncs yet.
 - [ ] **Thraasu carries Nanma Store's real list**: 433 items (template public, real list on the server). **27 sheet rows
       are held back until the shop clarifies them**, each with its sheet row and reason in
       **`8_thraasu/NANMA-IMPORT-NOTES.md`**: all UK/Hyza coconut oil and Milma ghee rows (prices
