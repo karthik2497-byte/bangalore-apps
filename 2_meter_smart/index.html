@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#FBBF24">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MeterSmart">
@@ -23,18 +24,19 @@
   --bg-card: #FFFFFF;
   --bg-input: #F1F5F9;
   --text-primary: #0F172A;
-  --text-secondary: #64748B;
-  --text-muted: #94A3B8;
+  --text-secondary: #475569;
+  --text-muted: #5B6577; /* was #94A3B8 (2.56:1 on white); both now pass WCAG AA */
   --border-color: #E2E8F0;
   --green: #10B981;
   --green-light: #D1FAE5;
   --green-dark: #059669;
+  --green-text: #047857; /* --green is 2.54:1 on white; small green text uses this */
   --red: #EF4444;
   --red-light: #FEE2E2;
   --red-dark: #DC2626;
   --yellow: #FBBF24;
   --yellow-light: #FEF3C7;
-  --yellow-dark: #D97706;
+  --yellow-dark: #B45309; /* was #D97706: 3.19:1 as text on white */
   --orange: #F97316;
   --blue: #3B82F6;
   --blue-light: #DBEAFE;
@@ -61,7 +63,8 @@
   --bg-input: #334155;
   --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-muted: #8B9AB0; /* was #64748B: 3.07:1 on #1E293B */
+  --green-text: #10B981;
   --border-color: #334155;
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
@@ -468,7 +471,7 @@ img { max-width: 100%; display: block; }
 .breakdown-total .label { font-weight: 700; }
 .breakdown-total .value {
   font-family: var(--font-mono); font-weight: 800;
-  font-size: 1.3rem; color: var(--green);
+  font-size: 1.3rem; color: var(--green-dark);
 }
 
 /* Fair Fare Badge */
@@ -933,6 +936,9 @@ img { max-width: 100%; display: block; }
   to { transform: scale(1); opacity: 1; }
 }
 .animate-scale { animation: scaleIn 0.3s ease; }
+/* Keyboard focus was invisible: the distance input sets outline:none. */
+:root :focus-visible { outline: 3px solid var(--yellow-dark); outline-offset: 2px; }
+a.emergency-num { display: block; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -995,7 +1001,7 @@ img { max-width: 100%; display: block; }
         <div class="meter-label">Estimated Fare</div>
         <div class="meter-fare">
           <span class="rupee">&rupee;</span>
-          <span id="meterFareDisplay">30</span>
+          <span id="meterFareDisplay">36</span>
           <span class="decimal">.00</span>
         </div>
         <div class="meter-status">
@@ -1052,7 +1058,7 @@ img { max-width: 100%; display: block; }
               <div class="toggle-sub" id="lblNightSub">50% extra (10 PM - 5 AM)</div>
             </div>
           </div>
-          <div class="toggle-switch" id="nightToggle" onclick="toggleNight()" role="switch" aria-checked="false" tabindex="0"></div>
+          <div class="toggle-switch" id="nightToggle" onclick="toggleNight()" role="switch" aria-checked="false" aria-label="Night surcharge" tabindex="0"></div>
         </div>
         <!-- Waiting -->
         <div class="toggle-row">
@@ -1064,7 +1070,7 @@ img { max-width: 100%; display: block; }
             </div>
             <div>
               <div class="toggle-label" data-i18n="opt.wait">Waiting Time</div>
-              <div class="toggle-sub" id="lblWaitSub">&rupee;5 per 15 minutes</div>
+              <div class="toggle-sub" id="lblWaitSub">&rupee;10 per 15 min after 5 free</div>
             </div>
           </div>
           <div class="waiting-input-row">
@@ -1083,7 +1089,7 @@ img { max-width: 100%; display: block; }
             </div>
             <div>
               <div class="toggle-label" data-i18n="opt.lug">Luggage</div>
-              <div class="toggle-sub" id="lblLugSub">&rupee;5 per large piece</div>
+              <div class="toggle-sub" id="lblLugSub">&rupee;10 per 20 kg above the first 20 kg</div>
             </div>
           </div>
           <div class="luggage-counter">
@@ -1099,7 +1105,7 @@ img { max-width: 100%; display: block; }
         <div class="section-title" data-i18n="sec.breakdown">Fare Breakdown</div>
         <div class="breakdown-row">
           <span class="label" id="lblBaseRow">Base fare (first 2 km)</span>
-          <span class="value" id="breakBase">&rupee;30</span>
+          <span class="value" id="breakBase">&rupee;36</span>
         </div>
         <div class="breakdown-row" id="breakDistRow" style="display:none">
           <span class="label" id="lblDistRow">Distance fare</span>
@@ -1120,7 +1126,7 @@ img { max-width: 100%; display: block; }
         <div class="breakdown-divider"></div>
         <div class="breakdown-total">
           <span class="label" data-i18n="brk.total">Total Fair Fare</span>
-          <span class="value" id="breakTotal">&rupee;30</span>
+          <span class="value" id="breakTotal">&rupee;36</span>
         </div>
       </div>
 
@@ -1132,7 +1138,7 @@ img { max-width: 100%; display: block; }
           </svg>
           <span data-i18n="badge.pay">You Should Pay</span>
         </div>
-        <div class="fair-fare-amount" id="fairFareAmount">&rupee;30</div>
+        <div class="fair-fare-amount" id="fairFareAmount">&rupee;36</div>
         <div class="fair-fare-note" id="lblRatesNote">As per Bangalore transport authority rules</div>
       </div>
 
@@ -1148,7 +1154,7 @@ img { max-width: 100%; display: block; }
       <!-- Popular Routes -->
       <div class="popular-routes">
         <div class="section-title" data-i18n="sec.routes">Popular Routes</div>
-        <div class="route-card" data-km="8" onclick="setRouteDistance(8)">
+        <div class="route-card" data-km="8" onclick="setRouteDistance(8)" role="button" tabindex="0">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1156,9 +1162,9 @@ img { max-width: 100%; display: block; }
             <div class="route-name">Majestic &rarr; Koramangala</div>
             <div class="route-dist">~8 km</div>
           </div>
-          <div class="route-fare">&rupee;120</div>
+          <div class="route-fare">&rupee;144</div>
         </div>
-        <div class="route-card" data-km="16" onclick="setRouteDistance(16)">
+        <div class="route-card" data-km="16" onclick="setRouteDistance(16)" role="button" tabindex="0">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1166,9 +1172,9 @@ img { max-width: 100%; display: block; }
             <div class="route-name">Whitefield &rarr; MG Road</div>
             <div class="route-dist">~16 km</div>
           </div>
-          <div class="route-fare">&rupee;240</div>
+          <div class="route-fare">&rupee;288</div>
         </div>
-        <div class="route-card" data-km="12" onclick="setRouteDistance(12)">
+        <div class="route-card" data-km="12" onclick="setRouteDistance(12)" role="button" tabindex="0">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1176,9 +1182,9 @@ img { max-width: 100%; display: block; }
             <div class="route-name">Electronic City &rarr; Silk Board</div>
             <div class="route-dist">~12 km</div>
           </div>
-          <div class="route-fare">&rupee;180</div>
+          <div class="route-fare">&rupee;216</div>
         </div>
-        <div class="route-card" data-km="35" onclick="setRouteDistance(35)">
+        <div class="route-card" data-km="35" onclick="setRouteDistance(35)" role="button" tabindex="0">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1186,9 +1192,9 @@ img { max-width: 100%; display: block; }
             <div class="route-name">Indiranagar &rarr; Airport</div>
             <div class="route-dist">~35 km</div>
           </div>
-          <div class="route-fare">&rupee;525</div>
+          <div class="route-fare">&rupee;630</div>
         </div>
-        <div class="route-card" data-km="18" onclick="setRouteDistance(18)">
+        <div class="route-card" data-km="18" onclick="setRouteDistance(18)" role="button" tabindex="0">
           <div class="route-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
           </div>
@@ -1196,7 +1202,7 @@ img { max-width: 100%; display: block; }
             <div class="route-name">Hebbal &rarr; Banashankari</div>
             <div class="route-dist">~18 km</div>
           </div>
-          <div class="route-fare">&rupee;270</div>
+          <div class="route-fare">&rupee;324</div>
         </div>
       </div>
 
@@ -1216,15 +1222,15 @@ img { max-width: 100%; display: block; }
       <!-- Stats -->
       <div class="stats-row">
         <div class="stat-card highlight">
-          <div class="stat-value" id="statSaved">&rupee;340</div>
-          <div class="stat-label">Total Saved</div>
+          <div class="stat-value" id="statSaved">&rupee;0</div>
+          <div class="stat-label">Overpaid</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="statRides">6</div>
+          <div class="stat-value" id="statRides">0</div>
           <div class="stat-label">Rides Logged</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="statFair">67%</div>
+          <div class="stat-value" id="statFair">0%</div>
           <div class="stat-label">Fair Rides</div>
         </div>
       </div>
@@ -1235,25 +1241,25 @@ img { max-width: 100%; display: block; }
         <div class="log-form">
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">From</label>
+              <label class="form-label" for="logFrom">From</label>
               <input type="text" class="form-input" id="logFrom" placeholder="e.g., Indiranagar">
             </div>
             <div class="form-group">
-              <label class="form-label">To</label>
+              <label class="form-label" for="logTo">To</label>
               <input type="text" class="form-input" id="logTo" placeholder="e.g., Koramangala">
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Distance (km)</label>
+            <label class="form-label" for="logDistance">Distance (km)</label>
             <input type="number" class="form-input" id="logDistance" placeholder="e.g., 8" step="0.5">
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Meter Fare (&rupee;)</label>
+              <label class="form-label" for="logMeterFare">Meter Fare (&rupee;)</label>
               <input type="number" class="form-input" id="logMeterFare" placeholder="Correct fare">
             </div>
             <div class="form-group">
-              <label class="form-label">Charged (&rupee;)</label>
+              <label class="form-label" for="logChargedFare">Charged (&rupee;)</label>
               <input type="number" class="form-input" id="logChargedFare" placeholder="Actually paid">
             </div>
           </div>
@@ -1298,40 +1304,40 @@ img { max-width: 100%; display: block; }
         <div class="section-title">File a Complaint</div>
         <div class="log-form">
           <div class="form-group">
-            <label class="form-label">Auto Number Plate</label>
+            <label class="form-label" for="compPlate">Auto Number Plate</label>
             <input type="text" class="form-input" id="compPlate" placeholder="e.g., KA 01 AB 1234" style="text-transform: uppercase;">
           </div>
           <div class="form-group">
-            <label class="form-label">Driver Description (optional)</label>
+            <label class="form-label" for="compDriver">Driver Description (optional)</label>
             <input type="text" class="form-input" id="compDriver" placeholder="Any identifying details">
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Date</label>
+              <label class="form-label" for="compDate">Date</label>
               <input type="date" class="form-input" id="compDate">
             </div>
             <div class="form-group">
-              <label class="form-label">Time</label>
+              <label class="form-label" for="compTime">Time</label>
               <input type="time" class="form-input" id="compTime">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">From</label>
+              <label class="form-label" for="compFrom">From</label>
               <input type="text" class="form-input" id="compFrom" placeholder="Start location">
             </div>
             <div class="form-group">
-              <label class="form-label">To</label>
+              <label class="form-label" for="compTo">To</label>
               <input type="text" class="form-input" id="compTo" placeholder="End location">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Meter Fare (&rupee;)</label>
+              <label class="form-label" for="compMeter">Meter Fare (&rupee;)</label>
               <input type="number" class="form-input" id="compMeter" placeholder="Correct fare">
             </div>
             <div class="form-group">
-              <label class="form-label">Charged (&rupee;)</label>
+              <label class="form-label" for="compCharged">Charged (&rupee;)</label>
               <input type="number" class="form-input" id="compCharged" placeholder="Charged amount">
             </div>
           </div>
@@ -1420,8 +1426,8 @@ img { max-width: 100%; display: block; }
         <div class="tip-emoji">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </div>
-        <div class="tip-title">Fine for Refusing Meter: &rupee;500</div>
-        <div class="tip-text">Under Karnataka Motor Vehicle Rules, an auto driver who refuses to ply by meter can be fined &rupee;500. You can report such incidents to the traffic police.</div>
+        <div class="tip-title">Refusing the Meter Is an Offence</div>
+        <div class="tip-text">An auto driver who refuses to go by meter can be fined under the Karnataka Motor Vehicles Rules. Note the number plate and report it to the traffic police.</div>
       </div>
       <div class="tip-card yellow card">
         <div class="tip-emoji">
@@ -1442,7 +1448,7 @@ img { max-width: 100%; display: block; }
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <div class="tip-title">No Extra for One-Way Trips</div>
-        <div class="tip-text">The one-way return charge (1.5x fare) has been abolished since 2024. Drivers cannot charge extra saying "I won't get a return fare." This is now illegal!</div>
+        <div class="tip-text">Within the city, the fare is the meter reading plus the official surcharges &mdash; night, waiting and luggage. A "return fare" is not part of the tariff.</div>
       </div>
       <div class="tip-card orange card">
         <div class="tip-emoji">
@@ -1456,7 +1462,7 @@ img { max-width: 100%; display: block; }
       <div class="section-title" style="margin-top: 20px;">Your Rights</div>
       <div class="rights-card">
         <div class="rights-title">Right to Metered Fare</div>
-        <div class="rights-text">Under Section 66 of the Motor Vehicles Act, all auto-rickshaws must ply by meter. Refusing to do so is a punishable offence.</div>
+        <div class="rights-text">Autos in Bengaluru must charge by the fare meter at the official tariff. Refusing to do so is a punishable offence.</div>
       </div>
       <div class="rights-card">
         <div class="rights-title">Right to Refuse Extra Charges</div>
@@ -1464,7 +1470,7 @@ img { max-width: 100%; display: block; }
       </div>
       <div class="rights-card">
         <div class="rights-title">Right to a Receipt</div>
-        <div class="rights-text">You can ask for a receipt from the driver. Electronic meters are mandated to provide printed receipts.</div>
+        <div class="rights-text">Ask the driver to show you the meter reading at the end of the trip. If the meter prints receipts, ask for one.</div>
       </div>
 
       <!-- Emergency Contacts -->
@@ -1474,8 +1480,8 @@ img { max-width: 100%; display: block; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </div>
         <div class="emergency-info">
-          <div class="emergency-name">BTP Helpline</div>
-          <div class="emergency-num">080-2294 2222</div>
+          <div class="emergency-name">Emergency (police, traffic)</div>
+          <a class="emergency-num" href="tel:112">112</a>
         </div>
       </div>
       <div class="emergency-card">
@@ -1484,7 +1490,7 @@ img { max-width: 100%; display: block; }
         </div>
         <div class="emergency-info">
           <div class="emergency-name">Traffic Police Control Room</div>
-          <div class="emergency-num">103</div>
+          <a class="emergency-num" href="tel:103">103</a>
         </div>
       </div>
       <div class="emergency-card">
@@ -1493,7 +1499,7 @@ img { max-width: 100%; display: block; }
         </div>
         <div class="emergency-info">
           <div class="emergency-name">Women Helpline</div>
-          <div class="emergency-num">1091</div>
+          <a class="emergency-num" href="tel:1091">1091</a>
         </div>
       </div>
     </div>
@@ -1503,7 +1509,7 @@ img { max-width: 100%; display: block; }
       <div class="card" style="text-align:center; padding: 24px;">
         <div class="profile-avatar">MS</div>
         <div class="profile-name">MeterSmart User</div>
-        <div class="profile-sub">Riding smart since 2024</div>
+        <div class="profile-sub">Your rides stay on this phone</div>
       </div>
 
       <!-- Overcharge Score -->
@@ -1512,9 +1518,9 @@ img { max-width: 100%; display: block; }
           <svg viewBox="0 0 80 80">
             <circle class="ring-bg" cx="40" cy="40" r="34"/>
             <circle class="ring-progress" cx="40" cy="40" r="34"
-              stroke-dasharray="213.6" stroke-dashoffset="70" id="scoreRing"/>
+              stroke-dasharray="213.6" stroke-dashoffset="213.6" id="scoreRing"/>
           </svg>
-          <div class="score-value" id="scoreValue">67%</div>
+          <div class="score-value" id="scoreValue">0%</div>
         </div>
         <div class="score-label">Fair Ride Score</div>
         <div class="score-sub">Based on your logged rides</div>
@@ -1554,21 +1560,21 @@ img { max-width: 100%; display: block; }
         <div class="section-title">Ride Statistics</div>
         <div class="stats-row" style="margin-bottom:0">
           <div class="stat-card">
-            <div class="stat-value" id="profileTotalRides">6</div>
+            <div class="stat-value" id="profileTotalRides">0</div>
             <div class="stat-label">Total Rides</div>
           </div>
           <div class="stat-card highlight">
-            <div class="stat-value" id="profileTotalSaved">&rupee;340</div>
-            <div class="stat-label">Total Saved</div>
+            <div class="stat-value" id="profileTotalSaved">&rupee;0</div>
+            <div class="stat-label">Overpaid</div>
           </div>
         </div>
         <div class="stats-row" style="margin-top:10px; margin-bottom:0">
           <div class="stat-card">
-            <div class="stat-value" id="profileAvgOvercharge">18%</div>
+            <div class="stat-value" id="profileAvgOvercharge">0%</div>
             <div class="stat-label">Avg Overcharge</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value" id="profileFairRides">4</div>
+            <div class="stat-value" id="profileFairRides">0</div>
             <div class="stat-label">Fair Rides</div>
           </div>
         </div>
@@ -1587,7 +1593,7 @@ img { max-width: 100%; display: block; }
               <div class="toggle-sub">Easy on the eyes</div>
             </div>
           </div>
-          <div class="toggle-switch" id="darkToggle" onclick="toggleDarkMode()" role="switch" aria-checked="false" tabindex="0"></div>
+          <div class="toggle-switch" id="darkToggle" onclick="toggleDarkMode()" role="switch" aria-checked="false" aria-label="Dark mode" tabindex="0"></div>
         </div>
       </div>
 
@@ -1661,7 +1667,7 @@ img { max-width: 100%; display: block; }
 </div><!-- /app -->
 
 <!-- TOAST -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- CONFETTI CONTAINER -->
 <div class="confetti-container" id="confettiContainer"></div>
@@ -1674,20 +1680,22 @@ img { max-width: 100%; display: block; }
    Single source of truth: every rate shown in the UI is derived from this object.
    Revisions ship via fares.json (see loadRates) so a rate change needs no app update. */
 const DEFAULT_RATES = {
-  version: 1,
-  lastVerified: '2026-08-01',
-  source: 'Karnataka Transport Dept. / BMTC auto tariff',
+  version: 2,
+  lastVerified: '2026-10-10',
+  source: 'Bengaluru DTA auto fare revision (notified 14 Jul 2025, effective 1 Aug 2025)',
   sourceUrl: 'https://transport.karnataka.gov.in',
   fare: {
-    baseFare: 30,
+    baseFare: 36,
     baseKm: 2,
-    perKm: 15,
-    waitingPerUnit: 5,
+    perKm: 18,
+    waitingPerUnit: 10,
     waitingUnitMinutes: 15,
+    waitingFreeMinutes: 5,    // "₹10 per 15 min or part thereof, after the first five"
     nightMultiplier: 1.5,
     nightStartHour: 22,
     nightEndHour: 5,
-    luggagePerPiece: 5
+    luggagePerPiece: 10,      // per 20 kg above the first 20 kg
+    luggageMaxUnits: 2        // 50 kg in all
   },
   // Ride-hailing estimates: multipliers applied to the meter fare + a flat platform fee.
   // Deliberately a range — these apps price dynamically, so a single number would be a lie.
@@ -1713,7 +1721,7 @@ let state = {
   luggagePieces: 0,
   rides: [],
   complaints: [],
-  totalSaved: 340,
+  totalSaved: 0,   // sum of overcharges paid ("Overpaid" in the UI); the key keeps its old name
   homeLocation: '',
   workLocation: '',
   darkMode: false,
@@ -1738,14 +1746,15 @@ document.addEventListener('DOMContentLoaded', () => {
   initDateTimeFields();
   setupFareComparisonListeners();
   refreshRates();
+  // An app left open across 10 PM must switch to the night rate on its own.
+  setInterval(() => { if (!state.nightManual) { autoDetectNight(); calculateFare(); } }, 60000);
 });
 
+// The splash covers first paint only — no fixed delay on a tool opened mid-ride.
 function initSplash() {
-  setTimeout(() => {
-    const splash = document.getElementById('splash');
-    splash.classList.add('hide');
-    setTimeout(() => splash.style.display = 'none', 500);
-  }, 1500);
+  const splash = document.getElementById('splash');
+  requestAnimationFrame(() => splash.classList.add('hide'));
+  setTimeout(() => splash.style.display = 'none', 500);
 }
 
 function initDefaults() {
@@ -1759,26 +1768,20 @@ function initDefaults() {
   if (state.darkMode) {
     document.documentElement.setAttribute('data-theme', 'dark');
     document.getElementById('darkToggle').classList.add('on');
+    document.getElementById('darkToggle').setAttribute('aria-checked', 'true');
   }
 
-  // Seed mock rides if empty
-  if (state.rides.length === 0) {
-    state.rides = [
-      { id: 1, from: 'Indiranagar', to: 'Koramangala', distance: 6, meterFare: 90, chargedFare: 90, date: '2024-12-15', fair: true },
-      { id: 2, from: 'Majestic', to: 'Whitefield', distance: 18, meterFare: 270, chargedFare: 350, date: '2024-12-18', fair: false },
-      { id: 3, from: 'HSR Layout', to: 'MG Road', distance: 10, meterFare: 150, chargedFare: 150, date: '2024-12-20', fair: true },
-      { id: 4, from: 'Hebbal', to: 'Electronic City', distance: 25, meterFare: 375, chargedFare: 500, date: '2024-12-22', fair: false },
-      { id: 5, from: 'Jayanagar', to: 'Marathahalli', distance: 14, meterFare: 210, chargedFare: 230, date: '2025-01-02', fair: false },
-      { id: 6, from: 'BTM Layout', to: 'Silk Board', distance: 4, meterFare: 60, chargedFare: 60, date: '2025-01-05', fair: true }
-    ];
-    state.totalSaved = 340;
-    saveState();
-  }
+}
+
+// Local calendar date (YYYY-MM-DD). toISOString() is UTC, which is still
+// yesterday between 00:00 and 05:30 IST — the night-fare window.
+function localDate(d = new Date()) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 function initDateTimeFields() {
   const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
+  const dateStr = localDate(now);
   const timeStr = now.toTimeString().slice(0,5);
   const cd = document.getElementById('compDate');
   const ct = document.getElementById('compTime');
@@ -1808,9 +1811,11 @@ function loadState() {
     const saved = localStorage.getItem('meterSmart');
     if (saved) {
       const data = JSON.parse(saved);
-      state.rides = data.rides || [];
+      // Earlier builds seeded six mock rides (ids 1-6) into every new install and
+      // re-seeded them after Clear All Data. Real rides use Date.now() ids.
+      state.rides = (data.rides || []).filter(r => r.id > 6);
       state.complaints = data.complaints || [];
-      state.totalSaved = data.totalSaved || 0;
+      state.totalSaved = state.rides.reduce((s, r) => s + Math.max(0, r.chargedFare - r.meterFare), 0);
       state.homeLocation = data.homeLocation || '';
       state.workLocation = data.workLocation || '';
       state.darkMode = data.darkMode || false;
@@ -1842,6 +1847,8 @@ function validRates(r) {
   if (!num(f.waitingPerUnit, 0, 1000)) return false;
   if (!num(f.waitingUnitMinutes, 1, 240)) return false;
   if (!num(f.luggagePerPiece, 0, 1000)) return false;
+  if (f.waitingFreeMinutes !== undefined && !num(f.waitingFreeMinutes, 0, 120)) return false;
+  if (f.luggageMaxUnits !== undefined && !int(f.luggageMaxUnits, 0, 20)) return false;
   if (!num(f.nightMultiplier, 1, 3)) return false;
   if (!int(f.nightStartHour, 0, 23)) return false;       // feeds isNightNow() and the UI label
   if (!int(f.nightEndHour, 0, 23)) return false;
@@ -1917,11 +1924,11 @@ const I18N = {
   'btn.share':     ['Share Fare Info', 'ದರ ಮಾಹಿತಿ ಹಂಚಿಕೊಳ್ಳಿ'],
   // Templated strings (filled by renderLabels)
   'lbl.nightSub':  ['{pct}% extra ({from} - {to})', '{pct}% ಹೆಚ್ಚು ({from} - {to})'],
-  'lbl.waitSub':   ['₹{amt} per {min} minutes', '{min} ನಿಮಿಷಕ್ಕೆ ₹{amt}'],
-  'lbl.lugSub':    ['₹{amt} per large piece', 'ದೊಡ್ಡ ಸಾಮಾನಿಗೆ ₹{amt}'],
+  'lbl.waitSub':   ['₹{amt} per {min} min after {free} free', 'ಮೊದಲ {free} ನಿಮಿಷ ಉಚಿತ, ನಂತರ {min} ನಿಮಿಷಕ್ಕೆ ₹{amt}'],
+  'lbl.lugSub':    ['₹{amt} per 20 kg above the first 20 kg', 'ಮೊದಲ 20 ಕೆಜಿ ಉಚಿತ, ನಂತರ ಪ್ರತಿ 20 ಕೆಜಿಗೆ ₹{amt}'],
   'lbl.baseRow':   ['Base fare (first {km} km)', 'ಮೂಲ ದರ (ಮೊದಲ {km} ಕಿ.ಮೀ)'],
   'lbl.distRow':   ['Distance fare ({km} km × ₹{rate})', 'ದೂರ ದರ ({km} ಕಿ.ಮೀ × ₹{rate})'],
-  'lbl.lugRow':    ['Luggage ({n} pcs)', 'ಸಾಮಾನು ({n})'],
+  'lbl.lugRow':    ['Luggage ({n} × 20 kg extra)', 'ಸಾಮಾನು ({n} × 20 ಕೆಜಿ)'],
   'lbl.nightRow':  ['Night surcharge ({pct}%)', 'ರಾತ್ರಿ ಶುಲ್ಕ ({pct}%)'],
   'lbl.rates':     ['Official rates · verified {date}', 'ಅಧಿಕೃತ ದರ · {date} ರಂದು ಪರಿಶೀಲಿಸಲಾಗಿದೆ'],
   'lbl.appNote':   ['Estimates from the meter fare. Ola / Uber / Rapido price dynamically — real quotes vary with demand.',
@@ -1965,7 +1972,7 @@ function renderLabels() {
   const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
   set('lblNightSub', t('lbl.nightSub', { pct: nightPct, from: hour12(f.nightStartHour), to: hour12(f.nightEndHour) }));
-  set('lblWaitSub',  t('lbl.waitSub', { amt: f.waitingPerUnit, min: f.waitingUnitMinutes }));
+  set('lblWaitSub',  t('lbl.waitSub', { amt: f.waitingPerUnit, min: f.waitingUnitMinutes, free: f.waitingFreeMinutes || 0 }));
   set('lblLugSub',   t('lbl.lugSub', { amt: f.luggagePerPiece }));
   set('lblBaseRow',  t('lbl.baseRow', { km: f.baseKm }));
   set('lblNightRow', t('lbl.nightRow', { pct: nightPct }));
@@ -1982,12 +1989,25 @@ function renderLabels() {
   });
 }
 
-/* Plain meter fare for a distance — no waiting/luggage/night. One formula, three callers. */
-function meterFareFor(km) {
-  if (!(km > 0)) return 0;
-  let fare = FARE_RULES.baseFare;
-  if (km > FARE_RULES.baseKm) fare += Math.ceil(km - FARE_RULES.baseKm) * FARE_RULES.perKm;
-  return fare;
+/* The whole tariff as one pure function. The calculator, the route cards and the
+   ride-log auto-fill all price through it, and test-fares.mjs checks it against
+   the published examples. */
+function fareBreakdown({ km = 0, waitMinutes = 0, luggage = 0, night = false } = {}, f = FARE_RULES) {
+  const base = f.baseFare;
+  // ponytail: whole-km steps past the base distance. Unverified whether Bengaluru
+  // meters step per km or per 100 m; if per 100 m, this over-quotes up to ₹17.
+  const distance = km > f.baseKm ? Math.ceil(km - f.baseKm) * f.perKm : 0;
+  // "Per 15 minutes or part thereof" is a ceil, after the free minutes.
+  const waitUnits = Math.ceil(Math.max(0, waitMinutes - (f.waitingFreeMinutes || 0)) / f.waitingUnitMinutes);
+  const waiting = waitUnits * f.waitingPerUnit;
+  const lug = luggage * f.luggagePerPiece;
+  const nightCharge = night ? Math.round((base + distance) * (f.nightMultiplier - 1)) : 0;
+  return { base, distance, waiting, luggage: lug, night: nightCharge, total: base + distance + waiting + lug + nightCharge };
+}
+
+/* Plain meter fare for a distance — no waiting or luggage. */
+function meterFareFor(km, night = false) {
+  return km > 0 ? fareBreakdown({ km, night }).total : 0;
 }
 
 function hour12(h) {
@@ -2089,24 +2109,9 @@ function calculateFare() {
   const luggage = state.luggagePieces;
   const isNight = state.nightMode;
 
-  // Calculate components
-  let baseFare = FARE_RULES.baseFare;
-  let distanceFare = 0;
-  if (distance > FARE_RULES.baseKm) {
-    distanceFare = Math.ceil(distance - FARE_RULES.baseKm) * FARE_RULES.perKm;
-  }
-
-  let waitingCharge = Math.floor(waitMinutes / FARE_RULES.waitingUnitMinutes) * FARE_RULES.waitingPerUnit;
-  let luggageCharge = luggage * FARE_RULES.luggagePerPiece;
-
-  let subtotal = baseFare + distanceFare + waitingCharge + luggageCharge;
-  let nightSurcharge = 0;
-  if (isNight) {
-    nightSurcharge = Math.round((baseFare + distanceFare) * (FARE_RULES.nightMultiplier - 1));
-    subtotal += nightSurcharge;
-  }
-
-  let total = subtotal;
+  const b = fareBreakdown({ km: distance, waitMinutes, luggage, night: isNight });
+  const baseFare = b.base, distanceFare = b.distance, waitingCharge = b.waiting,
+        luggageCharge = b.luggage, nightSurcharge = b.night, total = b.total;
 
   // Update meter display with animation
   animateMeterTo(total);
@@ -2163,7 +2168,7 @@ function calculateFare() {
 }
 
 let meterAnimFrame = null;
-let currentMeterValue = 30;
+let currentMeterValue = DEFAULT_RATES.fare.baseFare;
 
 function animateMeterTo(target) {
   if (meterAnimFrame) cancelAnimationFrame(meterAnimFrame);
@@ -2227,7 +2232,8 @@ function toggleNight() {
 }
 
 function adjustLuggage(delta) {
-  state.luggagePieces = Math.max(0, Math.min(10, state.luggagePieces + delta));
+  const max = FARE_RULES.luggageMaxUnits != null ? FARE_RULES.luggageMaxUnits : 10;
+  state.luggagePieces = Math.max(0, Math.min(max, state.luggagePieces + delta));
   document.getElementById('luggageCount').textContent = state.luggagePieces;
   calculateFare();
 }
@@ -2334,7 +2340,7 @@ function logRide() {
   const ride = {
     id: Date.now(),
     from, to, distance, meterFare, chargedFare,
-    date: new Date().toISOString().split('T')[0],
+    date: localDate(),
     fair: isFair
   };
 
@@ -2397,7 +2403,7 @@ function renderRideHistory() {
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
       : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     const diffText = isFair
-      ? `<span style="color:var(--green)">Fair \u2713</span>`
+      ? `<span style="color:var(--green-text)">Fair \u2713</span>`
       : `<span style="color:var(--red)">+\u20B9${diff}</span>`;
 
     return `
@@ -2408,7 +2414,7 @@ function renderRideHistory() {
           <div class="rh-date">${formatDate(ride.date)} \u2022 ${ride.distance} km</div>
         </div>
         <div class="rh-amount">
-          <div class="charged" style="color:${isFair ? 'var(--green)' : 'var(--text-primary)'};">\u20B9${ride.chargedFare}</div>
+          <div class="charged" style="color:${isFair ? 'var(--green-text)' : 'var(--text-primary)'};">\u20B9${ride.chargedFare}</div>
           <div class="diff">${diffText}</div>
         </div>
       </div>`;
@@ -2542,7 +2548,7 @@ function renderComplaints() {
   if (state.complaints.length === 0) {
     list.innerHTML = `
       <div class="empty-state" style="padding:20px">
-        <p style="font-size:0.8rem;">No complaints filed yet.</p>
+        <p style="font-size:0.8rem;">No complaints written yet.</p>
       </div>`;
     return;
   }
@@ -2616,6 +2622,7 @@ function toggleDarkMode() {
   state.darkMode = !state.darkMode;
   document.documentElement.setAttribute('data-theme', state.darkMode ? 'dark' : '');
   document.getElementById('darkToggle').classList.toggle('on', state.darkMode);
+  document.getElementById('darkToggle').setAttribute('aria-checked', String(state.darkMode));
   saveState();
 }
 
@@ -2673,13 +2680,21 @@ function showConfetti() {
   }, 3000);
 }
 
+// Enter/Space operate role="switch" / role="button" elements like real buttons.
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="switch"], [role="button"]')) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
+
 /* ============================================================
    AUTO-CALCULATE METER FARE IN LOG
    ============================================================ */
 document.getElementById('logDistance').addEventListener('input', function() {
   const dist = parseFloat(this.value) || 0;
   if (dist > 0) {
-    document.getElementById('logMeterFare').value = meterFareFor(dist);
+    document.getElementById('logMeterFare').value = meterFareFor(dist, isNightNow());
     updateFareComparison();
   }
 });

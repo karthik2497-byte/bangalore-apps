@@ -48,6 +48,8 @@ const rejected = {
   'nightEnd negative':    clone(c => c.fare.nightEndHour = -3),
   'nightStart fractional':clone(c => c.fare.nightStartHour = 22.5),
   'zero waiting unit':    clone(c => c.fare.waitingUnitMinutes = 0),
+  'negative free minutes': clone(c => c.fare.waitingFreeMinutes = -5),
+  'luggage cap fractional': clone(c => c.fare.luggageMaxUnits = 1.5),
   'appEstimates not array': clone(c => c.appEstimates = 'nope'),
   'estimate min a string':  clone(c => c.appEstimates[0].min = 'oops'),
   'estimate max null':      clone(c => c.appEstimates[0].max = null),
@@ -68,7 +70,8 @@ const accepted = {
   'empty complaint':       clone(c => c.complaint = {}),
   'empty appEstimates':    clone(c => c.appEstimates = []),
   'estimate without fee':  clone(c => delete c.appEstimates[0].fee),
-  'a real rate revision':  clone(c => { c.version = 99; c.fare.baseFare = 40; c.fare.perKm = 22; })
+  'a real rate revision':  clone(c => { c.version = 99; c.fare.baseFare = 40; c.fare.perKm = 22; }),
+  'v1 shape (no free minutes, no luggage cap)': clone(c => { delete c.fare.waitingFreeMinutes; delete c.fare.luggageMaxUnits; })
 };
 for (const [why, cfg] of Object.entries(accepted)) {
   assert.strictEqual(validRates(cfg), true, `validRates should accept: ${why}`);
@@ -110,18 +113,22 @@ function pipeline({ cached = null, served = null, ok = true } = {}) {
   return new Function(body)();
 }
 
+const BUNDLED = new Function(`${slab('const DEFAULT_RATES', '\n};')}; return DEFAULT_RATES;`)();
+const B = BUNDLED.fare.perKm;
+assert.notStrictEqual(B, 22, 'fixture below needs a perKm that differs from the bundled one');
+
 const bad = clone(c => { c.version = 99; c.fare.perKm = -1; });      // valid version, poisoned rate
-const stale = clone(c => { c.version = 1; c.fare.perKm = 999; });    // valid, but not newer
+const stale = clone(c => { c.version = BUNDLED.version; c.fare.perKm = 999; });  // valid, but not newer
 const fresh = clone(c => { c.version = 7; c.fare.perKm = 22; });
 
 const cases = [
-  ['nothing cached, nothing served', {},                          15, false],
-  ['served config is invalid',       { served: bad },             15, false],
-  ['served config is not newer',     { served: stale },           15, false],
-  ['fetch 404s',                     { served: fresh, ok: false }, 15, false],
-  ['cache is corrupt',               { cached: { junk: true } },  15, false],
-  ['cache is newer but poisoned',    { cached: bad },             15, false],
-  ['cache is same version',          { cached: stale },           15, false],
+  ['nothing cached, nothing served', {},                          B, false],
+  ['served config is invalid',       { served: bad },             B, false],
+  ['served config is not newer',     { served: stale },           B, false],
+  ['fetch 404s',                     { served: fresh, ok: false }, B, false],
+  ['cache is corrupt',               { cached: { junk: true } },  B, false],
+  ['cache is newer but poisoned',    { cached: bad },             B, false],
+  ['cache is same version',          { cached: stale },           B, false],
   ['cache is valid and newer',       { cached: fresh },           22, false],
   ['served config is valid+newer',   { served: fresh },           22, true ]
 ];
@@ -138,5 +145,27 @@ for (const [why, opts, perKm, toast] of cases) {
 const persisted = await pipeline({ served: fresh });
 assert.strictEqual(JSON.parse(persisted.stored).version, 7, 'accepted config was not cached to localStorage');
 
-console.log(`PASS — ${Object.keys(rejected).length} rejected, ${Object.keys(accepted).length} accepted, ` +
+/* ------------------------------------------------------------------
+   The bundled defaults are what an offline first launch charges, so they
+   must equal the published file, and the fare maths must reproduce the
+   published tariff (Bengaluru, effective 1 Aug 2025).
+   ------------------------------------------------------------------ */
+assert.deepStrictEqual(BUNDLED.fare, good.fare, 'DEFAULT_RATES.fare in index.html is out of sync with fares.json');
+const fareBreakdown = new Function(`${grab('fareBreakdown')}; return fareBreakdown;`)();
+const fare = (o) => fareBreakdown(o, good.fare).total;
+const tariff = [
+  ['2 km is the minimum fare',            { km: 2 },                     36],
+  ['10 km: ₹36 + 8 × ₹18',                { km: 10 },                   180],
+  ['a started km is charged (2.1 km)',    { km: 2.1 },                   54],
+  ['night is 1.5× (10 km)',               { km: 10, night: true },      270],
+  ['first 5 min of waiting are free',     { km: 2, waitMinutes: 5 },     36],
+  ['minute 6 starts a ₹10 block',         { km: 2, waitMinutes: 6 },     46],
+  ['20 min = one 15-min block after 5',   { km: 2, waitMinutes: 20 },    46],
+  ['21 min = part of a second block',     { km: 2, waitMinutes: 21 },    56],
+  ['one extra 20 kg of luggage',          { km: 2, luggage: 1 },         46],
+  ['night applies to the meter, not waiting', { km: 2, waitMinutes: 6, night: true }, 64]
+];
+for (const [why, o, want] of tariff) assert.strictEqual(fare(o), want, `${why}: got ${fare(o)}, want ${want}`);
+
+console.log(`PASS — ${tariff.length} tariff cases, ${Object.keys(rejected).length} rejected, ${Object.keys(accepted).length} accepted, ` +
   `${cases.length} load-path cases, fares.json v${good.version} valid`);
