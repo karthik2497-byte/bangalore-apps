@@ -251,7 +251,6 @@ button:disabled { cursor: default; }
   position: sticky; bottom: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto;
   padding: 22px var(--gutter) calc(14px + env(safe-area-inset-bottom)); background: var(--paper-2);
 }
-.bill-actions .quiet { grid-column: 1 / -1; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 16px;
@@ -441,6 +440,7 @@ button:disabled { cursor: default; }
   <div class="bill-actions">
     <button class="btn ghost only-narrow" id="addMore" type="button" aria-label="സാധനം ചേർക്കുക"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>ചേർക്കുക</button>
     <button class="btn primary" id="printBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>പ്രിന്റ് / PDF</button>
+    <button class="btn ghost" id="shareBtn" type="button" aria-label="ബിൽ ചിത്രമായി ഷെയർ ചെയ്യുക"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>ഷെയർ</button>
     <button class="btn quiet" id="newBill" type="button">പുതിയ ബിൽ</button>
   </div>
 </aside>
@@ -505,7 +505,7 @@ let cats = [], products = [], byId = new Map(), catById = new Map();
 let bill = loadBill();
 let cat = null;             // open category, or null for the category grid
 let sheet = null;           // the quantity sheet's working state
-let undoState = null, toastTimer = 0, toastAct = null;
+let undoState = null, toastTimer = 0;
 let samplePrices = false;   // products.json says its rates are placeholders
 
 // ---------- small formatters ----------
@@ -684,7 +684,7 @@ function renderBill() {
   $('sumRound').textContent = signed(t.roundOff);
   $('sumTotal').textContent = fmtMoney(t.total, true);
   if (document.activeElement !== $('discount')) $('discount').value = t.discount ? String(t.discount / 100) : '';
-  $('printBtn').disabled = $('newBill').disabled = n === 0;
+  $('printBtn').disabled = $('shareBtn').disabled = $('newBill').disabled = n === 0;
   $('billBar').disabled = n === 0;
   $('bbCount').textContent = n ? countLabel(n) : 'ബില്ലിൽ ഒന്നുമില്ല';
   $('bbTotal').textContent = n ? fmtMoney(t.total, true) : '';
@@ -746,9 +746,10 @@ function receiptCanvas() {
   pass(true);
   return c;
 }
-// iPhone Home Screen apps (and in-app browsers) ignore window.print(): no sheet, no events.
-// Sharing the image reaches the same printers: the share sheet offers Print, WhatsApp, Files.
-// Synchronous to the tap (toDataURL, not toBlob), so the share keeps its user activation.
+// The Share button. Browsers whose window.print() does nothing (Firefox Focus and other
+// in-app browsers on iPhone) still reach a printer this way: the share sheet offers Print,
+// WhatsApp and Files. Synchronous to the tap (toDataURL, not toBlob), so the share keeps
+// its user activation.
 function shareBill() {
   renderReceipt();
   const name = `Thraasu-Bill-${billNo(bill.no)}.png`, url = receiptCanvas().toDataURL('image/png');
@@ -773,15 +774,11 @@ function newBill() {
   toast(`പുതിയ ബിൽ നം. ${billNo(bill.no)}`);
 }
 function printBill() {
-  if (navigator.standalone) return shareBill();         // iOS Home Screen: print() is a no-op
   renderReceipt();                                       // stamps the print time
   const title = document.title;
-  let opened = false;
   document.title = `Thraasu-Bill-${billNo(bill.no)}`;   // Save as PDF names the file from this
-  addEventListener('beforeprint', () => { opened = true; }, { once: true });
   addEventListener('afterprint', () => { document.title = title; }, { once: true });
   window.print();
-  setTimeout(() => { if (!opened) { document.title = title; toast('പ്രിന്റ് തുറന്നില്ലേ?', 'ഷെയർ ചെയ്യുക', shareBill); } }, 1500);
 }
 
 // Phones: the bill is a full-screen layer with a history entry, so Android's back
@@ -805,10 +802,8 @@ function showBill(on) {
 }
 
 // ---------- toast with undo ----------
-function toast(msg, label = 'പഴയപടി', act = undo) {
+function toast(msg) {
   $('toastMsg').textContent = msg;
-  $('toastUndo').textContent = label;
-  toastAct = act;
   $('toast').classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(hideToast, 6000);
@@ -883,14 +878,14 @@ $('discount').addEventListener('change', () => {
 });
 $('shopName').addEventListener('input', () => { try { localStorage.setItem(SHOP_KEY, $('shopName').value); } catch {} });
 $('printBtn').addEventListener('click', printBill);
+$('shareBtn').addEventListener('click', shareBill);
 $('newBill').addEventListener('click', newBill);
-function undo() {
+$('toastUndo').addEventListener('click', () => {
   if (!undoState) return hideToast();
   bill = JSON.parse(undoState);
   undoState = null;
   saveBill(); renderBill(); renderShelf(); hideToast();
-}
-$('toastUndo').addEventListener('click', () => toastAct());
+});
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('bill').classList.contains('open') && !sheetEl.open) closeBill();
 });

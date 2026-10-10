@@ -162,7 +162,7 @@ export default async (t) => {
     $('q').value = 'x'; $('q').dispatchEvent(new Event('input')); m('clear', $('clearQ'));
     $('q').value = ''; $('q').dispatchEvent(new Event('input'));
     m('lineX', document.querySelector('.line-x')); m('discount', $('discount')); m('newBill', $('newBill'));
-    m('billClose', $('billClose')); m('undo', $('toastUndo'));
+    m('billClose', $('billClose')); m('undo', $('toastUndo')); m('share', $('shareBtn'));
     if (!$('backBtn')) document.querySelector('.cat').click();   // a reload restores the open category
     m('back', $('backBtn'));
     return out;
@@ -208,35 +208,27 @@ export default async (t) => {
   t.check('receipt has shop, sample label, lines, discount, total', /ഗീത സ്റ്റോഴ്സ്/.test(p.receipt) && /വെളിച്ചെണ്ണ/.test(p.receipt) && /കിഴിവ്−₹20.00/.test(p.receipt) && /ആകെ₹250/.test(p.receipt) && /sample prices/.test(p.receipt), p.receipt.slice(0, 200));
   t.check('print media shows only the receipt', pm.receipt === 'block' && pm.counter === 'none' && pm.bill === 'none', pm);
 
-  // A print sheet that never opens (iPhone Home Screen app, in-app browsers) offers the bill
-  // as a shared PNG; Home Screen mode skips print() and shares straight away.
+  // Share: the bill as a 576 px PNG through the share sheet (Print, WhatsApp, Files), the
+  // route to a printer where window.print() does nothing (Firefox Focus on iPhone). Print
+  // itself must stay a plain window.print().
   const sh = await t.evaluate(async () => {
-    const $ = id => document.getElementById(id);
     const shared = [];
     let prints = 0;
-    window.print = () => { prints++; };                  // no beforeprint: nothing opened
+    window.print = () => { prints++; };
     navigator.canShare = () => true;
     navigator.share = async d => { shared.push(d.files[0]); };
-    $('printBtn').click();
-    await new Promise(r => setTimeout(r, 1700));
-    const offer = [$('toast').classList.contains('show'), $('toastUndo').textContent, document.title];
-    $('toastUndo').click();
-    Object.defineProperty(navigator, 'standalone', { value: true, configurable: true });
-    $('printBtn').click();
-    delete navigator.standalone;
+    document.getElementById('shareBtn').click();
     const f = shared[0], img = await createImageBitmap(f);
-    return { prints, offer, n: shared.length, name: f.name, type: f.type, w: img.width, h: img.height };
+    return { prints, n: shared.length, name: f.name, type: f.type, w: img.width, h: img.height };
   });
-  t.check('print that never opens offers to share the bill', sh.offer[0] && sh.offer[1] === 'ഷെയർ ചെയ്യുക' && sh.offer[2] !== 'Thraasu-Bill-0001', sh.offer);
-  t.check('iPhone Home Screen shares without calling print()', sh.prints === 1 && sh.n === 2, sh);
-  t.check('shared bill is a 576 px PNG named after the bill', sh.name === 'Thraasu-Bill-0001.png' && sh.type === 'image/png' && sh.w === 576 && sh.h > 400, sh);
+  t.check('Share sends a 576 px PNG named after the bill, without printing', sh.n === 1 && sh.prints === 0 && sh.name === 'Thraasu-Bill-0001.png' && sh.type === 'image/png' && sh.w === 576 && sh.h > 400, sh);
 
   // Remove + undo, new bill + undo.
   const u = await t.evaluate(() => {
     const $ = id => document.getElementById(id);
     const r = {};
     document.querySelector('[data-remove="1"]').click();
-    r.removed = [bill.lines.length, $('toast').classList.contains('show'), $('toastUndo').textContent];
+    r.removed = [bill.lines.length, $('toast').classList.contains('show')];
     $('toastUndo').click();
     r.undone = bill.lines.length;
     $('newBill').click();
@@ -245,7 +237,7 @@ export default async (t) => {
     r.back = [bill.lines.length, $('billNo').textContent];
     return r;
   });
-  t.check('✕ removes a line with an undo toast', u.removed[0] === 2 && u.removed[1] && u.removed[2] === 'പഴയപടി', u.removed);
+  t.check('✕ removes a line with an undo toast', u.removed[0] === 2 && u.removed[1], u.removed);
   t.check('undo restores it', u.undone === 3, u.undone);
   t.check('new bill: empty, number 0002', u.fresh[0] === 0 && u.fresh[1] === '0002', u.fresh);
   t.check('undo brings bill 0001 back', u.back[0] === 3 && u.back[1] === '0001', u.back);
@@ -268,7 +260,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v2', sw === 'thraasu-v2', sw);
+  t.check('service worker precached thraasu-v3', sw === 'thraasu-v3', sw);
 
   // Photos: every one in products.json loads under the real CSP, categories show theirs,
   // and a photo viewed online is kept for offline use.

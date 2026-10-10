@@ -263,7 +263,7 @@ The receipt slip is the signature silhouette: rounded top, flat sides, and a zig
 
 ### Buttons
 Solid, 650 weight, 52px tall, 14px radius; press nudges down 1px.
-- **Primary:** leaf ground, white text; hover leaf-deep. One per surface: add to bill in the sheet, print / PDF in the bill.
+- **Primary:** leaf ground, white text; hover leaf-deep. One per surface: add to bill in the sheet, print / PDF in the bill (Share sits beside it as a ghost button: the bill as a 576 px PNG for WhatsApp, or for printing from browsers whose print does nothing).
 - **Ghost:** slip ground with a divider edge; hover darkens the edge to ink-2.
 - **Quiet:** no ground, brass-ink text, 48px; hover brass-wash.
 - **Danger:** slip ground, chilli text, pale chilli edge; hover chilli-wash.
