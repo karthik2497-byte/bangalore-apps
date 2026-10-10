@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0D1117">
+<title>Privacy Policy — StockPing</title>
+<style>
+  :root { --bg:#FFF; --fg:#1F2328; --muted:#59636E; --accent:#0969DA; --line:#D1D9E0; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0D1117; --fg:#F0F6FC; --muted:#9198A1; --accent:#58A6FF; --line:#21262D; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 20px 60px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.65;
+    max-width: 720px; margin-inline: auto; font-size: 1rem;
+  }
+  h1 { font-size: 1.9rem; margin: 0 0 6px; letter-spacing: -0.03em; line-height: 1.2; }
+  h2 { font-size: 1.25rem; margin: 36px 0 8px; letter-spacing: -0.015em; }
+  .updated { color: var(--muted); font-size: 0.8rem; margin-bottom: 32px; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); }
+  code { font-size: 0.9em; }
+  .box {
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin: 20px 0; background: rgba(88,166,255,0.06);
+  }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>StockPing — Privacy Policy</h1>
+<div class="updated">Last updated: 10 October 2026</div>
+
+<div class="box">
+  <strong>Short version:</strong> StockPing has no accounts and no server of ours holding your
+  data. Your tracked products stay on your device. To check a product page, though, the app
+  fetches it through two public services run by third parties, and they can see the
+  product links you track. Section 3 explains this.
+</div>
+
+<h2>1. What the app stores</h2>
+<p>StockPing saves the following in your device's local storage (<code>localStorage</code>), on your device only:</p>
+<ul>
+  <li>The products you track: link, name, last known stock status and price, and when each was last checked</li>
+  <li>Your alert history (the most recent 200 stock and price changes)</li>
+  <li>Settings: auto-check, check interval, and notifications on or off</li>
+</ul>
+<p>We cannot see this data and cannot recover it for you. You can erase all of it with
+<strong>Settings → Clear all data</strong>, or by uninstalling the app or clearing this
+site's data. <strong>Export</strong> saves a file to wherever you choose; it is not sent anywhere.</p>
+
+<h2>2. What the app does not collect</h2>
+<ul>
+  <li>No name, email, phone number, or account of any kind</li>
+  <li>No location, contacts, photos, or device identifiers</li>
+  <li>No shopping-site logins, passwords, or payment details. The app reads public product pages only</li>
+  <li>No advertising or cross-site tracking cookies</li>
+</ul>
+
+<h2>3. How product checks work: third-party proxies</h2>
+<p>Browsers do not let a web app read another website's page directly. To check stock and
+price, StockPing sends the product link to a public proxy, which fetches the page and
+returns it: first <code>api.allorigins.win</code>, then <code>corsproxy.io</code> if the
+first fails. These services are not operated by us. They receive <strong>the product link and
+your IP address</strong>, and may log them under their own terms. They do not receive your
+name, your other tracked products, or anything else stored in the app. Before a link is
+checked or saved, StockPing removes common tracking parameters from it, such as
+<code>utm_</code> tags and referral codes.</p>
+<p>We plan to replace these public proxies with a checking service of our own. This page will
+be updated when that happens.</p>
+
+<h2>4. Other network requests</h2>
+<ul>
+  <li><strong>Shopping sites.</strong> When you tap a product or "Buy now", your browser opens
+      the retailer's site directly (for example Amazon or Flipkart). That visit is covered by
+      the retailer's privacy policy.</li>
+  <li><strong>Fonts.</strong> The app loads its typeface from Google Fonts (fonts.googleapis.com
+      and fonts.gstatic.com), which receives your IP address and browser details.</li>
+  <li><strong>Hosting.</strong> Like any website, the hosting provider (Cloudflare) records
+      standard server logs such as IP address and time.</li>
+</ul>
+
+<h2>5. Affiliate links</h2>
+<p>When affiliate links are enabled in this version of the app (Settings then shows a
+<strong>Disclosure</strong> section), links you open to Amazon or Flipkart carry our affiliate
+ID, and we may earn a commission on qualifying purchases at no extra cost to you. As an
+Amazon Associate, StockPing earns from qualifying purchases. Affiliate links never change
+stock results, the prices shown, or when you are alerted.</p>
+
+<h2>6. Notifications</h2>
+<p>Alerts are created on your device when a check finds a change, and are shown by your
+device. No push service or server is involved, and nothing about your alerts is sent anywhere.</p>
+
+<h2>7. Accuracy</h2>
+<p>StockPing is an independent tool and is not affiliated with, or endorsed by, any retailer.
+Stock status and prices are read from public pages and can be wrong or out of date. Always
+confirm on the retailer's site before you buy.</p>
+
+<h2>8. Children</h2>
+<p>StockPing is a general-purpose utility and is not directed at children under 13.</p>
+
+<h2>9. Changes to this policy</h2>
+<p>If this policy changes, the updated version will be published on this page with a new
+"last updated" date.</p>
+
+<h2>10. Contact</h2>
+<p>Questions about this policy: <a href="mailto:REPLACE_WITH_CONTACT_EMAIL">REPLACE_WITH_CONTACT_EMAIL</a></p>
+
+<footer>
+  <a href="./index.html">&larr; Back to StockPing</a>
+</footer>
+</body>
+</html>

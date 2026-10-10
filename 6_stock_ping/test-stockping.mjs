@@ -21,7 +21,9 @@ function slice(from, to) {
 const code = [
   slice('function getDomain(url) {', 'function getSiteName'),
   slice('// ---- AFFILIATE ----', '// ---- STOCK CHECK ----'),
-  slice('function applyCheckResult(', 'async function checkSingleProduct')
+  slice('function applyCheckResult(', 'async function checkSingleProduct'),
+  slice('function canonicalUrl(', 'let processingUrl'),
+  slice('const STATUSES =', 'function importData')
 ].join('\n');
 
 // applyCheckResult reaches for the alert + notification layer; capture instead.
@@ -32,10 +34,10 @@ const sandbox = new Function(`
   const notifyUser = (p) => __fired.notifyStock.push(p.id);
   const notifyPriceDrop = (p, o, n) => __fired.notifyPrice.push([p.id, o, n]);
   ${code}
-  return { affiliateUrl, affiliateEnabled, AFFILIATE, parseJsonLd, extractProductData, applyCheckResult };
+  return { affiliateUrl, affiliateEnabled, AFFILIATE, parseJsonLd, extractProductData, applyCheckResult, canonicalUrl, safeId, isWebUrl };
 `.replace(/__fired/g, 'arguments[0]'))(fired);
 
-const { affiliateUrl, affiliateEnabled, AFFILIATE, extractProductData, applyCheckResult } = sandbox;
+const { affiliateUrl, affiliateEnabled, AFFILIATE, extractProductData, applyCheckResult, canonicalUrl, safeId, isWebUrl } = sandbox;
 
 let n = 0;
 const check = (name, fn) => { fn(); n++; };
@@ -238,6 +240,79 @@ check('coming back from "checking" is not reported as a change', () => {
   reset();
   applyCheckResult(product(), 'checking', null, { status: 'in_stock', price: null });
   assert.equal(fired.stock.length, 0, 'checking is a UI state, not a stock state');
+});
+
+/* ---------------- a failed read is not a stock change ---------------- */
+
+check('an unknown result keeps the last known status and alerts nothing', () => {
+  reset();
+  const p = product({ status: 'in_stock', price: 500, lowestPrice: 500 });
+  applyCheckResult(p, 'in_stock', 500, { status: 'unknown', price: null });
+  assert.equal(p.status, 'in_stock');
+  assert.deepEqual([fired.stock.length, fired.notifyStock.length], [0, 0]);
+});
+check('a proxy hiccup does not produce a false "Back in Stock"', () => {
+  reset();
+  const p = product({ status: 'in_stock' });
+  applyCheckResult(p, 'in_stock', null, { status: 'unknown', price: null });   // proxy timed out
+  applyCheckResult(p, p.status, null, { status: 'in_stock', price: null });   // next good read
+  assert.deepEqual([fired.stock.length, fired.notifyStock.length], [0, 0]);
+});
+check('out of stock survives a failed read, then a real restock notifies once', () => {
+  reset();
+  const p = product({ status: 'out_of_stock' });
+  applyCheckResult(p, 'out_of_stock', null, { status: 'unknown', price: null });
+  assert.equal(p.status, 'out_of_stock');
+  applyCheckResult(p, p.status, null, { status: 'in_stock', price: null });
+  assert.deepEqual(fired.notifyStock, ['p1']);
+});
+check('a product never read before notifies on its first real in-stock answer', () => {
+  reset();
+  applyCheckResult(product({ status: 'unknown' }), 'unknown', null, { status: 'in_stock', price: null });
+  assert.equal(fired.notifyStock.length, 1);
+});
+
+/* ---------------- approximate prices never alert ---------------- */
+
+check('a fallback (text) price is approximate and moves nothing', () => {
+  reset();
+  const p = product({ status: 'in_stock', price: 49999, lowestPrice: 49999 });
+  applyCheckResult(p, 'in_stock', 49999, { status: 'in_stock', price: 2083, priceExact: false }); // an EMI figure
+  assert.equal(fired.price.length, 0);
+  assert.equal(p.lowestPrice, 49999);
+  assert.equal(p.priceApprox, true);
+});
+check('a drop measured from an approximate price does not alert', () => {
+  reset();
+  const p = product({ status: 'in_stock', price: 2083, priceApprox: true });
+  applyCheckResult(p, 'in_stock', 2083, { status: 'in_stock', price: 1999, priceExact: true });
+  assert.equal(fired.price.length, 0);
+  assert.equal(p.priceApprox, false);
+});
+check('the parser marks JSON-LD prices exact and fallback prices not', () => {
+  const ld = '<script type="application/ld+json">{"@type":"Product","name":"X","offers":{"price":"999","availability":"InStock"}}</script>';
+  assert.equal(extractProductData(ld).priceExact, true);
+  assert.equal(extractProductData('<html><body>Buy now ₹1,499 only</body></html>').priceExact, false);
+});
+
+/* ---------------- canonical links and import guards ---------------- */
+
+check('amazon links collapse to /dp/ASIN', () => {
+  assert.equal(canonicalUrl('https://www.amazon.in/Some-Thing/dp/B0ABCDEF12/ref=sr_1_3?tag=someone-21&psc=1'), 'https://www.amazon.in/dp/B0ABCDEF12');
+});
+check('tracking params are stripped, real ones kept', () => {
+  assert.equal(canonicalUrl('https://www.flipkart.com/x/p/itm1?pid=MOB1&affid=abc&utm_source=wa#frag'), 'https://www.flipkart.com/x/p/itm1?pid=MOB1');
+});
+check('a non-URL passes through untouched', () => {
+  assert.equal(canonicalUrl('not a url'), 'not a url');
+});
+check('import accepts only plain ids and web URLs', () => {
+  assert.equal(safeId('lq3k9x2abc'), true);
+  assert.equal(safeId(undefined), false, 'RegExp#test(undefined) would test the string "undefined"');
+  assert.equal(safeId("x');alert(1);('"), false);
+  assert.equal(isWebUrl('https://www.amazon.in/dp/B0ABCDEF12'), true);
+  assert.equal(isWebUrl('javascript:alert(1)'), false);
+  assert.equal(isWebUrl('data:text/html,hi'), false);
 });
 
 console.log(`PASS — ${n} cases`);

@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>StockPing - Back in Stock Alerts</title>
   <meta name="description" content="Track out-of-stock products and get notified when they're back.">
   <meta name="theme-color" content="#0D1117">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
@@ -502,7 +503,7 @@
 
     .empty-state .btn-primary {
       background: var(--accent);
-      color: #fff;
+      color: var(--bg);
       border: none;
       padding: 12px 28px;
       border-radius: var(--radius-pill);
@@ -529,7 +530,7 @@
       border-radius: 50%;
       background: var(--accent);
       border: none;
-      color: #fff;
+      color: var(--bg);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -729,7 +730,7 @@
     .btn-primary {
       flex: 1;
       background: var(--accent);
-      color: #fff;
+      color: var(--bg);
       border: none;
       padding: 14px 24px;
       border-radius: var(--radius-pill);
@@ -827,7 +828,7 @@
       font-size: 12px;
       font-weight: 600;
       font-family: inherit;
-      color: #fff;
+      color: var(--bg);
       background: var(--accent);
       border: none;
       border-radius: 8px;
@@ -965,7 +966,7 @@
 
     .segmented-control .seg-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--bg);
     }
 
     .setting-btn {
@@ -1196,6 +1197,9 @@
 
     /* ========== SCROLLBAR ========== */
     ::-webkit-scrollbar { width: 0; height: 0; }
+      /* Keyboard focus was invisible (outline: none on inputs, no :focus-visible). */
+    :root :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .input-hint { font-size: 12px; line-height: 1.45; color: var(--text-secondary); margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -1271,7 +1275,7 @@
     <!-- Screen 1: Track -->
     <div class="screen active" id="screenTrack">
       <div id="productListContainer"></div>
-      <button class="fab pulse-hint" id="fabBtn" onclick="openAddModal()">
+      <button class="fab pulse-hint" id="fabBtn" onclick="openAddModal()" aria-label="Add product">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
     </div>
@@ -1295,7 +1299,7 @@
               <div class="setting-label">Auto-check on open</div>
               <div class="setting-sublabel">Check all products when app opens</div>
             </div>
-            <div class="toggle active" id="toggleAutoCheck" onclick="toggleSetting('autoCheck')"></div>
+            <div class="toggle active" id="toggleAutoCheck" onclick="toggleSetting('autoCheck')" role="switch" tabindex="0" aria-checked="true" aria-label="Auto-check on open"></div>
           </div>
           <div class="setting-item">
             <div>
@@ -1320,7 +1324,7 @@
               <div class="setting-label">Enable notifications</div>
               <div class="setting-sublabel">Get alerted for status changes</div>
             </div>
-            <div class="toggle" id="toggleNotifications" onclick="toggleSetting('notifications')"></div>
+            <div class="toggle" id="toggleNotifications" onclick="toggleSetting('notifications')" role="switch" tabindex="0" aria-checked="false" aria-label="Enable notifications"></div>
           </div>
           <div class="setting-item">
             <div class="setting-label">Test notification</div>
@@ -1358,7 +1362,8 @@
       <div class="about-section">
         <div class="version">StockPing v1.0</div>
         <div class="tagline">Paste. Track. Get Pinged.</div>
-        <div class="built-with">Built with HTML, CSS & JS. No servers required.</div>
+        <div class="built-with">No account, no tracking by us. Stock checks go through two public proxies (allorigins.win, corsproxy.io), which can see the product links you track.</div>
+        <div class="built-with"><a href="./privacy.html" style="color:var(--accent);">Privacy Policy</a></div>
       </div>
     </div>
   </div>
@@ -1400,13 +1405,14 @@
     <div class="modal-title">Add Product</div>
 
     <div class="input-group">
-      <label>Product URL</label>
+      <label for="inputUrl">Product URL</label>
       <div class="input-row">
         <input type="url" class="input-field" id="inputUrl" placeholder="Paste product URL here..." autocomplete="off">
-        <button class="btn-paste" onclick="pasteUrl()" title="Paste from clipboard">
+        <button class="btn-paste" onclick="pasteUrl()" title="Paste from clipboard" aria-label="Paste from clipboard">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       </div>
+      <div class="input-hint">Checks run through public proxies (allorigins.win, corsproxy.io), which see this link. Tracking parameters are stripped first.</div>
     </div>
 
     <!-- Loading skeleton area -->
@@ -1754,11 +1760,13 @@ function extractProductData(html) {
   const ld = parseJsonLd(html);
   let status = 'unknown';
   let price = null;
+  let priceExact = false;   // true only for a schema.org offer price
   let name = '';
 
   if (ld) {
     name = ld.name;
     price = ld.price;
+    priceExact = price !== null;
     if (LD_OUT_OF_STOCK_RE.test(ld.availability)) status = 'out_of_stock';
     else if (LD_IN_STOCK_RE.test(ld.availability)) status = 'in_stock';
   }
@@ -1769,7 +1777,7 @@ function extractProductData(html) {
   if (price === null) price = parsePriceFallback(html);
   if (!name) name = parseTitle(html);
 
-  return { name, status, price };
+  return { name, status, price, priceExact };
 }
 
 // ---- STOCK CHECK ----
@@ -1777,25 +1785,35 @@ async function checkProduct(product) {
   const html = await fetchPage(product.url, 15000);
   if (!html) return { status: 'unknown', price: null };
   const data = extractProductData(html);
-  return { status: data.status, price: data.price };
+  return { status: data.status, price: data.price, priceExact: data.priceExact };
 }
 
 // Both the single check and the check-all loop need identical post-check
 // bookkeeping. It was copy-pasted before; one copy is the reason a price would
 // otherwise have to be recorded in two places.
 function applyCheckResult(product, oldStatus, oldPrice, result) {
-  product.status = result.status;
   product.lastChecked = new Date().toISOString();
+  // A failed or signal-less fetch (proxy timeout, a bot-check page) is no
+  // information. Keep the last known status: flapping in_stock -> unknown ->
+  // in_stock used to fire a false "Back in Stock" on every proxy hiccup.
+  const known = result.status !== 'unknown';
+  product.status = known ? result.status : (oldStatus === 'checking' ? 'unknown' : oldStatus);
 
+  // A fallback price is the first ₹ figure on the page (an EMI, a delivery
+  // fee), so it displays as approximate and never moves lowestPrice or alerts.
+  const exact = result.priceExact !== false;
+  const oldExact = !product.priceApprox;
   if (result.price !== null) {
     product.price = result.price;
-    if (product.lowestPrice == null || result.price < product.lowestPrice) {
+    product.priceApprox = !exact;
+    if (exact && (product.lowestPrice == null || result.price < product.lowestPrice)) {
       product.lowestPrice = result.price;
     }
   }
 
-  if (oldStatus !== result.status && oldStatus !== 'checking') {
+  if (known && oldStatus !== result.status && oldStatus !== 'checking') {
     addStockAlert(product, oldStatus, result.status);
+    // 'unknown' can only mean "never read successfully" now, so this is the first real answer.
     if (result.status === 'in_stock' && (oldStatus === 'out_of_stock' || oldStatus === 'unknown')) {
       notifyUser(product);
     }
@@ -1805,7 +1823,7 @@ function applyCheckResult(product, oldStatus, oldPrice, result) {
   // time, rising, or unchanged is not news. The `oldPrice != null` check is
   // deliberate rather than leaning on null coercing to 0 in the comparison:
   // this runs on a timer, so a wrong answer here spams the user forever.
-  if (oldPrice != null && result.price != null && result.price < oldPrice) {
+  if (oldPrice != null && result.price != null && result.price < oldPrice && exact && oldExact) {
     addPriceAlert(product, oldPrice, result.price);
     notifyPriceDrop(product, oldPrice, result.price);
   }
@@ -1832,11 +1850,16 @@ async function checkSingleProduct(productId) {
   updateStats();
 }
 
+let checkingAll = false;
 async function checkAllProducts() {
   if (products.length === 0) {
     showToast('No products to check', 'error');
     return;
   }
+  // The interval, auto-check on open and the button can all fire this; two
+  // overlapping runs duplicated every alert and notification.
+  if (checkingAll) return;
+  checkingAll = true;
 
   const btn = document.getElementById('btnCheckAll');
   btn.classList.add('checking');
@@ -1846,19 +1869,25 @@ async function checkAllProducts() {
   const before = {};
   products.forEach(p => { before[p.id] = { status: p.status, price: p.price }; });
 
-  products.forEach(p => p.status = 'checking');
-  saveProducts(products);
-  renderProducts();
-
-  for (const product of products) {
-    const prev = before[product.id] || { status: 'unknown', price: null };
-    const result = await checkProduct(product);
-    applyCheckResult(product, prev.status || 'unknown', prev.price, result);
+  try {
+    products.forEach(p => p.status = 'checking');
     saveProducts(products);
     renderProducts();
-  }
 
-  btn.classList.remove('checking');
+    for (const product of products) {
+      const prev = before[product.id] || { status: 'unknown', price: null };
+      const result = await checkProduct(product);
+      applyCheckResult(product, prev.status || 'unknown', prev.price, result);
+      saveProducts(products);
+      renderProducts();
+    }
+  } finally {
+    // Never leave a product saved as "checking" if anything above threw.
+    products.forEach(p => { if (p.status === 'checking') p.status = (before[p.id] || {}).status || 'unknown'; });
+    saveProducts(products);
+    checkingAll = false;
+    btn.classList.remove('checking');
+  }
   products = loadProducts();
   renderProducts();
   updateStats();
@@ -1866,13 +1895,28 @@ async function checkAllProducts() {
 }
 
 // ---- NOTIFICATIONS ----
+// `new Notification()` is an illegal constructor on Chrome for Android and in
+// the Play TWA. It used to throw inside applyCheckResult, aborting Check All
+// mid-loop and leaving products stuck on "Checking…". Show through the worker.
+async function notify(title, options) {
+  try {
+    const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+    if (reg) await reg.showNotification(title, options);
+    else new Notification(title, options);
+    return true;
+  } catch (e) {
+    console.warn('Notification failed:', e);
+    return false;
+  }
+}
+
 function notifyUser(product) {
   // Play chime
   playChime();
 
   // Browser notification
   if (settings.notifications && 'Notification' in window && Notification.permission === 'granted') {
-    new Notification('Back in Stock! 🎉', {
+    notify('Back in Stock! 🎉', {
       body: product.name,
       icon: 'icon-192.svg',
       badge: 'icon-192.svg',
@@ -1885,7 +1929,7 @@ function notifyUser(product) {
 function notifyPriceDrop(product, oldPrice, newPrice) {
   playChime();
   if (settings.notifications && 'Notification' in window && Notification.permission === 'granted') {
-    new Notification('Price dropped 📉', {
+    notify('Price dropped 📉', {
       body: `${product.name} — ${formatPrice(oldPrice)} → ${formatPrice(newPrice)}`,
       icon: 'icon-192.svg',
       badge: 'icon-192.svg',
@@ -1894,9 +1938,13 @@ function notifyPriceDrop(product, oldPrice, newPrice) {
   }
 }
 
+let audioCtx = null;
 function playChime() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // One context, reused: browsers cap live AudioContexts, so one per alert
+    // went silent after a burst of alerts.
+    const ctx = audioCtx || (audioCtx = new (window.AudioContext || window.webkitAudioContext)());
+    if (ctx.state === 'suspended') ctx.resume();
 
     // Pleasant notification chime: two ascending notes
     const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
@@ -1922,21 +1970,15 @@ async function testNotification() {
   playChime();
   if ('Notification' in window) {
     if (Notification.permission === 'granted') {
-      new Notification('StockPing Test 🔔', {
-        body: 'Notifications are working!',
-        icon: 'icon-192.svg'
-      });
-      showToast('Test notification sent!', 'success');
+      const ok = await notify('StockPing Test 🔔', { body: 'Notifications are working!', icon: 'icon-192.svg' });
+      showToast(ok ? 'Test notification sent!' : 'This browser blocked the notification', ok ? 'success' : 'error');
     } else if (Notification.permission === 'denied') {
       showToast('Notifications blocked by browser', 'error');
     } else {
       const perm = await Notification.requestPermission();
       if (perm === 'granted') {
-        new Notification('StockPing Test 🔔', {
-          body: 'Notifications are working!',
-          icon: 'icon-192.svg'
-        });
-        showToast('Test notification sent!', 'success');
+        const ok = await notify('StockPing Test 🔔', { body: 'Notifications are working!', icon: 'icon-192.svg' });
+        showToast(ok ? 'Test notification sent!' : 'This browser blocked the notification', ok ? 'success' : 'error');
       } else {
         showToast('Notification permission denied', 'error');
       }
@@ -1949,8 +1991,10 @@ async function testNotification() {
 // ---- ALERTS ----
 const formatPrice = (n) => '₹' + Number(n).toLocaleString('en-IN');
 
+const MAX_ALERTS = 200;   // hourly checks for months would otherwise grow storage forever
 function pushAlert(fields) {
   alerts.unshift({ id: generateId(), timestamp: new Date().toISOString(), ...fields });
+  if (alerts.length > MAX_ALERTS) alerts.length = MAX_ALERTS;
   saveAlerts(alerts);
   newAlertCount++;
   updateAlertBadge();
@@ -1989,9 +2033,9 @@ function updateAlertBadge() {
 // ---- PRODUCT URL DETECTION ----
 async function fetchAndDetect(url) {
   const html = await fetchPage(url, 12000);
-  if (!html) return { title: '', status: 'unknown', price: null, success: false };
+  if (!html) return { title: '', status: 'unknown', price: null, priceExact: false, success: false };
   const data = extractProductData(html);
-  return { title: data.name, status: data.status, price: data.price, success: true };
+  return { title: data.name, status: data.status, price: data.price, priceExact: data.priceExact, success: true };
 }
 
 // ---- RENDER FUNCTIONS ----
@@ -2050,7 +2094,7 @@ function renderProducts() {
               ${product.status === 'checking' ? '<span class="spinner"></span>' : ''}
               ${statusLabel}
             </span>
-            ${product.price != null ? `<span class="product-price">${formatPrice(product.price)}${
+            ${product.price != null ? `<span class="product-price">${product.priceApprox ? '~' : ''}${formatPrice(product.price)}${
               product.lowestPrice != null && product.lowestPrice < product.price
                 ? ` <span class="low">low ${formatPrice(product.lowestPrice)}</span>` : ''
             }</span>` : ''}
@@ -2058,13 +2102,13 @@ function renderProducts() {
           </div>
         </div>
         <div class="product-actions">
-          <button class="action-btn" onclick="checkSingleProduct('${product.id}')" title="Check now">
+          <button class="action-btn" onclick="checkSingleProduct('${product.id}')" title="Check now" aria-label="Check now">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           </button>
-          <button class="action-btn" onclick="openProductPage('${product.id}')" title="Open product page">
+          <button class="action-btn" onclick="openProductPage('${product.id}')" title="Open product page" aria-label="Open product page">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </button>
-          <button class="action-btn delete" onclick="confirmDeleteProduct('${product.id}')" title="Delete">
+          <button class="action-btn delete" onclick="confirmDeleteProduct('${product.id}')" title="Delete" aria-label="Delete">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
@@ -2245,6 +2289,24 @@ document.getElementById('inputUrl').addEventListener('paste', function(e) {
   }, 100);
 });
 
+// One canonical link per product: dedupes links shared with tracking params and
+// sends less of the user's referral trail through the proxies.
+function canonicalUrl(url) {
+  try {
+    const u = new URL(url);
+    const asin = /(^|\.)amazon\./.test(u.hostname) && u.pathname.match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:[/?]|$)/i);
+    if (asin) return `${u.protocol}//${u.hostname}/dp/${asin[1].toUpperCase()}`;
+    [...u.searchParams.keys()].forEach(k => {
+      if (/^(utm_|ref$|ref_|tag$|affid$|affExtParam|fbclid$|gclid$)/i.test(k)) u.searchParams.delete(k);
+    });
+    u.hash = '';
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+let processingUrl = null;
 async function processUrl(url) {
   // Validate URL
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -2258,6 +2320,8 @@ async function processUrl(url) {
     showToast('Please enter a valid URL', 'error');
     return;
   }
+
+  url = canonicalUrl(url);
 
   // Check for duplicate
   if (products.some(p => p.url === url)) {
@@ -2273,7 +2337,11 @@ async function processUrl(url) {
   document.getElementById('nameInputGroup').style.display = 'none';
   document.getElementById('btnTrack').disabled = true;
 
+  // A paste followed by Enter used to fetch the same page twice.
+  if (processingUrl === url) return;
+  processingUrl = url;
   const result = await fetchAndDetect(url);
+  processingUrl = null;
 
   document.getElementById('loadingArea').classList.remove('visible');
 
@@ -2285,14 +2353,15 @@ async function processUrl(url) {
     domain: domain,
     name: detectedName,
     status: detectedStatus,
-    price: result.price
+    price: result.price,
+    priceExact: result.priceExact
   };
 
   // Show detection result
   document.getElementById('detectedSite').textContent = getSiteName(domain);
   const statusEl = document.getElementById('detectedStatus');
   statusEl.textContent = getStatusLabel(detectedStatus) +
-    (result.price != null ? ` · ${formatPrice(result.price)}` : '');
+    (result.price != null ? ` · ${result.priceExact ? '' : '~'}${formatPrice(result.price)}` : '');
   statusEl.style.color = detectedStatus === 'in_stock' ? '#3FB950' :
                           detectedStatus === 'out_of_stock' ? '#F85149' : '#8B949E';
   document.getElementById('detectionResult').classList.add('visible');
@@ -2322,7 +2391,8 @@ function trackProduct() {
     domain: detectedProductData.domain,
     status: detectedProductData.status,
     price: detectedProductData.price,
-    lowestPrice: detectedProductData.price,
+    priceApprox: detectedProductData.price != null && !detectedProductData.priceExact,
+    lowestPrice: detectedProductData.priceExact ? detectedProductData.price : null,
     lastChecked: new Date().toISOString(),
     addedAt: new Date().toISOString()
   };
@@ -2361,10 +2431,16 @@ function confirmDeleteProduct(id) {
 }
 
 // ---- SETTINGS ----
+function setToggle(id, on) {
+  const el = document.getElementById(id);
+  el.classList.toggle('active', on);
+  el.setAttribute('aria-checked', String(on));
+}
+
 function toggleSetting(key) {
   if (key === 'autoCheck') {
     settings.autoCheck = !settings.autoCheck;
-    document.getElementById('toggleAutoCheck').classList.toggle('active', settings.autoCheck);
+    setToggle('toggleAutoCheck', settings.autoCheck);
   } else if (key === 'notifications') {
     if (!settings.notifications) {
       // Turning on - request permission
@@ -2372,7 +2448,7 @@ function toggleSetting(key) {
         Notification.requestPermission().then(perm => {
           if (perm === 'granted') {
             settings.notifications = true;
-            document.getElementById('toggleNotifications').classList.toggle('active', true);
+            setToggle('toggleNotifications', true);
             saveSettings(settings);
             showToast('Notifications enabled', 'success');
           } else {
@@ -2386,7 +2462,7 @@ function toggleSetting(key) {
       }
     } else {
       settings.notifications = false;
-      document.getElementById('toggleNotifications').classList.toggle('active', false);
+      setToggle('toggleNotifications', false);
     }
   }
   saveSettings(settings);
@@ -2421,8 +2497,8 @@ function setupCheckInterval() {
 }
 
 function applySettings() {
-  document.getElementById('toggleAutoCheck').classList.toggle('active', settings.autoCheck);
-  document.getElementById('toggleNotifications').classList.toggle('active', settings.notifications);
+  setToggle('toggleAutoCheck', settings.autoCheck);
+  setToggle('toggleNotifications', settings.notifications);
 
   // Required by the Associates terms once links carry a tag — and it would be
   // a false claim while no tag is configured, so it tracks the real state.
@@ -2457,6 +2533,13 @@ function exportData() {
   showToast('Data exported successfully', 'success');
 }
 
+const STATUSES = ['in_stock', 'out_of_stock', 'unknown'];
+const safeId = (x) => typeof x === 'string' && /^[a-z0-9]{1,32}$/i.test(x);
+const isDate = (x) => typeof x === 'string' && !isNaN(Date.parse(x));
+function isWebUrl(u) {
+  try { return /^https?:$/.test(new URL(u).protocol); } catch { return false; }
+}
+
 function importData() {
   document.getElementById('importFileInput').click();
 }
@@ -2471,25 +2554,42 @@ function handleImport(event) {
       const data = JSON.parse(e.target.result);
       if (data.products && Array.isArray(data.products)) {
         let imported = 0;
+        // An export file is untrusted input: ids end up inside inline onclick
+        // handlers and URLs inside window.open, so both are checked here.
         data.products.forEach(p => {
-          if (p.url && p.name && !products.some(ep => ep.url === p.url)) {
-            products.push({
-              id: p.id || generateId(),
-              url: p.url,
-              name: p.name,
-              domain: p.domain || getDomain(p.url),
-              status: p.status || 'unknown',
-              price: typeof p.price === 'number' ? p.price : null,
-              lowestPrice: typeof p.lowestPrice === 'number' ? p.lowestPrice : null,
-              lastChecked: p.lastChecked || null,
-              addedAt: p.addedAt || new Date().toISOString()
-            });
-            imported++;
-          }
+          if (!p || !isWebUrl(p.url) || typeof p.name !== 'string' || !p.name.trim()) return;
+          const url = canonicalUrl(p.url);
+          if (products.some(ep => ep.url === url)) return;
+          products.push({
+            id: safeId(p.id) ? p.id : generateId(),
+            url,
+            name: p.name.slice(0, 200),
+            domain: getDomain(url),
+            status: STATUSES.includes(p.status) ? p.status : 'unknown',
+            price: Number.isFinite(p.price) ? p.price : null,
+            priceApprox: p.priceApprox === true,
+            lowestPrice: Number.isFinite(p.lowestPrice) ? p.lowestPrice : null,
+            lastChecked: isDate(p.lastChecked) ? p.lastChecked : null,
+            addedAt: isDate(p.addedAt) ? p.addedAt : new Date().toISOString()
+          });
+          imported++;
         });
         saveProducts(products);
-        if (data.alerts && Array.isArray(data.alerts)) {
-          alerts = [...data.alerts, ...alerts];
+        if (Array.isArray(data.alerts)) {
+          const clean = data.alerts.filter(a => a && safeId(a.productId) && typeof a.productName === 'string' &&
+              (a.type !== 'price' || (Number.isFinite(a.oldPrice) && Number.isFinite(a.newPrice))))
+            .map(a => ({
+              id: generateId(),
+              timestamp: isDate(a.timestamp) ? a.timestamp : new Date().toISOString(),
+              type: a.type === 'price' ? 'price' : 'stock',
+              productId: a.productId,
+              productName: a.productName.slice(0, 200),
+              oldStatus: STATUSES.includes(a.oldStatus) ? a.oldStatus : 'unknown',
+              newStatus: STATUSES.includes(a.newStatus) ? a.newStatus : 'unknown',
+              oldPrice: Number.isFinite(a.oldPrice) ? a.oldPrice : null,
+              newPrice: Number.isFinite(a.newPrice) ? a.newPrice : null
+            }));
+          alerts = [...clean, ...alerts].slice(0, MAX_ALERTS);
           saveAlerts(alerts);
         }
         renderProducts();
@@ -2582,23 +2682,27 @@ function escapeHtml(text) {
 
 // ---- INITIALIZATION ----
 function init() {
-  // Show splash for 2 seconds
-  setTimeout(() => {
-    document.getElementById('splashScreen').classList.add('hidden');
-    document.getElementById('appFrame').style.display = 'flex';
+  // Render straight away; the splash only covers first paint.
+  document.getElementById('appFrame').style.display = 'flex';
+  renderProducts();
+  renderAlerts();
+  updateStats();
+  applySettings();
+  requestAnimationFrame(() => document.getElementById('splashScreen').classList.add('hidden'));
 
-    // Render everything
-    renderProducts();
-    renderAlerts();
-    updateStats();
-    applySettings();
-
-    // Auto-check on open
-    if (settings.autoCheck && products.length > 0) {
-      setTimeout(() => checkAllProducts(), 500);
-    }
-  }, 2000);
+  // Auto-check on open
+  if (settings.autoCheck && products.length > 0) {
+    setTimeout(() => checkAllProducts(), 500);
+  }
 }
+
+// Enter/Space operate role="switch" toggles like buttons.
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="switch"]')) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
