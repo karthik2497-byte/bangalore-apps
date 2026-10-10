@@ -185,6 +185,60 @@ check('an empty state is safe (fresh worker, nothing mirrored yet)', () => {
   assert.deepEqual(core.dueReminders({ settings: { notifications: true } }, at(2026, 8, 14)), []);
 });
 
+/* ---------------- the current bill, including a few days overdue ---------------- */
+const augKey = core.cycleKey('c1', 15, at(2026, 8, 15));
+
+check('the day after the due date the bill is overdue, not next month', () => {
+  const c = core.currentCycle(card(), at(2026, 8, 16), []);
+  assert.equal(c.overdue, true);
+  assert.equal(c.daysLeft, -1);
+  assert.equal(c.key, augKey, 'a late Mark as Paid must land on the August bill');
+});
+check('once the overdue bill is paid, next month is current', () => {
+  const c = core.currentCycle(card(), at(2026, 8, 16), [augKey]);
+  assert.equal(c.overdue, false);
+  assert.equal(c.date.getMonth(), 8); // September
+  assert.equal(c.daysLeft, 30);
+});
+check('paying August late does not silence September', () => {
+  const s = state({ paidCycleKeys: [augKey] });
+  assert.equal(core.dueReminders(s, at(2026, 9, 13)).length, 1);
+});
+check('overdue reminders count down the RBI three-day window', () => {
+  const d1 = core.dueReminders(state(), at(2026, 8, 16));
+  assert.equal(d1.length, 1);
+  assert.match(d1[0].body, /overdue/);
+  assert.match(d1[0].body, /within 3 days to avoid a late fee/);
+  assert.match(core.dueReminders(state(), at(2026, 8, 18))[0].body, /Pay today to avoid a late fee/);
+});
+check('past the window the reminder stops, but the bill stays current', () => {
+  assert.equal(core.dueReminders(state(), at(2026, 8, 19)).length, 0, 'day 4: the fee can apply, no nagging');
+  const c = core.currentCycle(card(), at(2026, 8, 19), []);
+  assert.equal(c.overdue && !c.inGrace && c.daysLeft === -4, true);
+});
+check('after OVERDUE_DAYS the unpaid bill stops being the current one', () => {
+  assert.equal(core.currentCycle(card(), at(2026, 8, 25), []).overdue, true);   // 10 days
+  assert.equal(core.currentCycle(card(), at(2026, 8, 26), []).overdue, false);  // 11 days
+});
+check('a card added after its due date is not overdue for it', () => {
+  const c = core.currentCycle(card({ addedAt: at(2026, 8, 16).toISOString() }), at(2026, 8, 17), []);
+  assert.equal(c.overdue, false);
+});
+check('overdue works across the month and year boundary', () => {
+  const feb = core.currentCycle(card({ dueDay: 31 }), at(2027, 3, 1), []);
+  assert.equal(feb.daysLeft, -1, 'due day 31 in February is the 28th');
+  assert.equal(feb.date.getMonth(), 1);
+  const dec = core.currentCycle(card({ dueDay: 30 }), at(2027, 1, 2), []);
+  assert.equal(dec.daysLeft, -3);
+  assert.equal(dec.date.getFullYear(), 2026);
+  assert.equal(dec.inGrace, true);
+});
+check('grace days left counts today', () => {
+  assert.equal(core.graceDaysLeft({ overdue: true, daysLeft: -1 }), 3);
+  assert.equal(core.graceDaysLeft({ overdue: true, daysLeft: -3 }), 1);
+  assert.equal(core.graceDaysLeft({ overdue: false, daysLeft: 4 }), null);
+});
+
 /* ---------------- dedupe bookkeeping ---------------- */
 
 check('pruning keeps today and drops everything older', () => {

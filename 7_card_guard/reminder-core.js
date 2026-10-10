@@ -38,9 +38,46 @@
     return Math.round((nextDueDate(dueDay, now) - startOfDay(now)) / 86400000);
   }
 
-  function cycleKey(cardId, dueDay, now) {
-    var d = nextDueDate(dueDay, now);
+  function keyFor(cardId, d) {
     return cardId + '_' + d.getFullYear() + '_' + d.getMonth() + '_' + d.getDate();
+  }
+
+  function cycleKey(cardId, dueDay, now) {
+    return keyFor(cardId, nextDueDate(dueDay, now));
+  }
+
+  /* RBI credit-card directions (2022, amended 2024, para 9(b)(v)): no late fee
+     and no "past due" report to the bureaus until a bill is MORE than three
+     days late. Paying on day 1-3 after the due date still avoids both. */
+  var GRACE_DAYS = 3;
+  // ponytail: an unpaid bill stays the current cycle this long after its due
+  // date, so a late "Mark as Paid" lands on the bill actually paid. By then the
+  // next statement has normally rolled the dues in; tune if users disagree.
+  var OVERDUE_DAYS = 10;
+
+  /* The bill the user is dealing with now: the next due date, unless the
+     previous one is unpaid and at most OVERDUE_DAYS behind. Before this, the
+     cycle jumped to next month the day after the due date, so a late payment
+     was recorded against NEXT month and silenced its reminder. daysLeft is
+     negative while overdue. */
+  function currentCycle(card, now, paidKeys) {
+    var today = startOfDay(now);
+    var next = nextDueDate(card.dueDay, now);
+    var py = next.getFullYear(), pm = next.getMonth() - 1;
+    var prev = new Date(py, pm, Math.min(card.dueDay, daysInMonth(py, pm)));
+    var late = Math.round((today - prev) / 86400000);
+    var prevKey = keyFor(card.id, prev);
+    // A card added after that due date cannot be overdue for it.
+    var addedBefore = !card.addedAt || startOfDay(card.addedAt) <= prev;
+    if (late >= 1 && late <= OVERDUE_DAYS && addedBefore && (paidKeys || []).indexOf(prevKey) === -1) {
+      return { date: prev, daysLeft: -late, key: prevKey, overdue: true, inGrace: late <= GRACE_DAYS };
+    }
+    return { date: next, daysLeft: Math.round((next - today) / 86400000), key: keyFor(card.id, next), overdue: false, inGrace: false };
+  }
+
+  /* Days left to pay without a late fee, today included (3 on the first day late). */
+  function graceDaysLeft(cycle) {
+    return cycle.overdue ? GRACE_DAYS + cycle.daysLeft + 1 : null;
   }
 
   /* Locale-independent, unlike Date#toDateString. */
@@ -83,20 +120,30 @@
       // here rather than trusted. Out of range and the date maths walks
       // backwards and reminds forever.
       if (!card || !(card.dueDay >= 1 && card.dueDay <= 31)) return;
-      var days = daysUntilDue(card.dueDay, now);
-      if (days > remindDays) return;
-      if (paid.indexOf(cycleKey(card.id, card.dueDay, now)) !== -1) return;
+      var cyc = currentCycle(card, now, paid);
+      // Overdue reminds only while paying still avoids the late fee.
+      if (cyc.overdue ? !cyc.inGrace : cyc.daysLeft > remindDays) return;
+      if (paid.indexOf(cyc.key) !== -1) return;
       var key = notifyKey(card.id, now);
       if (notified[key]) return;
 
       var amount = card.typicalAmount ? ' of ' + formatCurrency(card.typicalAmount) : '';
-      var when = days === 0 ? 'due today' : 'due in ' + days + ' day' + (days === 1 ? '' : 's');
+      var days = cyc.daysLeft, body;
+      if (cyc.overdue) {
+        var left = graceDaysLeft(cyc);
+        body = '⚠️ ' + cardLabel(card) + amount + ' is overdue. Pay ' +
+          (left === 1 ? 'today' : 'within ' + left + ' days') + ' to avoid a late fee.';
+      } else {
+        var when = days === 0 ? 'due today' : 'due in ' + days + ' day' + (days === 1 ? '' : 's');
+        body = '💳 ' + cardLabel(card) + amount + ' is ' + when + '!';
+      }
       out.push({
         cardId: card.id,
         key: key,
         daysLeft: days,
-        title: 'CardGuard Reminder',
-        body: '💳 ' + cardLabel(card) + amount + ' is ' + when + '!'
+        overdue: cyc.overdue,
+        title: cyc.overdue ? 'CardGuard: bill overdue' : 'CardGuard Reminder',
+        body: body
       });
     });
     return out;
@@ -117,6 +164,9 @@
     nextDueDate: nextDueDate,
     daysUntilDue: daysUntilDue,
     cycleKey: cycleKey,
+    currentCycle: currentCycle,
+    graceDaysLeft: graceDaysLeft,
+    GRACE_DAYS: GRACE_DAYS,
     notifyKey: notifyKey,
     dayStamp: dayStamp,
     formatDate: formatDate,

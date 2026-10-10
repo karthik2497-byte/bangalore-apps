@@ -1,6 +1,6 @@
 importScripts('./reminder-core.js');
 
-const CACHE_NAME = 'cardguard-v2';
+const CACHE_NAME = 'cardguard-v3';
 // The page mirrors its state here so this worker can decide what is due while
 // the app is closed. Kept in its own cache so the activate purge never eats it.
 const STATE_CACHE = 'cardguard-state';
@@ -16,9 +16,12 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
+// All 7 apps share one origin, so caches.keys() lists every app's caches.
+// Delete only this app's old shell versions — never the state mirror, never
+// another app's cache.
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(
-    keys.filter(k => k !== CACHE_NAME && k !== STATE_CACHE).map(k => caches.delete(k))
+    keys.filter(k => k.startsWith('cardguard-v') && k !== CACHE_NAME).map(k => caches.delete(k))
   )));
   self.clients.claim();
 });

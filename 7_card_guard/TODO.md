@@ -39,10 +39,3 @@ physical device.
    Android/Chromium-only. On iOS the app only reminds while open. Web Push is the
    only route, and it needs a server — revisit only at Phase D.
 
-## Found while working here, not fixed (other apps — §0.2 says one app per change-set)
-
-9. **MeterSmart and LingoLocal load Google Fonts, but their CSP in `_headers` sets
-   `font-src 'self'` and `style-src` without `https://fonts.googleapis.com`.** In
-   production the font request is blocked and both apps silently fall back to a
-   system font. Either drop the `<link>` (they are close to system-font designs
-   anyway) or widen the CSP, as CardGuard's block does.

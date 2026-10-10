@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CardGuard - Credit Card Bill Reminder</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0A0E1A">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icon-192.svg">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://accounts.google.com/gsi/client" async></script>
   <script src="reminder-core.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
@@ -695,7 +695,9 @@
       .credit-card-wrapper { min-width: 270px; }
       .sound-grid { grid-template-columns: 1fr; }
     }
-  </style>
+    :root :focus-visible { outline: 3px solid #FFB800; outline-offset: 2px; }
+  .bill-advice { font-size: 12px; line-height: 1.5; color: #FFD54F; padding: 6px 0 2px; }
+</style>
 </head>
 <body>
 
@@ -828,10 +830,10 @@
     </div>
     <div class="form-group">
       <label class="form-label">Last 4 Digits</label>
-      <input type="number" id="input-last4" class="form-input" placeholder="1234" maxlength="4">
+      <input type="text" id="input-last4" class="form-input" placeholder="1234" maxlength="4" inputmode="numeric" pattern="\d{4}" autocomplete="off">
     </div>
     <div class="form-group">
-      <label class="form-label">Monthly Due Date (Day)</label>
+      <label class="form-label" for="input-dueday">Monthly Due Date (Day)</label>
       <input type="number" id="input-dueday" class="form-input" placeholder="1-31" min="1" max="31">
     </div>
     <div class="form-group">
@@ -999,9 +1001,11 @@ const PREMIUM = {
 };
 
 // ====================== STATE ======================
-let cards = JSON.parse(localStorage.getItem('cardguard_cards') || '[]');
-let bills = JSON.parse(localStorage.getItem('cardguard_bills') || '[]');
-let settings = JSON.parse(localStorage.getItem('cardguard_settings') || 'null') || {
+function loadJSON(key, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
+  catch (e) { return fallback; }
+}
+const DEFAULT_SETTINGS = {
   notifications: true,
   remindDays: 3,
   sound: 'chime',
@@ -1011,9 +1015,13 @@ let settings = JSON.parse(localStorage.getItem('cardguard_settings') || 'null') 
   premium: false,
   premiumSince: null
 };
+let cards = loadJSON('cardguard_cards', []);
+let bills = loadJSON('cardguard_bills', []);
+// Merged over the defaults, so settings saved by an older build gain new keys.
+let settings = { ...DEFAULT_SETTINGS, ...loadJSON('cardguard_settings', {}) };
 // Reminders already shown, keyed `<cardId>_<Y-M-D>`. One record, pruned to
 // today, shared with the worker through the state mirror.
-let notified = CORE.pruneNotified(JSON.parse(localStorage.getItem('cardguard_notified') || '{}'), new Date());
+let notified = CORE.pruneNotified(loadJSON('cardguard_notified', {}), new Date());
 
 let currentPaymentCardId = null;
 let confirmCallback = null;
@@ -1067,26 +1075,43 @@ function adoptWorkerNotifications() {
 }
 
 // ====================== DATE UTILITIES ======================
-function getNextDueDate(dayOfMonth) { return CORE.nextDueDate(dayOfMonth, new Date()); }
-function getDaysUntilDue(dayOfMonth) { return CORE.daysUntilDue(dayOfMonth, new Date()); }
 function formatDate(date) { return CORE.formatDate(date); }
 function formatCurrency(amount) { return CORE.formatCurrency(amount); }
-function getBillingCycleKey(cardId, dueDay) { return CORE.cycleKey(cardId, dueDay, new Date()); }
 
-function isBillPaidThisCycle(cardId, dueDay) {
-  const key = getBillingCycleKey(cardId, dueDay);
+function paidKeys() { return bills.filter(b => b.status === 'paid').map(b => b.cycleKey); }
+
+// The bill the user is dealing with now — it stays "overdue" for a few days
+// after a missed due date, so Mark as Paid lands on the bill actually paid.
+function cycleOf(card) { return CORE.currentCycle(card, new Date(), paidKeys()); }
+
+function isBillPaidThisCycle(card) {
+  const key = cycleOf(card).key;
   return bills.some(b => b.cycleKey === key && b.status === 'paid');
 }
 
-function getCurrentBill(cardId, dueDay) {
-  const key = getBillingCycleKey(cardId, dueDay);
+function getCurrentBill(card) {
+  const key = cycleOf(card).key;
   return bills.find(b => b.cycleKey === key);
+}
+
+function daysText(days) {
+  if (days < 0) return 'Overdue by ' + (-days) + ' day' + (days === -1 ? '' : 's');
+  return days + ' day' + (days === 1 ? '' : 's');
+}
+
+// What to do about an overdue bill, in the user's money terms.
+function overdueAdvice(cycle) {
+  if (!cycle.overdue) return '';
+  const left = CORE.graceDaysLeft(cycle);
+  return left > 0
+    ? 'Pay ' + (left === 1 ? 'today' : 'within ' + left + ' days') + ' to avoid a late fee and a "past due" mark (RBI rule). Interest may still apply.'
+    : 'A late fee may now apply. Pay as soon as you can to limit interest.';
 }
 
 function getStatusInfo(daysLeft, isPaid) {
   if (isPaid) return { text: 'Paid', class: 'badge-paid', color: '#00C853' };
   if (daysLeft === 0) return { text: 'Due Today', class: 'badge-due-today', color: '#FF1744' };
-  if (daysLeft < 0) return { text: 'Overdue', class: 'badge-overdue', color: '#FF1744' };
+  if (daysLeft < 0) return { text: 'Overdue ' + (-daysLeft) + 'd', class: 'badge-overdue', color: '#FF1744' };
   if (daysLeft <= 7) return { text: 'Due in ' + daysLeft + 'd', class: 'badge-due-soon', color: '#FF9100' };
   return { text: 'Due in ' + daysLeft + 'd', class: 'badge-safe', color: '#00BCD4' };
 }
@@ -1186,9 +1211,16 @@ function updateHeaderBadge() {
 }
 
 // ====================== SPLASH SCREEN ======================
-setTimeout(() => {
-  document.getElementById('splash-screen').classList.add('hidden');
-}, 2000);
+// Covers first paint only; init() below renders synchronously.
+requestAnimationFrame(() => document.getElementById('splash-screen').classList.add('hidden'));
+
+// Enter/Space operate role="button" / role="switch" elements like buttons.
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"], [role="switch"]')) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
 
 // ====================== TAB NAVIGATION ======================
 function switchTab(tabName) {
@@ -1232,14 +1264,15 @@ function renderDashboard() {
   }
 
   // Sort cards by days until due
-  const sortedCards = [...cards].sort((a, b) => getDaysUntilDue(a.dueDay) - getDaysUntilDue(b.dueDay));
-  const unpaidCards = sortedCards.filter(c => !isBillPaidThisCycle(c.id, c.dueDay));
+  const cyc = new Map(cards.map(c => [c.id, cycleOf(c)]));
+  const sortedCards = [...cards].sort((a, b) => cyc.get(a.id).daysLeft - cyc.get(b.id).daysLeft);
+  const unpaidCards = sortedCards.filter(c => !isBillPaidThisCycle(c));
   const nextCard = unpaidCards[0] || sortedCards[0];
-  const nextDays = getDaysUntilDue(nextCard.dueDay);
-  const nextIsPaid = isBillPaidThisCycle(nextCard.id, nextCard.dueDay);
+  const nextDays = cyc.get(nextCard.id).daysLeft;
+  const nextIsPaid = isBillPaidThisCycle(nextCard);
   const ringColor = nextIsPaid ? '#00C853' : getRingColor(nextDays);
   const maxDays = 31;
-  const progress = nextIsPaid ? 1 : Math.max(0, 1 - nextDays / maxDays);
+  const progress = nextIsPaid ? 1 : Math.min(1, Math.max(0, 1 - nextDays / maxDays));
   const circumference = 2 * Math.PI * 68;
   const dashOffset = circumference * (1 - progress);
 
@@ -1255,8 +1288,8 @@ function renderDashboard() {
           ${nextIsPaid
             ? `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                <div class="countdown-label" style="color:#00C853;margin-top:6px">All Paid!</div>`
-            : `<div class="countdown-days" style="color:${ringColor}">${nextDays}</div>
-               <div class="countdown-label">${nextDays === 1 ? 'day left' : 'days left'}</div>`
+            : `<div class="countdown-days" style="color:${ringColor}">${Math.abs(nextDays)}</div>
+               <div class="countdown-label">${nextDays < 0 ? (nextDays === -1 ? 'day overdue' : 'days overdue') : nextDays === 1 ? 'day left' : 'days left'}</div>`
           }
           <div class="countdown-card-name">${esc(nextCard.nickname || nextCard.bank)}</div>
         </div>
@@ -1264,25 +1297,26 @@ function renderDashboard() {
     </div>`;
 
   // Upcoming Bills
-  const pendingCount = sortedCards.filter(c => !isBillPaidThisCycle(c.id, c.dueDay)).length;
+  const pendingCount = sortedCards.filter(c => !isBillPaidThisCycle(c)).length;
   html += `<div class="section-title">Upcoming Bills <span class="count">${pendingCount} pending</span></div>`;
 
   sortedCards.forEach(card => {
-    const days = getDaysUntilDue(card.dueDay);
-    const isPaid = isBillPaidThisCycle(card.id, card.dueDay);
+    const cycle = cyc.get(card.id);
+    const days = cycle.daysLeft;
+    const isPaid = isBillPaidThisCycle(card);
     const status = getStatusInfo(days, isPaid);
-    const dueDate = getNextDueDate(card.dueDay);
-    const currentBill = getCurrentBill(card.id, card.dueDay);
+    const dueDate = cycle.date;
+    const currentBill = getCurrentBill(card);
     const amount = (currentBill && currentBill.amount) || card.typicalAmount;
     const bankColor = BANK_COLORS[card.bank] || BANK_COLORS.Other;
 
     html += `
       <div class="bill-card" id="bill-${card.id}">
-        <div class="bill-card-main" onclick="toggleBillExpand('${card.id}')">
+        <div class="bill-card-main" onclick="toggleBillExpand('${card.id}')" role="button" tabindex="0" aria-label="${esc(card.nickname || card.bank + ' Card')} details">
           <div class="bill-stripe" style="background:${bankColor}"></div>
           <div class="bill-info">
             <div class="bill-name">${esc(card.nickname || card.bank + ' Card')}</div>
-            <div class="bill-last4">•••• ${card.last4}</div>
+            <div class="bill-last4">•••• ${esc(card.last4)}</div>
           </div>
           <div class="bill-right">
             <div class="bill-amount" style="color:${isPaid ? '#00C853' : '#FFFFFF'}">${formatCurrency(amount)}</div>
@@ -1295,10 +1329,11 @@ function renderDashboard() {
         </div>
         <div class="bill-expanded" id="bill-expand-${card.id}">
           <div class="bill-expanded-inner">
-            <div class="bill-detail-row"><span>Bank</span><span>${card.bank}</span></div>
+            <div class="bill-detail-row"><span>Bank</span><span>${esc(card.bank)}</span></div>
             <div class="bill-detail-row"><span>Due Date</span><span>${formatDate(dueDate)}</span></div>
-            <div class="bill-detail-row"><span>Days Remaining</span><span style="color:${status.color}">${days} days</span></div>
-            <div class="bill-detail-row"><span>Billing Day</span><span>${card.dueDay} of every month</span></div>
+            <div class="bill-detail-row"><span>${days < 0 ? 'Status' : 'Days Remaining'}</span><span style="color:${status.color}">${daysText(days)}</span></div>
+            <div class="bill-detail-row"><span>Due Day</span><span>${esc(card.dueDay)} of every month</span></div>
+            ${!isPaid && cycle.overdue ? `<div class="bill-advice">${overdueAdvice(cycle)}</div>` : ''}
             ${amount ? `<div class="bill-detail-row"><span>Amount</span><span>${formatCurrency(amount)}</span></div>` : ''}
             ${!isPaid ? `
               <div class="bill-actions">
@@ -1352,31 +1387,32 @@ function renderCards() {
   let html = '<div class="cards-scroll">';
   cards.forEach(card => {
     const gradient = BANK_GRADIENTS[card.bank] || BANK_GRADIENTS.Other;
-    const dueDate = getNextDueDate(card.dueDay);
-    const days = getDaysUntilDue(card.dueDay);
-    const isPaid = isBillPaidThisCycle(card.id, card.dueDay);
+    const cycle = cycleOf(card);
+    const dueDate = cycle.date;
+    const days = cycle.daysLeft;
+    const isPaid = isBillPaidThisCycle(card);
 
     html += `
       <div class="credit-card-wrapper">
-        <div class="credit-card-inner" id="cc-${card.id}" onclick="flipCard('${card.id}')">
+        <div class="credit-card-inner" id="cc-${card.id}" onclick="flipCard('${card.id}')" role="button" tabindex="0" aria-label="Flip ${esc(card.nickname || card.bank)} card">
           <div class="credit-card-front" style="background:${gradient}">
-            <div class="cc-bank-name">${card.bank}</div>
+            <div class="cc-bank-name">${esc(card.bank)}</div>
             <div class="cc-chip"></div>
             <div class="cc-nickname">${esc(card.nickname || 'Credit Card')}</div>
             <div class="cc-bottom">
               <div>
-                <div class="cc-last4">•••• ${card.last4}</div>
+                <div class="cc-last4">•••• ${esc(card.last4)}</div>
               </div>
               <div style="text-align:right">
-                <div class="cc-due-label">BILLING DATE</div>
-                <div class="cc-due-day">${card.dueDay}</div>
+                <div class="cc-due-label">DUE DAY</div>
+                <div class="cc-due-day">${esc(card.dueDay)}</div>
               </div>
             </div>
           </div>
           <div class="credit-card-back" style="background:${gradient}">
             <div class="cc-back-title">Billing Details</div>
             <div class="cc-back-row"><span class="label">Due Date</span><span class="value">${formatDate(dueDate)}</span></div>
-            <div class="cc-back-row"><span class="label">Days Until Due</span><span class="value">${days} days</span></div>
+            <div class="cc-back-row"><span class="label">${days < 0 ? 'Status' : 'Days Until Due'}</span><span class="value">${daysText(days)}</span></div>
             <div class="cc-back-row"><span class="label">Typical Amount</span><span class="value">${formatCurrency(card.typicalAmount)}</span></div>
             <div class="cc-back-row"><span class="label">Status</span><span class="value" style="color:${isPaid ? '#00E676' : (days <= 3 ? '#FF1744' : '#FFD54F')}">${isPaid ? 'Paid' : 'Pending'}</span></div>
             <button class="cc-delete-btn" onclick="event.stopPropagation();deleteCard('${card.id}')">Delete Card</button>
@@ -1460,7 +1496,7 @@ function renderHistory() {
     const monthBills = grouped[monthKey];
     html += `
       <div class="history-month">
-        <div class="history-month-header ${idx === 0 ? 'expanded' : ''}" onclick="toggleHistoryMonth(this)">
+        <div class="history-month-header ${idx === 0 ? 'expanded' : ''}" onclick="toggleHistoryMonth(this)" role="button" tabindex="0">
           <span>${monthKey} (${monthBills.length})</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -1561,7 +1597,7 @@ function renderSettings() {
     soundHtml += `
       <div class="sound-card ${settings.sound === s.id ? 'selected' : ''}" onclick="selectSound('${s.id}')">
         <span class="sound-card-name">${s.name}</span>
-        <button class="sound-play-btn" onclick="event.stopPropagation();playSound('${s.id}')">
+        <button class="sound-play-btn" onclick="event.stopPropagation();playSound('${s.id}')" aria-label="Preview ${s.name}">
           <svg viewBox="0 0 24 24" fill="#FFB800"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         </button>
       </div>`;
@@ -1599,7 +1635,7 @@ function renderSettings() {
             <div class="settings-row-label">Enable Reminders</div>
             <div class="settings-row-sub">Get notified before bill due dates</div>
           </div>
-          <div class="toggle-switch ${settings.notifications ? 'active' : ''}" onclick="toggleNotifications()"></div>
+          <div class="toggle-switch ${settings.notifications ? 'active' : ''}" onclick="toggleNotifications()" role="switch" tabindex="0" aria-checked="${settings.notifications}" aria-label="Enable reminders"></div>
         </div>
         <div class="settings-row">
           <div>
@@ -1634,8 +1670,8 @@ function renderSettings() {
           <div class="settings-row-label">Google OAuth Client ID</div>
           <div class="gmail-input-wrapper" style="width:100%">
             <input type="password" id="settings-gmail-id" class="form-input" placeholder="Enter Client ID"
-              value="${settings.gmailClientId || ''}" onchange="saveGmailClientId(this.value)">
-            <button class="gmail-toggle-vis" onclick="toggleGmailIdVis()">
+              value="${esc(settings.gmailClientId || '')}" onchange="saveGmailClientId(this.value)">
+            <button class="gmail-toggle-vis" onclick="toggleGmailIdVis()" aria-label="Show or hide the Client ID">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
@@ -1856,14 +1892,14 @@ function deleteCard(cardId) {
 }
 
 function ensureBillForCycle(card) {
-  const key = getBillingCycleKey(card.id, card.dueDay);
-  const existing = bills.find(b => b.cycleKey === key);
+  const cycle = cycleOf(card);
+  const existing = bills.find(b => b.cycleKey === cycle.key);
   if (!existing) {
     bills.push({
       id: genId(),
       cardId: card.id,
-      cycleKey: key,
-      dueDate: getNextDueDate(card.dueDay).toISOString(),
+      cycleKey: cycle.key,
+      dueDate: cycle.date.toISOString(),
       amount: card.typicalAmount || 0,
       status: 'pending',
       paidAt: null,
@@ -1885,7 +1921,7 @@ function openPaymentModal(cardId) {
   const card = cards.find(c => c.id === cardId);
   if (!card) return;
 
-  const bill = getCurrentBill(card.id, card.dueDay);
+  const bill = getCurrentBill(card);
   const amount = (bill && bill.amount) || card.typicalAmount || 0;
   const bankColor = BANK_COLORS[card.bank] || BANK_COLORS.Other;
 
@@ -1905,7 +1941,8 @@ function confirmPayment() {
   const paidAmount = parseFloat(document.getElementById('input-paid-amount').value) || 0;
   const reference = document.getElementById('input-reference').value.trim();
 
-  const key = getBillingCycleKey(card.id, card.dueDay);
+  const cycle = cycleOf(card);
+  const key = cycle.key;
   let bill = bills.find(b => b.cycleKey === key);
 
   if (bill) {
@@ -1918,7 +1955,7 @@ function confirmPayment() {
       id: genId(),
       cardId: card.id,
       cycleKey: key,
-      dueDate: getNextDueDate(card.dueDay).toISOString(),
+      dueDate: cycle.date.toISOString(),
       amount: card.typicalAmount || paidAmount,
       status: 'paid',
       paidAt: new Date().toISOString(),
@@ -1988,31 +2025,39 @@ function requestNotificationPermission() {
   }
 }
 
-function checkAndNotify() {
+// `new Notification()` is an illegal constructor on Chrome for Android, so the
+// page shows reminders through its service worker, exactly as the background
+// check does; the worker's notificationclick routes Mark as Paid / Snooze.
+async function showReminder(reminder) {
+  const opts = {
+    body: reminder.body,
+    icon: 'icon-192.svg',
+    badge: 'icon-192.svg',
+    tag: 'cardguard-' + reminder.cardId,
+    data: { cardId: reminder.cardId },
+    actions: [{ action: 'markPaid', title: 'Mark as Paid' }, { action: 'snooze', title: 'Snooze' }]
+  };
+  const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+  if (reg) return reg.showNotification(reminder.title, opts);
+  delete opts.actions;  // page notifications reject `actions`
+  new Notification(reminder.title, opts);
+}
+
+async function checkAndNotify() {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
   const due = CORE.dueReminders(mirrorState(), new Date());
   let fired = false;
 
-  due.forEach(reminder => {
+  for (const reminder of due) {
     try {
-      const notification = new Notification(reminder.title, {
-        body: reminder.body,
-        icon: 'icon-192.svg',
-        badge: 'icon-192.svg',
-        tag: 'cardguard-' + reminder.cardId,
-        data: { cardId: reminder.cardId }
-      });
-      notification.onclick = function () {
-        window.focus();
-        openPaymentModal(reminder.cardId);
-      };
+      await showReminder(reminder);
       notified[reminder.key] = 1;
       fired = true;
     } catch (e) {
       console.warn('Notification failed:', e);
     }
-  });
+  }
 
   if (fired) {
     saveNotified();
@@ -2080,8 +2125,10 @@ function handleGmailDetect() {
     return;
   }
 
+  // Google's sign-in script is fetched only when Gmail import is actually used,
+  // so opening CardGuard never contacts Google otherwise.
   if (typeof google === 'undefined' || !google.accounts) {
-    showToast('Google Identity Services not loaded. Please check your connection.');
+    loadGsi().then(handleGmailDetect, () => showToast('Could not load Google sign-in. Check your connection.'));
     return;
   }
 
@@ -2095,6 +2142,18 @@ function handleGmailDetect() {
   } catch (e) {
     showToast('Failed to initialize Gmail auth: ' + e.message);
   }
+}
+
+let gsiPromise = null;
+function loadGsi() {
+  gsiPromise = gsiPromise || new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = resolve;
+    s.onerror = () => { gsiPromise = null; reject(); };
+    document.head.appendChild(s);
+  });
+  return gsiPromise;
 }
 
 function handleGmailAuth(response) {
@@ -2176,7 +2235,7 @@ function searchGmailForBills() {
 
         // Extract last 4 digits
         const last4Match = fullText.match(/(?:card|ending|xx|XX)\s*(?:in\s*)?(\d{4})/);
-        const last4 = last4Match ? last4Match[1] : '0000';
+        const last4 = last4Match ? last4Match[1] : '';
 
         // Extract amount
         const amountMatch = fullText.match(/(?:Rs\.?|₹|INR)\s*([\d,]+(?:\.\d{2})?)/);
@@ -2195,7 +2254,8 @@ function searchGmailForBills() {
           detectedGmailCards.push({
             bank, last4, amount, dueDay,
             nickname: bank + ' Card',
-            selected: true
+            // Without a due day the card would remind on an invented date.
+            selected: !!(dueDay && last4)
           });
         }
       });
@@ -2225,8 +2285,8 @@ function showDetectedCards() {
           ${card.selected ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0A0E1A" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
         </div>
         <div class="gmail-detected-info">
-          <div class="gmail-detected-bank">${card.bank} •••• ${card.last4}</div>
-          <div class="gmail-detected-details">${card.amount ? formatCurrency(card.amount) : 'Amount unknown'} ${card.dueDay ? '| Due: ' + card.dueDay + 'th' : ''}</div>
+          <div class="gmail-detected-bank">${esc(card.bank)} •••• ${esc(card.last4 || '????')}</div>
+          <div class="gmail-detected-details">${card.amount ? formatCurrency(card.amount) : 'Amount unknown'} ${card.dueDay && card.last4 ? '| Due day: ' + card.dueDay : '| Due day or card number not found — add this card manually'}</div>
         </div>
       </div>`;
   });
@@ -2241,9 +2301,10 @@ function toggleDetectedCard(idx) {
 }
 
 function importDetectedCards() {
-  let imported = 0, blocked = 0;
+  let imported = 0, blocked = 0, incomplete = 0;
   detectedGmailCards.forEach(dc => {
     if (!dc.selected) return;
+    if (!dc.dueDay || !dc.last4) { incomplete++; return; }
     if (cardLimitReached()) { blocked++; return; }
     // Check for duplicate
     const exists = cards.find(c => c.bank === dc.bank && c.last4 === dc.last4);
@@ -2254,7 +2315,7 @@ function importDetectedCards() {
       bank: dc.bank,
       nickname: dc.nickname,
       last4: dc.last4,
-      dueDay: dc.dueDay || 15,
+      dueDay: dc.dueDay,
       typicalAmount: dc.amount || 0,
       addedAt: new Date().toISOString()
     };
@@ -2267,7 +2328,8 @@ function importDetectedCards() {
   saveBills();
   closeModal('modal-gmail-detected');
   showToast(`Imported ${imported} card${imported !== 1 ? 's' : ''} from Gmail!` +
-    (blocked > 0 ? ` ${blocked} skipped — free plan limit.` : ''));
+    (blocked > 0 ? ` ${blocked} skipped — free plan limit.` : '') +
+    (incomplete > 0 ? ` ${incomplete} need adding by hand (no due day found).` : ''));
   renderCards();
 }
 
@@ -2306,13 +2368,24 @@ function handleImportFile(event) {
   reader.onload = function (e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (data.cards && data.bills) {
-        showConfirm('Import Data', 'This will replace all existing data. Continue?', (confirmed) => {
+      if (Array.isArray(data.cards) && Array.isArray(data.bills)) {
+        const good = data.cards.filter(validCard);
+        const ids = new Set(good.map(c => c.id));
+        const skipped = data.cards.length - good.length;
+        showConfirm('Import Data', 'This will replace all existing data' +
+          (skipped ? ` (${skipped} invalid card${skipped === 1 ? '' : 's'} will be skipped)` : '') + '. Continue?', (confirmed) => {
           if (confirmed) {
-            cards = data.cards || [];
-            bills = data.bills || [];
-            if (data.settings) {
-              settings = { ...settings, ...data.settings };
+            cards = good;
+            bills = data.bills.filter(b => b && ids.has(b.cardId) && typeof b.cycleKey === 'string' &&
+              (b.status === 'paid' || b.status === 'pending') && !isNaN(new Date(b.dueDate)));
+            if (data.settings && typeof data.settings === 'object') {
+              // Only user preferences travel in a backup. Premium is restored
+              // through Play, never from a file.
+              const s = data.settings;
+              if (typeof s.notifications === 'boolean') settings.notifications = s.notifications;
+              if ([1, 2, 3, 5, 7].includes(s.remindDays)) settings.remindDays = s.remindDays;
+              if (SOUND_TYPES.some(t => t.id === s.sound)) settings.sound = s.sound;
+              if (typeof s.gmailClientId === 'string') settings.gmailClientId = s.gmailClientId;
             }
             saveCards();
             saveBills();
@@ -2330,6 +2403,18 @@ function handleImportFile(event) {
   };
   reader.readAsText(file);
   event.target.value = '';
+}
+
+// A backup file is untrusted input: the same rules as the Add Card form, and an
+// id that is safe inside the inline onclick handlers the renderers emit.
+function validCard(c) {
+  return !!c && typeof c === 'object' &&
+    typeof c.id === 'string' && /^[a-z0-9]{1,24}$/i.test(c.id) &&
+    Object.prototype.hasOwnProperty.call(BANK_GRADIENTS, c.bank) &&
+    typeof c.last4 === 'string' && /^\d{4}$/.test(c.last4) &&
+    Number.isInteger(c.dueDay) && c.dueDay >= 1 && c.dueDay <= 31 &&
+    (c.nickname == null || typeof c.nickname === 'string') &&
+    (c.typicalAmount == null || Number.isFinite(c.typicalAmount));
 }
 
 function clearAllData() {
