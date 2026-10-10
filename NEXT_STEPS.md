@@ -25,8 +25,8 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
       effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-10,
-      after the review deploy: PASS — 7 apps, CSPs applied, assetlinks 7/7, real 404s,
-      no repo file reachable.
+      after the Thraasu deploy (`main` at `718b927`): PASS — 8 apps, CSPs applied,
+      assetlinks 8/8, real 404s, no repo file reachable.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
 
@@ -142,6 +142,11 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       Android's dialog itself, a Wi-Fi printer, and a 58 mm Bluetooth printer through RawBT.
 - [ ] **CardGuard notification actually painting** — same shape: proven up to and
       including the `showNotification` call; needs one tap on a real device.
+
+- [ ] **Cloudflare Web Analytics is on but blocked.** Pages injects
+      `static.cloudflareinsights.com/beacon.min.js`, and every app's CSP blocks it, so no
+      analytics are collected. Either switch it off in the Pages project, or add that origin
+      to `script-src` and `cloudflareinsights.com` to `connect-src` per app. Karthik's call.
 
 ## 7. Design findings — all pre-existing, none introduced by recent work
 
