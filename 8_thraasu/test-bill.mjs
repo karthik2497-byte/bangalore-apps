@@ -17,6 +17,8 @@ const plain = f => (...args) => JSON.parse(JSON.stringify(f(...args)));
 const { lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, autoSmall, safeImg } = core;
 const [totals, search, validProducts, cleanPrices] = [core.totals, core.search, core.validProducts, core.cleanPrices].map(plain);
 const data = JSON.parse(readFileSync(join(APP, 'products.json'), 'utf8'));
+// Search behaviour is pinned on the frozen sample list; the shop's list is checked as data below.
+const sample = JSON.parse(readFileSync(join(APP, '../scripts/browser/fixtures/thraasu-sample.json'), 'utf8'));
 const html = readFileSync(join(APP, 'index.html'), 'utf8');
 
 let n = 0;
@@ -92,7 +94,7 @@ t('totals: subtotal, discount, round-off', () => {
   assert.deepEqual(totals([]), { subtotal: 0, discount: 0, roundOff: 0, total: 0 });
 });
 
-const products = validProducts(data);
+const products = validProducts(sample), shop = validProducts(data);
 const ids = list => list.map(p => p.id);
 
 t('Manglish, English and Malayalam all find the product', () => {
@@ -106,10 +108,21 @@ t('Manglish, English and Malayalam all find the product', () => {
   assert.deepEqual(search(products, 'qwxy'), []);   // not 'zzzz': doubles collapse, so that is a search for 'z'
 });
 
-t('price list: every row is billable and every category is stocked', () => {
-  assert.equal(data.sample, true, 'sample prices must stay labelled until real ones replace them');
-  assert.equal(products.length, data.products.length, 'a row in products.json was rejected');
-  for (const c of data.categories) assert.ok(products.some(p => p.cat === c.id), `empty category ${c.id}`);
+t('shop list: every row is billable, every category stocked, stock is whole units', () => {
+  assert.equal(data.sample, false, 'Nanma Store prices are real: the sample label stays off');
+  assert.equal(shop.length, data.products.length, 'a row in products.json was rejected');
+  for (const c of data.categories) assert.ok(shop.some(p => p.cat === c.id), `empty category ${c.id}`);
+  for (const p of shop) if ('stock' in p) assert.ok(Number.isInteger(p.stock) && p.stock >= 0, `${p.id} stock ${p.stock}`);
+  assert.deepEqual(validProducts({ categories: [{ id: 'veg' }], products: [{ id: 'a', cat: 'veg', ml: 'എ', unit: 'kg', rate: 10, stock: 2500 }] }).length, 1);
+});
+
+t("shop list: the shop's own spellings find the product", () => {
+  const first = q => search(shop, q)[0]?.en;
+  assert.equal(first('thakkali'), 'Tomato');
+  assert.equal(first('jagiri'), 'Jaggery');            // the sheet's spelling
+  assert.equal(first('uzunnu'), 'Urad dal');
+  assert.equal(first('cheriyulli'), 'Shallots');
+  assert.equal(first('mutta'), 'Egg');
 });
 
 t('validator rejects rows the maths cannot price', () => {
@@ -137,11 +150,20 @@ t('saved prices: only positive whole paise survive', () => {
   assert.equal(({}).polluted, undefined);
 });
 
-t('every product and category photo is a safe path to a file that ships', () => {
-  for (const x of [...data.categories, ...data.products]) {
-    assert.ok(safeImg(x.img), `${x.id}: img missing or unsafe`);
+t('shop list: the prices Karthik confirmed are in, the rows held back are out', () => {
+  const rate = n => data.products.find(p => p.en === n)?.rate;
+  assert.deepEqual([rate('Sugar'), rate('Jaggery'), rate('Kaima rice'), rate('Robusta banana')], [59, 85, 190, 45]);
+  for (const held of [/^(UK|Hyza) coconut oil/, /^Milma ghee/, /^Punerva gingelly oil 200 ml/, /^Corn flour$/, /^Sago/, /Swamees biriyani/])
+    assert.ok(!data.products.some(p => held.test(p.en)), `${held} should be held back`);
+  assert.ok(!data.products.some(p => /\(2\)$/.test(p.en)), 'a double entry slipped in');
+});
+
+t('every photo named is a safe path to a file that ships; every category has one', () => {
+  for (const x of [...data.categories, ...data.products]) if ('img' in x) {
+    assert.ok(safeImg(x.img), `${x.id}: img unsafe`);
     assert.ok(existsSync(join(APP, x.img)), `${x.id}: ${x.img} not in the repo`);
   }
+  for (const c of data.categories) assert.ok(c.img, `category ${c.id} has no photo`);
 });
 
 console.log(`OK: ${n} checks passed (thraasu bill-core)`);

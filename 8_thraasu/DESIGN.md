@@ -201,7 +201,7 @@ A warm paper-and-brass neutral field with one leaf-green action colour, one chil
 - **Divider** (line): card and list borders, row and line dividers, the bill panel's left edge on wide screens, the edge of label-bearing buttons (back, ghost).
 
 ### Produce-sack tints
-Each category in `products.json` sets a `--tint` / `--tint-ink` pair through `data-cat` (veg, fruit, rice, pulses, oil, dairy, spice, stat). The tint fills category tiles, the photo area of product tiles, and pans; the ink colours tile text and the category heading. A category without a pair falls back to brass-wash / brass-ink.
+Each category in `products.json` sets a `--tint` / `--tint-ink` pair through `data-cat` (veg, fruit, rice, pulses, spice, oil, dairy, drinks, snacks, instant, sauces, care, clean, pooja, misc: fifteen, each ink at least 5.9:1 on its tint). The tint fills category tiles, the photo area of product tiles, and pans; the ink colours tile text and the category heading. A category without a pair falls back to brass-wash / brass-ink.
 
 ### Named Rules
 **The Edge Is Not A Divider Rule.** Controls a user types into or toggles (inputs, preset chips, the unit segmented toggle) take a 1.5 px field edge. The line colour is for dividers and for buttons whose label already identifies them; it never outlines an input.
@@ -298,8 +298,11 @@ The scale mark and ത്രാസ് are one button: back to the category grid 
 ### Price pill
 The door to the price list, top right. Brass-wash "മാതൃകാ വിലകൾ" while every price is the sample; brass "സ്വന്തം വില n/68" once some are the shop's own; leaf-wash "വിലകൾ" when none are sample (or the list is not sample at all). A 7px transparent border with padding-box background keeps a 34px pill on a 48px target. A trailing chevron says it opens something.
 
-### Price list
-A tall sheet (same sheet shell, `min(92dvh, 820px)`): title and an "n/68 … ഈ ഫോണിൽ മാത്രം" line, the shelf search, then every product grouped under sticky category headings in the category's tint-ink. A row: 40px pan, Malayalam name over "മാതൃകാ വില" (brass) or "മാതൃക ₹40" (ink-2) once changed, a 72px rate input with its per-unit label, and a ↺ reset for shop prices. A shop price fills its input leaf-wash with a leaf edge. Saves on change; a non-price entry puts the old value back.
+### Placeholder tile
+A product with no photo at all keeps its emoji, 46px, on the sack tint, with a camera button (34px white circle, 48px target) on the photo's top-left corner. The tile and the camera are siblings in a `.slot` wrapper, since a button cannot hold a button. A photo taken or picked there replaces the placeholder.
+
+### Price list ("വിലയും ഫോട്ടോയും", prices and photos)
+A tall sheet (same sheet shell, `min(92dvh, 820px)`): title and an "n/459 … ഫോട്ടോയിൽ തൊട്ടാൽ മാറ്റാം" line, the shelf search, then every product grouped under sticky category headings in the category's tint-ink. A row: 40px pan inside a 48px photo button with a small camera badge, Malayalam name (16px) over "മാതൃകാ വില" (brass, sample lists only) or "പട്ടിക ₹40" / "മാതൃക ₹40" (ink-2) once changed, a 72px rate input with its per-unit label, and a ↺ reset only on changed rows (no empty slot, so names keep the width). A shop price fills its input leaf-wash with a leaf edge. Saves on change; a non-price entry puts the old value back.
 
 ### Keep-rate row
 In the quantity sheet, after the rate field is edited away from the shelf price: a 48px checkbox row in leaf-deep, "ഈ നിരക്ക് എന്റെ വിലയായി സൂക്ഷിക്കുക", checked by default.

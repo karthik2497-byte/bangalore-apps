@@ -1,10 +1,20 @@
+import { readFileSync } from 'node:fs';
+
 const URL_ = 'http://localhost:8811/8_thraasu/index.html';
+const SAMPLE = readFileSync(new URL('../fixtures/thraasu-sample.json', import.meta.url), 'utf8');
 const narrow = t => t.send('Emulation.setDeviceMetricsOverride', { width: 412, height: 915, deviceScaleFactor: 2, mobile: true });
 const wideView = t => t.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
 const ready = t => t.evaluate(async () => { for (let i = 0; i < 50 && !document.querySelector('.cat'); i++) await new Promise(r => setTimeout(r, 100)); });
 
 export default async (t) => {
   await t.send('Emulation.setFocusEmulationEnabled', { enabled: true });   // headless has no window focus: no focus events without this
+  // Behaviour runs against the frozen sample list (tomato ₹40/kg …), so a shop's price changes
+  // never move these numbers; the real products.json gets its own phase at the end.
+  const stub = await t.send('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
+    const f = window.fetch, body = ${JSON.stringify(SAMPLE)};
+    window.fetch = (u, o) => String(u).includes('products.json')
+      ? Promise.resolve(new Response(body, { headers: { 'content-type': 'application/json' } })) : f(u, o);
+  })();` });
   await narrow(t);
   await t.goto(URL_);
   await ready(t);
@@ -319,24 +329,51 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v4', sw === 'thraasu-v4', sw);
+  t.check('service worker precached thraasu-v5', sw === 'thraasu-v5', sw);
 
-  // Photos: every one in products.json loads under the real CSP, categories show theirs,
-  // and a photo viewed online is kept for offline use.
-  const ph = await t.evaluate(async () => {
+  // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
+  // whole, every photo loads under the CSP, a product without a photo offers the camera, and a
+  // photo taken on the phone replaces the placeholder and survives a reload.
+  await t.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: stub.identifier });
+  await t.reload(); await ready(t);
+  const real = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id);
     const data = await (await fetch('./products.json')).json();
-    const all = [...data.categories, ...data.products].map(x => x.img);
-    const bad = (await Promise.all(all.map(src => new Promise(r => {
+    const all = [...data.categories, ...data.products].filter(x => x.img).map(x => x.img);
+    const bad = (await Promise.all([...new Set(all)].map(src => new Promise(r => {
       const i = new Image(); i.onload = () => r(i.naturalWidth ? null : src); i.onerror = () => r(src); i.src = './' + src;
     })))).filter(Boolean);
     const controlled = !!navigator.serviceWorker.controller;
-    await fetch('./img/apple.webp');
+    await fetch('./img/tomato.webp');
     let cached = false;
-    for (let i = 0; i < 20 && !cached; i++) { await new Promise(r => setTimeout(r, 100)); cached = !!(await caches.match('./img/apple.webp')); }
-    cat = null; renderShelf();                     // the category grid (earlier steps left Vegetables open)
-    return { n: all.length, bad, controlled, cached, catPhotos: document.querySelectorAll('.cat .ph img').length };
+    for (let i = 0; i < 20 && !cached; i++) { await new Promise(r => setTimeout(r, 100)); cached = !!(await caches.match('./img/tomato.webp')); }
+    cat = null; renderShelf();
+    const r = { want: [data.products.length, data.categories.length], got: [products.length, document.querySelectorAll('.cat').length],
+      n: all.length, bad, controlled, cached, catPhotos: document.querySelectorAll('.cat .ph img').length,
+      pill: $('pillText').textContent, receiptSample: receiptData().meta.some(m => /sample/.test(m)) };
+    const bare = products.find(p => !p.img);
+    openCat(bare.cat);
+    const cam = document.querySelector(`.slot [data-photo="${bare.id}"]`);
+    r.bare = [!!cam, document.querySelector(`[data-pid="${bare.id}"] .ph`).textContent === bare.icon, cam && Math.round(cam.getBoundingClientRect().height)];
+    const c = document.createElement('canvas'); c.width = 600; c.height = 300;
+    c.getContext('2d').fillRect(0, 0, 600, 300);
+    await setPhoto(bare.id, new File([await new Promise(res => c.toBlob(res, 'image/png'))], 'shelf.png', { type: 'image/png' }));
+    const im = document.querySelector(`[data-pid="${bare.id}"] .ph img`);
+    r.after = [!!im && im.src.startsWith('data:image/jpeg'), !document.querySelector(`[data-photo="${bare.id}"]:not(.pan-btn)`)];
+    r.id = bare.id;
+    return r;
   });
-  t.check('all 76 photos load under the CSP', ph.n === 76 && ph.bad.length === 0, ph);
-  t.check('category tiles carry their photos', ph.catPhotos === 8, ph);
-  t.check('a viewed photo is cached for offline', ph.controlled && ph.cached, ph);
+  t.check('the shop list loads whole', real.got.join() === real.want.join(), real);
+  t.check('every photo in products.json loads under the CSP', real.n > 100 && real.bad.length === 0, { n: real.n, bad: real.bad });
+  t.check('every category tile carries its photo', real.catPhotos === real.want[1], real.catPhotos);
+  t.check('a viewed photo is cached for offline', real.controlled && real.cached, real);
+  t.check('real prices: no sample label on the pill or the receipt', real.pill === 'വിലകൾ' && !real.receiptSample, real.pill);
+  t.check('a product without a photo shows its emoji and a 48 px camera button', real.bare[0] && real.bare[1] && real.bare[2] >= 48, real.bare);
+  t.check('a photo added on the phone replaces the placeholder', real.after.every(Boolean), real.after);
+  await t.reload(); await ready(t);
+  const kept = await t.evaluate(async id => {
+    for (let i = 0; i < 30 && !photos.has(id); i++) await new Promise(r => setTimeout(r, 100));
+    return (photos.get(id) || '').slice(0, 15);
+  }, real.id);
+  t.check('the shop photo survives a reload', kept === 'data:image/jpeg', kept);
 };

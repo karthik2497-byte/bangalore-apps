@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin href="https://fonts.googleapis.com/css2?family=Anek+Malayalam:wdth,wght@75..125,400..800&display=swap">
 <!-- Emoji subset: only the price list's icons (~35 KB), so a 2019 Android phone draws 🫘 🫚 🫛 too. test-bill.mjs fails if an icon is missing here. -->
-<link rel="stylesheet" crossorigin href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap&text=%F0%9F%A5%AC%F0%9F%8D%8C%F0%9F%8D%9A%F0%9F%AB%98%F0%9F%AB%97%F0%9F%A5%9B%F0%9F%8C%B6%EF%B8%8F%E2%9C%8F%F0%9F%8D%85%F0%9F%A7%85%F0%9F%A5%94%F0%9F%A5%95%F0%9F%AB%9B%F0%9F%AB%9A%F0%9F%A7%84%F0%9F%8D%A0%F0%9F%A5%92%F0%9F%8D%86%F0%9F%A5%A5%F0%9F%8C%BF%F0%9F%8D%8B%F0%9F%8D%8E%F0%9F%8D%8A%F0%9F%8D%8D%F0%9F%8D%87%F0%9F%A5%AD%F0%9F%8D%89%F0%9F%8C%BE%F0%9F%8C%BB%F0%9F%A7%88%F0%9F%A5%A3%F0%9F%A5%9A%F0%9F%A7%80%F0%9F%A7%82%F0%9F%8D%AC%F0%9F%8D%AF%F0%9F%8D%B5%E2%98%95%F0%9F%A5%84%F0%9F%AB%99%E2%9A%AB%F0%9F%94%A5%F0%9F%A7%BC%F0%9F%93%92%F0%9F%96%8A%E2%AC%9C%F0%9F%93%8F%F0%9F%93%84%F0%9F%A7%B4%E2%9C%89">
+<link rel="stylesheet" crossorigin href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap&text=%E2%98%95%E2%9A%AA%E2%9A%AB%E2%9D%84%EF%B8%8F%F0%9F%8C%B0%F0%9F%8C%B6%F0%9F%8C%B8%F0%9F%8C%BD%F0%9F%8C%BE%F0%9F%8C%BF%F0%9F%8D%85%F0%9F%8D%86%F0%9F%8D%87%F0%9F%8D%8B%F0%9F%8D%8C%F0%9F%8D%8D%F0%9F%8D%93%F0%9F%8D%97%F0%9F%8D%9A%F0%9F%8D%9B%F0%9F%8D%9C%F0%9F%8D%9D%F0%9F%8D%9E%F0%9F%8D%A0%F0%9F%8D%AA%F0%9F%8D%AB%F0%9F%8D%AC%F0%9F%8D%AE%F0%9F%8D%AF%F0%9F%8D%B0%F0%9F%8D%B2%F0%9F%8D%B5%F0%9F%8E%83%F0%9F%8E%A8%F0%9F%90%80%F0%9F%90%9C%F0%9F%90%9F%F0%9F%9A%97%F0%9F%9A%BD%F0%9F%A5%84%F0%9F%A5%92%F0%9F%A5%94%F0%9F%A5%9A%F0%9F%A5%9B%F0%9F%A5%9C%F0%9F%A5%A3%F0%9F%A5%A4%F0%9F%A5%A5%F0%9F%A5%A6%F0%9F%A5%A8%F0%9F%A5%A9%F0%9F%A5%AB%F0%9F%A5%AC%F0%9F%A5%AD%F0%9F%A7%80%F0%9F%A7%81%F0%9F%A7%82%F0%9F%A7%83%F0%9F%A7%84%F0%9F%A7%85%F0%9F%A7%88%F0%9F%A7%B4%F0%9F%A7%BA%F0%9F%A7%BC%F0%9F%A7%BD%F0%9F%AA%94%F0%9F%AA%A5%F0%9F%AA%B3%F0%9F%AB%91%F0%9F%AB%93%F0%9F%AB%97%F0%9F%AB%98%F0%9F%AB%99%F0%9F%AB%9A%F0%9F%AB%9B%F0%9F%AB%A7">
 <!--
 THESIS: The counter's brass thraasu, digitised: find → weigh → bill in three taps. Refuses the POS-dashboard look (sidebars, KPI tiles, data tables).
 OWN-WORLD: Bill-pad paper ground; a white receipt slip with a torn zigzag edge; banana-leaf green for the one primary action; thraasu brass for the scale, the brand and weights; chilli red only for removal; eight produce-sack tints, one per category. Anek Malayalam, condensed on tiles.
@@ -43,7 +43,14 @@ FORM: Operate-mode counter tool; the user-approved direction (pinned 2026-10-10,
 [data-cat="oil"]    { --tint: #EEEAC4; --tint-ink: #545015; }
 [data-cat="dairy"]  { --tint: #DCE9F3; --tint-ink: #1F4C73; }
 [data-cat="spice"]  { --tint: #F6D9D2; --tint-ink: #8A2B1D; }
-[data-cat="stat"]   { --tint: #E1E1F2; --tint-ink: #34367A; }
+[data-cat="drinks"] { --tint: #EADFD3; --tint-ink: #553621; }
+[data-cat="snacks"] { --tint: #FADDE3; --tint-ink: #8B2643; }
+[data-cat="instant"] { --tint: #E1E1F2; --tint-ink: #34367A; }
+[data-cat="sauces"] { --tint: #F3DCEC; --tint-ink: #722A62; }
+[data-cat="care"]   { --tint: #DDEFEA; --tint-ink: #1E5B4E; }
+[data-cat="clean"]  { --tint: #D4EEF2; --tint-ink: #14576A; }
+[data-cat="pooja"]  { --tint: #FDE6C4; --tint-ink: #8A4500; }
+[data-cat="misc"]   { --tint: #E7E5E0; --tint-ink: #45433D; }
 
 * { box-sizing: border-box; margin: 0; }
 html { -webkit-text-size-adjust: 100%; }
@@ -158,6 +165,14 @@ button:disabled { cursor: default; }
   font-size: 13px; font-weight: 650; white-space: nowrap;
 }
 .prod .badge { position: absolute; top: 8px; right: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
+/* No photo yet: the emoji stays as the placeholder and a camera button sits on its corner. */
+.slot { position: relative; display: grid; }
+.add-photo {
+  position: absolute; top: 2px; left: 2px; display: grid; place-items: center; width: 48px; height: 48px; padding: 0;
+  border: 7px solid transparent; border-radius: 50%; background: rgba(255, 255, 255, .92) padding-box; color: var(--tint-ink);
+}
+.add-photo svg, .pan-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linejoin: round; }
+.add-photo:active { transform: scale(.94); }
 
 .results { overflow: hidden; border: 1px solid var(--line); border-radius: var(--r); background: var(--slip); box-shadow: var(--lift); }
 .row {
@@ -352,8 +367,11 @@ button:disabled { cursor: default; }
 .price-list { flex: 1; overflow-y: auto; padding: 0 16px calc(16px + env(safe-area-inset-bottom)); list-style: none; }
 .price-cat { position: sticky; top: 0; z-index: 1; padding: 12px 0 6px; background: var(--slip); color: var(--tint-ink); font-size: 15px; font-weight: 680; }
 .price { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.pan-btn { position: relative; flex: none; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: none; }
+.pan-btn svg { position: absolute; right: -3px; bottom: -1px; width: 22px; height: 22px; padding: 3px; border-radius: 50%; background: var(--slip); color: var(--leaf-deep); box-shadow: 0 0 0 1px var(--line); }
 .price .pan { width: 40px; height: 40px; font-size: 21px; }
 .price .names { flex: 1; }
+.price .names b { font-size: 16px; }
 .price .names small { color: var(--brass-ink); }
 .price.mine .names small { color: var(--ink-2); }
 .price-in { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 15px; color: var(--ink-2); }
@@ -531,7 +549,7 @@ button:disabled { cursor: default; }
 <dialog class="sheet prices" id="prices" aria-labelledby="pricesTitle">
   <div class="prices-head">
     <div>
-      <h2 id="pricesTitle" tabindex="-1" autofocus>എന്റെ വിലകൾ</h2>
+      <h2 id="pricesTitle" tabindex="-1" autofocus>വിലയും ഫോട്ടോയും</h2>
       <p id="pricesSub"></p>
     </div>
     <button class="icon-btn" id="pricesClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
@@ -575,7 +593,10 @@ const rateLabel = (rate, unit) => `${fmtMoney(rate, true)} ${perUnit(unit)}`;
 const lineDesc = (qty, rate, unit) => unit === 'pc' ? `${qty} × ${fmtMoney(rate, true)}` : `${fmtQty(qty, unit)} × ${fmtMoney(rate, true)}/${UNITS[unit].big}`;
 const asItem = p => ({ pid: p.id, cat: p.cat, ml: p.ml, en: p.en || '', icon: p.icon || '', img: safeImg(p.img), unit: p.unit, rate: p.rate });
 // A scale pan: the emoji always, a photo over it when products.json names one (a broken one is removed).
-const shot = cls => x => `<span class="${cls} emo" aria-hidden="true">${esc(x.icon || '')}${x.img ? `<img src="./${esc(x.img)}" alt="" loading="lazy">` : ''}</span>`;
+// A product's picture: the shop's own photo (on this phone), else the stock one in products.json.
+const srcOf = x => photos.get(x.pid || x.id) || (safeImg(x.img) ? './' + safeImg(x.img) : '');
+const shot = cls => x => { const src = srcOf(x); return `<span class="${cls} emo" aria-hidden="true">${esc(x.icon || '')}${src ? `<img src="${esc(src)}" alt="" loading="lazy">` : ''}</span>`; };
+const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.8h7l1.8 2.8h3.2v10.8h-17z"/><circle cx="12" cy="13.6" r="3.4"/></svg>';
 const pan = shot('pan'), photo = shot('ph');   // round pan in rows and the bill; across the top of a tile
 const lineOf = pid => bill.lines.find(l => l.pid === pid);
 
@@ -631,17 +652,19 @@ function applyPrices() {
   $('samplePill').hidden = !products.length;
   $('samplePill').classList.toggle('mine', !warn);
   $('pillText').textContent = !warn ? 'വിലകൾ' : n ? `സ്വന്തം വില ${n}/${products.length}` : 'മാതൃകാ വിലകൾ';
-  $('pricesSub').textContent = `${n}/${products.length} സാധനങ്ങൾക്ക് സ്വന്തം വില · ഈ ഫോണിൽ മാത്രം`;
+  $('pricesSub').textContent = `${n}/${products.length} വില ഈ ഫോണിൽ മാറ്റി · ഫോട്ടോയിൽ തൊട്ടാൽ മാറ്റാം`;
 }
 function setMine(p, paise) {         // the sample rate itself is not "mine", which keeps the count honest
   if (paise === p.base) delete mine[p.id]; else mine[p.id] = paise;
   try { localStorage.setItem(PRICES_KEY, JSON.stringify(mine)); } catch {}
   applyPrices();
 }
-const priceRow = p => `<li class="price${p.mine ? ' mine' : ''}" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${pan({ icon: p.icon, img: safeImg(p.img) })}` +
-  `<span class="names"><b>${esc(p.ml)}</b><small>${p.mine ? `മാതൃക ${esc(fmtMoney(p.base, true))}` : 'മാതൃകാ വില'}</small></span>` +
+const listWord = () => samplePrices ? 'മാതൃക' : 'പട്ടിക';   // the sheet's price: sample, or the shop's list
+const priceRow = p => `<li class="price${p.mine ? ' mine' : ''}" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">` +
+  `<button class="pan-btn" type="button" data-photo="${esc(p.id)}" aria-label="${esc(p.ml)}: ഫോട്ടോ ${srcOf(p) ? 'മാറ്റുക' : 'ചേർക്കുക'}">${pan(p)}${CAM}</button>` +
+  `<span class="names"><b>${esc(p.ml)}</b>${p.mine ? `<small>${listWord()} ${esc(fmtMoney(p.base, true))}</small>` : samplePrices ? '<small>മാതൃകാ വില</small>' : ''}</span>` +
   `<label class="price-in"><span class="vh">${esc(p.ml)} വില</span>₹<input inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${p.rate / 100}"><span>${esc(perUnit(p.unit))}</span></label>` +
-  (p.mine ? `<button class="icon-btn reset" type="button" aria-label="${esc(p.ml)}: മാതൃകാ വില ${esc(fmtMoney(p.base, true))}">↺</button>` : '<span class="reset"></span>') + '</li>';
+  (p.mine ? `<button class="icon-btn reset" type="button" aria-label="${esc(p.ml)}: ${listWord()} വില ${esc(fmtMoney(p.base, true))}">↺</button>` : '') + '</li>';
 function renderPrices() {
   const q = $('pq').value.trim();
   let last = null;
@@ -665,6 +688,51 @@ function priceChanged(row, paise) {
   renderShelf();
 }
 
+// ---------- the shop's own photos ----------
+// Taken or picked on this phone, squared to 400 px JPEG (~30 KB) and kept in IndexedDB; they
+// win over the stock photo. Stored and shown as data: URLs: the CSP allows img-src 'self' data:.
+// ponytail: one phone, no backup (as with the prices); no "remove", a new photo replaces it.
+const photos = new Map();
+const idb = (mode, fn) => new Promise((res, rej) => {
+  const open = indexedDB.open('thraasu-photos', 1);
+  open.onupgradeneeded = () => open.result.createObjectStore('photos');
+  open.onerror = () => rej(open.error);
+  open.onsuccess = () => {
+    const db = open.result, tx = db.transaction('photos', mode), reqs = [].concat(fn(tx.objectStore('photos')));
+    tx.oncomplete = () => { db.close(); res(reqs.map(r => r.result)); };
+    tx.onerror = tx.onabort = () => { db.close(); rej(tx.error); };
+  };
+});
+async function loadPhotos() {
+  try {
+    const [keys, urls] = await idb('readonly', s => [s.getAllKeys(), s.getAll()]);
+    keys.forEach((k, i) => typeof urls[i] === 'string' && urls[i].startsWith('data:image/') && photos.set(k, urls[i]));
+  } catch {}                         // no IndexedDB (some private modes): stock photos and emoji still show
+}
+// The input lives in whatever is on top (an open modal makes the rest inert) for the tap's
+// own gesture to open the camera or gallery.
+function pickPhoto(id) {
+  document.querySelector('.photo-in')?.remove();
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.className = 'photo-in'; inp.hidden = true;
+  inp.addEventListener('change', () => { if (inp.files[0]) setPhoto(id, inp.files[0]); inp.remove(); });
+  (pricesEl.open ? pricesEl : document.body).append(inp);
+  inp.click();
+}
+async function setPhoto(id, file) {
+  try {
+    const bmp = await createImageBitmap(file), s = Math.min(bmp.width, bmp.height), c = document.createElement('canvas');
+    c.width = c.height = 400;
+    c.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, 400, 400);
+    const url = c.toDataURL('image/jpeg', .82);
+    await idb('readwrite', st => st.put(url, id));
+    photos.set(id, url);
+  } catch { return toast('ഫോട്ടോ ചേർക്കാനായില്ല'); }
+  renderShelf(); renderBill();
+  const row = $('priceList').querySelector(`.price[data-pid="${CSS.escape(id)}"]`);
+  if (row && byId.has(id)) row.outerHTML = priceRow(byId.get(id));
+}
+
 // ---------- shelf: categories, one category, or search results ----------
 function renderShelf() {
   const q = $('q').value.trim();
@@ -674,14 +742,16 @@ function renderShelf() {
   if (cat && catById.has(cat)) return renderCategory(catById.get(cat));
   $('shelf').innerHTML = `<div class="shelf-head"><h2>വിഭാഗങ്ങൾ</h2></div><div class="grid">${cats.map(c => {
     const n = products.filter(p => p.cat === c.id).length;
-    return `<button class="cat" type="button" data-cat="${esc(c.id)}">${photo({ icon: c.icon, img: safeImg(c.img) })}<span class="meta"><b>${esc(c.ml)}</b><small><span lang="en">${esc(c.en || '')}</span> · ${n}</small></span></button>`;
+    return `<button class="cat" type="button" data-cat="${esc(c.id)}">${photo({ icon: c.icon, img: c.img })}<span class="meta"><b>${esc(c.ml)}</b><small><span lang="en">${esc(c.en || '')}</span> · ${n}</small></span></button>`;
   }).join('')}</div>`;
 }
 function renderCategory(c) {
   const items = products.filter(p => p.cat === c.id);
   $('shelf').innerHTML = `<div class="crumb" data-cat="${esc(c.id)}"><button class="back" id="backBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>വിഭാഗങ്ങൾ</button><h2>${esc(c.ml)}<small lang="en">${esc(c.en || '')}</small></h2></div><div class="grid">${items.map(p => {
     const l = lineOf(p.id);
-    return `<button class="prod${l ? ' in' : ''}" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${photo({ icon: p.icon, img: safeImg(p.img) })}<span class="meta"><span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}</span></span>${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</button>`;
+    const tile = `<button class="prod${l ? ' in' : ''}" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${photo(p)}<span class="meta"><span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}</span></span>${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</button>`;
+    // a button may not sit inside a button: the camera rides on a wrapper over the emoji
+    return srcOf(p) ? tile : `<div class="slot" data-cat="${esc(p.cat)}">${tile}<button class="add-photo" type="button" data-photo="${esc(p.id)}" aria-label="${esc(p.ml)}: ഫോട്ടോ ചേർക്കുക">${CAM}</button></div>`;
   }).join('')}</div>`;
 }
 function renderResults(q) {
@@ -692,7 +762,7 @@ function renderResults(q) {
   }
   $('shelf').innerHTML = `<div class="shelf-head"><h2>${hits.length} ഫലങ്ങൾ</h2></div><div class="results">${hits.map(p => {
     const l = lineOf(p.id);
-    return `<button class="row" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${pan({ icon: p.icon, img: safeImg(p.img) })}<span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</span></button>`;
+    return `<button class="row" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${pan(p)}<span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</span></button>`;
   }).join('')}</div>`;
 }
 function goHome() {
@@ -942,6 +1012,7 @@ $('shelf').addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.id === 'retry') return loadCatalog();
+  if (b.dataset.photo) return pickPhoto(b.dataset.photo);
   if (b.id === 'backBtn') return history.state && history.state.cat ? history.back() : (cat = null, renderShelf());
   if (b.dataset.pid) return byId.has(b.dataset.pid) && openSheet(asItem(byId.get(b.dataset.pid)), !!$('q').value.trim());
   if (b.classList.contains('cat')) return openCat(b.dataset.cat);
@@ -988,6 +1059,8 @@ $('priceList').addEventListener('change', e => {
 });
 $('priceList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input')) e.target.blur(); });
 $('priceList').addEventListener('click', e => {
+  const cam = e.target.closest('[data-photo]');
+  if (cam) return pickPhoto(cam.dataset.photo);
   const b = e.target.closest('button.reset');
   if (!b) return;
   const row = b.closest('.price'), p = byId.get(row.dataset.pid);
@@ -1047,6 +1120,7 @@ cat = (history.state && history.state.cat) || null;
 history.replaceState({ cat }, '');                        // a reload never reopens the bill layer
 renderBill();
 loadCatalog();
+loadPhotos().then(() => { renderShelf(); renderBill(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {});
 </script>
 </body>

@@ -44,9 +44,11 @@ phone can already reach.
   ground, chilli red for removal; Anek Malayalam; light theme only.
 
 ## Evidence on Hand
-- `products.json` prices are **sample data**, not market prices; the app labels them so until
-  the shop sets its own (stored on the phone, `thraasu_prices`), and the receipt says "sample
-  prices" only while a billed line used one.
+- `products.json` is **Nanma Store's real list** (2026-10-10, from `Inventory - Nanma store .xlsx`):
+  459 items, retail prices and stock counts (`stock`: grams for kg items, pieces otherwise), 15
+  categories. Stock photos (Unsplash) for single-ingredient items; branded packs keep an emoji
+  until the shop adds its own photo (stored on the phone, IndexedDB). Behaviour tests run against
+  the frozen sample list in `scripts/browser/fixtures/thraasu-sample.json`.
 - Malayalam copy and product names were written by the build agent and need a native
   speaker's proofread before release.
 

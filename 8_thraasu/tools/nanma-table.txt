@@ -1,0 +1,461 @@
+# row|cat|English|Malayalam|icon|photo|extra aliases
+0|rice|Matta rice|മട്ട അരി|🍚|matta|matta ari chamba
+1|rice|Kuruva rice|കുറുവ അരി|🍚|jaya|kuruva ari
+2|rice|Kuruva rice, yellow|കുറുവ അരി (മഞ്ഞ)|🍚|jaya|kuruva ari
+3|rice|Ponni rice|പൊന്നി അരി|🍚|jaya|ponni ari
+4|rice|Bodhana rice|ബോധന അരി|🍚|jaya|bodhana ari
+5|rice|Raw rice|പച്ചരി|🍚|jaya|pachari
+6|rice|Kaima rice|കൈമ അരി|🍚|biriyani|jeerakasala
+7|rice|Kola rice|കോല അരി|🍚|jaya|kola ari
+8|rice|Broken rice|നുറുക്ക് അരി|🍚|jaya|nurukku ari
+9|rice|Wheat atta|ആട്ട|🌾|atta|gothambu podi
+10|rice|Maida|മൈദ|🌾|maida|maida
+11|rice|Rava|റവ|🌾|rava|sooji semolina
+12|pulses|Green gram|ചെറുപയർ|🫘|moong|cherupayar moong
+13|pulses|Toor dal|തുവരപ്പരിപ്പ്|🫘|toor|thuvara parippu
+14|pulses|Masoor dal|ചുവന്ന പരിപ്പ്|🫘|cat-pulses|masoor red dal
+15|pulses|Urad dal|ഉഴുന്ന്|🫘|urad|uzhunnu
+16|pulses|Urad dal, split|ഉഴുന്ന് (നുറുക്ക്)|🫘|urad|uzhunnu parippu
+17|pulses|Black chana|കടല|🫘|blackchana|kadala
+18|pulses|Green peas|പട്ടാണി|🫛|peas|pattani
+19|pulses|Kabuli chana|വെള്ളക്കടല|🫘|kadala|vella kadala chickpea
+20|pulses|Red cowpea|വൻപയർ|🫘|vanpayar|vanpayar
+21|pulses|Horse gram|മുതിര|🫘|horsegram|muthira
+22|rice|Besan (gram flour)|കടലപ്പൊടി|🌾||kadala podi
+23|spice|Tamarind|പുളി|🌰||puli
+24|spice|Dry red chilli|വറ്റൽമുളക്|🌶️|redchilli|vattal mulaku
+25|spice|Chilli powder|മുളകുപൊടി|🌶️|chillipowder|mulaku podi
+26|spice|Jaggery|ശർക്കര|🍯|jaggery|sharkkara
+27|spice|Sugar|പഞ്ചസാര|🍬|sugar|panchasara
+28|spice|Turmeric powder|മഞ്ഞൾപ്പൊടി|🥄|turmeric|manjal podi
+29|spice|Coriander powder|മല്ലിപ്പൊടി|🥄|coriander|malli podi
+30|spice|Kashmiri chilli powder|കാശ്മീരി മുളകുപൊടി|🌶️|chillipowder|kashmiri mulaku
+31|spice|Black pepper|കുരുമുളക്|⚫|pepper|kurumulaku
+32|spice|Fenugreek|ഉലുവ|🌿|fenugreek|uluva
+33|spice|Cumin|ജീരകം|🌿|cumin|jeerakam
+34|spice|Fennel (big jeerakam)|പെരുംജീരകം|🌿|fennel|perumjeerakam
+35|spice|Mustard|കടുക്|🫙|mustard|kaduku
+36|rice|Corn flour|കോൺഫ്ലവർ|🌽||cornflour
+37|spice|Cashew|കശുവണ്ടി|🥜|cashew|kashuvandi
+38|spice|Cardamom|ഏലക്ക|🌿|cardamom|elakka elachi
+39|spice|Cloves|ഗ്രാമ്പൂ|🌿|cloves|grambu
+40|spice|Cinnamon|പട്ട|🌿|cinnamon|karuvapatta
+41|spice|Raisins|ഉണക്കമുന്തിരി|🍇|raisins|unakka munthiri kismis
+42|rice|Sago (chowari)|ചൗവ്വരി|⚪||chowari sabudana
+43|rice|Sago, small (chowari)|ചൗവ്വരി (ചെറുത്)|⚪||chowari sabudana
+44|spice|Shahi jeera|ഷാജീരകം|🌿|cumin|shajeerakam
+45|spice|Black sesame|കറുത്ത എള്ള്|⚫|sesameblack|ellu
+46|spice|White sesame|വെളുത്ത എള്ള്|⚪|sesamewhite|ellu
+47|spice|Mixed spices 20 g|മിക്സഡ് സ്പൈസസ് 20 g|🌶️||masala
+48|sauces|Vinegar 500 ml|വിനാഗിരി 500 ml|🫙||surka vinegar
+49|rice|Wheat flakes 500 g|ഗോതമ്പ് ഫ്ലേക്സ് 500 g|🥣||
+50|rice|Jowar puttu podi 500 g|ജോവർ പുട്ടുപൊടി 500 g|🌾|puttu|
+51|rice|Ragi puttu podi 500 g|റാഗി പുട്ടുപൊടി 500 g|🌾|puttu|panjapullu
+52|pooja|Agarbatti|ചന്ദനത്തിരി|🪔||chandanathiri
+53|pooja|Agarbatti|ചന്ദനത്തിരി|🪔||chandanathiri
+54|pooja|Agarbatti|ചന്ദനത്തിരി|🪔||chandanathiri
+55|pooja|Mangaldeep|മംഗൾദീപ്|🪔||agarbatti
+56|pooja|Mangaldeep|മംഗൾദീപ്|🪔||agarbatti
+57|pooja|RCM chandan|ആർസിഎം ചന്ദനം|🪔||chandanam
+58|pooja|RCM agarbatti|ആർസിഎം ചന്ദനത്തിരി|🪔||chandanathiri
+59|misc|Body Guard|ബോഡി ഗാർഡ്|🧺||
+60|snacks|Aloo bhujia 100 g|ആലു ഭുജിയ 100 g|🥨||namkeen
+61|snacks|Moong dal namkeen 100 g|മൂംഗ് ദാൽ 100 g|🥨||namkeen
+62|snacks|Mixture 50 g|മിക്സ്ചർ 50 g|🥨||
+63|instant|Elite palada 200 g|എലൈറ്റ് പാലട 200 g|🍮||payasam
+64|instant|Elite vermicelli 200 g|എലൈറ്റ് സേമിയ 200 g|🍝||semiya
+65|instant|Maggi 4-in-1|മാഗി 4-ഇൻ-1|🍜||noodles
+66|instant|Maggi chicken|മാഗി ചിക്കൻ|🍜||noodles
+67|instant|YiPPee 6-in-1|യിപ്പി 6-ഇൻ-1|🍜||yippee noodles
+68|instant|YiPPee 4-in-1|യിപ്പി 4-ഇൻ-1|🍜||yippee noodles
+69|instant|RCM noodles|ആർസിഎം നൂഡിൽസ്|🍜||
+70|instant|RCM noodles, garlic|ആർസിഎം നൂഡിൽസ് (ഗാർലിക്)|🍜||
+71|instant|GRB gulab jamun mix|ജിആർബി ഗുലാബ് ജാമുൻ മിക്സ്|🍮||
+72|instant|Swamees pappadam|സ്വാമീസ് പപ്പടം|🫓||pappad
+73|instant|Bambino vermicelli|ബാംബിനോ സേമിയ|🍝||semiya
+74|instant|Bambino vermicelli|ബാംബിനോ സേമിയ|🍝||semiya
+75|instant|Bambino vermicelli|ബാംബിനോ സേമിയ|🍝||semiya
+76|rice|Quaker oats 500 g|ക്വാക്കർ ഓട്സ് 500 g|🥣|oats|
+77|rice|Quaker oats 1 kg|ക്വാക്കർ ഓട്സ് 1 kg|🥣|oats|
+78|drinks|Mango squash|മാംഗോ സ്ക്വാഷ്|🧃||
+79|drinks|IDM squash powder|ഐഡിഎം സ്ക്വാഷ് പൗഡർ|🧃||
+80|drinks|Tang|ടാങ്|🧃||
+81|drinks|Orange squash powder|ഓറഞ്ച് സ്ക്വാഷ് പൗഡർ|🧃||
+82|sauces|Chilli sauce|ചില്ലി സോസ്|🥫||
+83|sauces|Sabari tomato sauce|ശബരി ടൊമാറ്റോ സോസ്|🥫||
+84|sauces|Sabari black sauce|ശബരി ബ്ലാക്ക് സോസ്|🥫||soya
+85|sauces|Green chilli sauce|ഗ്രീൻ ചില്ലി സോസ്|🥫||
+86|sauces|Fruit jam|ഫ്രൂട്ട് ജാം|🍓||
+87|sauces|Maharani tomato sauce|മഹാറാണി ടൊമാറ്റോ സോസ്|🥫||
+88|sauces|Swecha ketchup|സ്വെച്ഛ കെച്ചപ്പ്|🥫||
+89|sauces|Kissan ketchup|കിസാൻ കെച്ചപ്പ്|🥫||
+90|sauces|Knorr green chilli sauce|നോർ ഗ്രീൻ ചില്ലി സോസ്|🥫||
+91|sauces|Red chilli sauce|റെഡ് ചില്ലി സോസ്|🥫||
+92|sauces|Maggi tomato ketchup|മാഗി ടൊമാറ്റോ കെച്ചപ്പ്|🥫||
+93|drinks|Detox green tea|ഡീടോക്സ് ഗ്രീൻ ടീ|🍵||
+94|sauces|Thiru tomato sauce|തിരു ടൊമാറ്റോ സോസ്|🥫||
+95|drinks|Tata filter coffee|ടാറ്റ ഫിൽട്ടർ കോഫി|☕|coffee|kappi podi
+96|drinks|Brahmins chukku coffee|ബ്രാഹ്മിൻസ് ചുക്കുകാപ്പി|☕||
+97|drinks|Eastern Adimali coffee|ഈസ്റ്റേൺ അടിമാലി കാപ്പി|☕|coffee|kappi podi
+98|drinks|Kannan Devan tea|കണ്ണൻ ദേവൻ ചായപ്പൊടി|🍵|tea|chaya podi
+99|drinks|Kannan Devan tea|കണ്ണൻ ദേവൻ ചായപ്പൊടി|🍵|tea|chaya podi
+100|drinks|Kannan Devan strong|കണ്ണൻ ദേവൻ സ്ട്രോങ്|🍵|tea|chaya podi
+101|drinks|Kannan Devan strong|കണ്ണൻ ദേവൻ സ്ട്രോങ്|🍵|tea|chaya podi
+102|drinks|Brooke Bond Red Label|ബ്രൂക്ക് ബോണ്ട് റെഡ് ലേബൽ|🍵|tea|chaya podi
+103|drinks|Brooke Bond Red Label|ബ്രൂക്ക് ബോണ്ട് റെഡ് ലേബൽ|🍵|tea|chaya podi
+104|drinks|RCM premium tea|ആർസിഎം പ്രീമിയം ചായപ്പൊടി|🍵|tea|chaya podi
+105|drinks|Nescafé, bottle|നെസ്കഫെ (കുപ്പി)|☕|coffee|nescafe
+106|spice|Hyza sambar powder|ഹൈസ സാമ്പാർ പൊടി|🍲||sambar
+107|spice|Bodhini pickle powder|ബോധിനി അച്ചാർപ്പൊടി|🌶️||achar
+108|spice|Hyza fish masala|ഹൈസ ഫിഷ് മസാല|🐟||meen
+109|spice|Hyza chicken masala|ഹൈസ ചിക്കൻ മസാല|🍗||
+110|spice|Hyza chicken masala|ഹൈസ ചിക്കൻ മസാല|🍗||
+111|spice|Hyza chilli powder|ഹൈസ മുളകുപൊടി|🌶️|chillipowder|mulaku podi
+112|spice|KT coriander powder|കെ.ടി മല്ലിപ്പൊടി|🥄|coriander|malli podi
+113|spice|Coriander powder, pack|മല്ലിപ്പൊടി (പാക്കറ്റ്)|🥄|coriander|malli podi
+114|spice|KT black pepper|കെ.ടി കുരുമുളക്|⚫|pepper|kurumulaku
+115|spice|Rasam powder|രസം പൊടി|🍲||rasam
+116|spice|KT turmeric powder|കെ.ടി മഞ്ഞൾപ്പൊടി|🥄|turmeric|manjal podi
+117|spice|Brahmins rasam powder|ബ്രാഹ്മിൻസ് രസം പൊടി|🍲||rasam
+118|spice|Brahmins garam masala|ബ്രാഹ്മിൻസ് ഗരം മസാല|🌶️||
+119|spice|KT garam masala|കെ.ടി ഗരം മസാല|🌶️||
+120|spice|KT sambar powder|കെ.ടി സാമ്പാർ പൊടി|🍲||sambar
+121|spice|KT meat masala|കെ.ടി മീറ്റ് മസാല|🥩||irachi
+122|spice|Eastern meat masala|ഈസ്റ്റേൺ മീറ്റ് മസാല|🥩||irachi
+123|spice|Swamees meat masala|സ്വാമീസ് മീറ്റ് മസാല|🥩||irachi
+124|spice|Swamees garam masala|സ്വാമീസ് ഗരം മസാല|🌶️||
+125|spice|Swamees biriyani masala|സ്വാമീസ് ബിരിയാണി മസാല|🍛||
+126|spice|Swamees chaat masala|സ്വാമീസ് ചാട്ട് മസാല|🌶️||
+127|spice|Hyza chilli powder|ഹൈസ മുളകുപൊടി|🌶️|chillipowder|mulaku podi
+128|spice|Bismi mustard|ബിസ്മി കടുക്|🫙|mustard|kaduku
+129|spice|Prime mustard|പ്രൈം കടുക്|🫙|mustard|kaduku
+130|drinks|Bru instant|ബ്രൂ ഇൻസ്റ്റന്റ്|☕|coffee|bru
+131|drinks|Bru instant|ബ്രൂ ഇൻസ്റ്റന്റ്|☕|coffee|bru
+132|rice|Aashirvaad atta|ആശീർവാദ് ആട്ട|🌾|atta|ashirvad
+133|rice|Aashirvaad atta|ആശീർവാദ് ആട്ട|🌾|atta|ashirvad
+134|rice|Aashirvaad atta|ആശീർവാദ് ആട്ട|🌾|atta|ashirvad
+135|sauces|Mango pickle|മാങ്ങ അച്ചാർ|🥭||manga achar
+136|sauces|Lemon pickle|നാരങ്ങ അച്ചാർ|🍋||naranga achar
+137|sauces|Garlic pickle|വെളുത്തുള്ളി അച്ചാർ|🧄||veluthulli achar
+138|sauces|Tomato ketchup|ടൊമാറ്റോ കെച്ചപ്പ്|🥫||
+139|spice|Bismi cumin|ബിസ്മി ജീരകം|🌿|cumin|jeerakam
+140|spice|Fennel seed, pack|പെരുംജീരകം (പാക്കറ്റ്)|🌿|fennel|perumjeerakam
+141|spice|Ramees cumin|റമീസ് ജീരകം|🌿|cumin|jeerakam
+142|spice|Hyza turmeric powder|ഹൈസ മഞ്ഞൾപ്പൊടി|🥄|turmeric|manjal podi
+143|spice|Hyza chicken masala|ഹൈസ ചിക്കൻ മസാല|🍗||
+144|spice|Hyza sambar powder|ഹൈസ സാമ്പാർ പൊടി|🍲||sambar
+145|spice|Hyza chicken masala|ഹൈസ ചിക്കൻ മസാല|🍗||
+146|spice|Hyza meat masala|ഹൈസ മീറ്റ് മസാല|🥩||irachi
+147|spice|Hyza big jeerakam (fennel)|ഹൈസ പെരുംജീരകം|🌿|fennel|perumjeerakam
+148|spice|Hyza mustard|ഹൈസ കടുക്|🫙|mustard|kaduku
+149|spice|Hyza cumin|ഹൈസ ജീരകം|🌿|cumin|jeerakam
+150|spice|Himalayan rock salt|ഹിമാലയൻ ഇന്തുപ്പ്|🧂|salt|induppu uppu
+151|spice|Food colour, lemon yellow|ഫുഡ് കളർ (ലെമൺ)|🎨||
+152|spice|Pineapple essence|പൈനാപ്പിൾ എസ്സൻസ്|🍍||
+153|sauces|Apple Bee honey|ആപ്പിൾ ബീ തേൻ|🍯|honey|then
+154|sauces|Nadan honey|നാടൻ തേൻ|🍯|honey|then
+155|rice|Swecha choco flakes|സ്വെച്ഛ ചോക്കോ ഫ്ലേക്സ്|🥣||cornflakes
+156|drinks|Complan 500 g|കോംപ്ലാൻ 500 g|🥤||
+157|drinks|Energy Vita Plus 500 g|എനർജി വിറ്റ പ്ലസ് 500 g|🥤||
+158|drinks|Boost sachet|ബൂസ്റ്റ് സാഷെ|🥤||
+159|drinks|Horlicks sachet|ഹോർലിക്സ് സാഷെ|🥤||
+160|drinks|Glucose|ഗ്ലൂക്കോസ്|🥤||glucon
+161|drinks|Horlicks packet|ഹോർലിക്സ് പാക്കറ്റ്|🥤||
+162|drinks|Glucose|ഗ്ലൂക്കോസ്|🥤||glucon
+163|drinks|Horlicks packet|ഹോർലിക്സ് പാക്കറ്റ്|🥤||
+164|drinks|Horlicks jar|ഹോർലിക്സ് (കുപ്പി)|🥤||
+165|instant|Bambino vermicelli|ബാംബിനോ സേമിയ|🍝||semiya
+166|instant|Bambino vermicelli|ബാംബിനോ സേമിയ|🍝||semiya
+167|instant|Bambino vermicelli|ബാംബിനോ സേമിയ|🍝||semiya
+168|instant|Double Horse vermicelli|ഡബിൾ ഹോഴ്സ് സേമിയ|🍝||semiya
+169|instant|Swamees pappadam|സ്വാമീസ് പപ്പടം|🫓||pappad
+170|instant|Double Horse palada|ഡബിൾ ഹോഴ്സ് പാലട|🍮||payasam
+171|instant|Double Horse payasam mix|ഡബിൾ ഹോഴ്സ് പായസം മിക്സ്|🍮||
+172|instant|Brahmins semiya payasam mix|ബ്രാഹ്മിൻസ് സേമിയ പായസം മിക്സ്|🍮||
+173|instant|Brahmins kheer mix|ബ്രാഹ്മിൻസ് ഖീർ മിക്സ്|🍮||payasam
+174|instant|Brahmins palada mix|ബ്രാഹ്മിൻസ് പാലട മിക്സ്|🍮||payasam
+175|instant|Milma palada mix|മിൽമ പാലട മിക്സ്|🍮||payasam
+176|instant|Chosen pudding mix|ചോസൻ പുഡ്ഡിംഗ് മിക്സ്|🍮||
+177|oil|UK coconut oil 1 L|യുകെ വെളിച്ചെണ്ണ 1 L|🥥|coconutoil|velichenna
+178|oil|UK coconut oil 500 ml|യുകെ വെളിച്ചെണ്ണ 500 ml|🥥|coconutoil|velichenna
+179|oil|UK coconut oil 200 ml|യുകെ വെളിച്ചെണ്ണ 200 ml|🥥|coconutoil|velichenna
+180|oil|UK coconut oil 500 ml pouch|യുകെ വെളിച്ചെണ്ണ 500 ml പാക്കറ്റ്|🥥|coconutoil|velichenna
+181|oil|Hyza coconut oil 500 ml|ഹൈസ വെളിച്ചെണ്ണ 500 ml|🥥|coconutoil|velichenna
+182|oil|Hyza coconut oil 200 ml|ഹൈസ വെളിച്ചെണ്ണ 200 ml|🥥|coconutoil|velichenna
+183|oil|Hyza coconut oil 500 ml pouch|ഹൈസ വെളിച്ചെണ്ണ 500 ml പാക്കറ്റ്|🥥|coconutoil|velichenna
+184|oil|Aashirvaad ghee 500 ml|ആശീർവാദ് നെയ്യ് 500 ml|🧈|ghee|neyyu
+185|oil|Milma ghee 1 L|മിൽമ നെയ്യ് 1 L|🧈|ghee|neyyu
+186|oil|Milma ghee 200 ml|മിൽമ നെയ്യ് 200 ml|🧈|ghee|neyyu
+187|oil|Milma ghee 100 ml|മിൽമ നെയ്യ് 100 ml|🧈|ghee|neyyu
+188|oil|Milma ghee 50 ml|മിൽമ നെയ്യ് 50 ml|🧈|ghee|neyyu
+189|oil|RKG ghee 200 ml|ആർകെജി നെയ്യ് 200 ml|🧈|ghee|neyyu
+190|oil|RKG ghee 100 ml|ആർകെജി നെയ്യ് 100 ml|🧈|ghee|neyyu
+191|oil|RKG ghee 50 ml|ആർകെജി നെയ്യ് 50 ml|🧈|ghee|neyyu
+192|oil|Punerva gingelly oil 1 L|പുനർവ നല്ലെണ്ണ 1 L|🫗|gingelly|nallenna ellenna
+193|oil|Punerva gingelly oil 500 ml|പുനർവ നല്ലെണ്ണ 500 ml|🫗|gingelly|nallenna ellenna
+194|oil|Punerva gingelly oil 200 ml|പുനർവ നല്ലെണ്ണ 200 ml|🫗|gingelly|nallenna ellenna
+195|oil|Punerva gingelly oil 100 ml|പുനർവ നല്ലെണ്ണ 100 ml|🫗|gingelly|nallenna ellenna
+196|oil|RG gingelly oil 1 L|ആർജി നല്ലെണ്ണ 1 L|🫗|gingelly|nallenna ellenna
+197|oil|RG gingelly oil 500 ml|ആർജി നല്ലെണ്ണ 500 ml|🫗|gingelly|nallenna ellenna
+198|oil|RG gingelly oil 200 ml|ആർജി നല്ലെണ്ണ 200 ml|🫗|gingelly|nallenna ellenna
+199|oil|RG gingelly oil 100 ml|ആർജി നല്ലെണ്ണ 100 ml|🫗|gingelly|nallenna ellenna
+200|spice|Weikfield baking powder|വീക്ക്ഫീൽഡ് ബേക്കിംഗ് പൗഡർ|🧁||
+201|dairy|Nestlé condensed milk|നെസ്‌ലെ കണ്ടൻസ്ഡ് മിൽക്ക്|🥫||
+202|dairy|Nestlé Milkmaid 380 g|നെസ്‌ലെ മിൽക്ക്മെയ്ഡ് 380 g|🥫||
+203|dairy|KLF coconut milk 200 ml|കെഎൽഎഫ് തേങ്ങാപ്പാൽ 200 ml|🥥|coconut|thenga paal
+204|snacks|Swecha gulab jamun 500 g|സ്വെച്ഛ ഗുലാബ് ജാമുൻ 500 g|🍮||
+205|dairy|Fresh cream|ഫ്രഷ് ക്രീം|🥛||
+206|sauces|Pineapple jam 200 g|പൈനാപ്പിൾ ജാം 200 g|🍍||
+207|sauces|Mixed fruit jam 200 g|മിക്സഡ് ഫ്രൂട്ട് ജാം 200 g|🍓||
+208|snacks|KitKat Pops|കിറ്റ്കാറ്റ് പോപ്സ്|🍫||
+209|snacks|KitKat|കിറ്റ്കാറ്റ്|🍫||
+210|snacks|Milkybar 30|മിൽക്കിബാർ 30|🍫||
+211|snacks|Milkybar 20|മിൽക്കിബാർ 20|🍫||
+212|snacks|Milkybar 10|മിൽക്കിബാർ 10|🍫||
+213|snacks|Milkybar Classic|മിൽക്കിബാർ ക്ലാസിക്|🍫||
+214|snacks|Munch 20|മഞ്ച് 20|🍫||
+215|snacks|Munch 10|മഞ്ച് 10|🍫||
+216|snacks|Unibic SF|യൂണിബിക് എസ്എഫ്|🍪||biscuit
+217|snacks|Unibic pista badam|യൂണിബിക് പിസ്ത ബദാം|🍪||biscuit
+218|snacks|Unibic fruit & nut|യൂണിബിക് ഫ്രൂട്ട് & നട്ട്|🍪||biscuit
+219|snacks|Unibic butter cookies|യൂണിബിക് ബട്ടർ|🍪||biscuit
+220|snacks|Unibic cashew cookies|യൂണിബിക് കാഷ്യു|🍪||biscuit
+221|snacks|Unibic choco|യൂണിബിക് ചോക്കോ|🍪||biscuit
+222|snacks|Unibic oats digestive|യൂണിബിക് ഓട്സ് ഡൈജസ്റ്റീവ്|🍪||biscuit
+223|snacks|Sunfeast Mom's Magic|സൺഫീസ്റ്റ് മോംസ് മാജിക്|🍪||biscuit
+224|snacks|RCM coconut biscuit|ആർസിഎം കോക്കനട്ട് ബിസ്കറ്റ്|🍪||
+225|snacks|Sunfeast Mom's Magic|സൺഫീസ്റ്റ് മോംസ് മാജിക്|🍪||biscuit
+226|snacks|Sunfeast Mom's Magic|സൺഫീസ്റ്റ് മോംസ് മാജിക്|🍪||biscuit
+227|snacks|Sunfeast Mom's Magic|സൺഫീസ്റ്റ് മോംസ് മാജിക്|🍪||biscuit
+228|snacks|Britannia Marie Light|ബ്രിട്ടാനിയ മേരി ലൈറ്റ്|🍪||biscuit
+229|snacks|Britannia Horlicks biscuit|ബ്രിട്ടാനിയ ഹോർലിക്സ് ബിസ്കറ്റ്|🍪||
+230|snacks|Oreo|ഓറിയോ|🍪||biscuit
+231|snacks|Adhidi rusk, blue|അദിദി റസ്ക് (നീല)|🍞||
+232|snacks|Adhidi rusk, milk|അദിദി റസ്ക് (മിൽക്ക്)|🍞||
+233|snacks|Adhidi rusk, green|അദിദി റസ്ക് (പച്ച)|🍞||
+234|snacks|Adhidi brownie|അദിദി ബ്രൗണി|🍰||
+235|snacks|Adhidi teddy cake|അദിദി ടെഡി കേക്ക്|🍰||
+236|snacks|Adhidi cake|അദിദി കേക്ക്|🍰||
+237|snacks|Elite carrot cake|എലൈറ്റ് കാരറ്റ് കേക്ക്|🍰||
+238|snacks|Elite black raisin cake|എലൈറ്റ് ബ്ലാക്ക് റെയ്സിൻ കേക്ക്|🍰||
+239|snacks|Elite choco orange cake|എലൈറ്റ് ചോക്കോ ഓറഞ്ച് കേക്ക്|🍰||
+240|snacks|Elite fruit cake|എലൈറ്റ് ഫ്രൂട്ട് കേക്ക്|🍰||
+241|snacks|Elite marble cake|എലൈറ്റ് മാർബിൾ കേക്ക്|🍰||
+242|snacks|Elite pineapple cake|എലൈറ്റ് പൈനാപ്പിൾ കേക്ക്|🍰||
+243|snacks|Elite vanilla cake|എലൈറ്റ് വാനില കേക്ക്|🍰||
+244|snacks|Elite brownie|എലൈറ്റ് ബ്രൗണി|🍰||
+245|snacks|Elite rusk, classic|എലൈറ്റ് റസ്ക് (ക്ലാസിക്)|🍞||
+246|snacks|Elite rusk, milk|എലൈറ്റ് റസ്ക് (മിൽക്ക്)|🍞||
+247|snacks|Elite rusk, elaichi|എലൈറ്റ് റസ്ക് (ഏലക്ക)|🍞||
+248|dairy|Amulya milk powder|അമൂല്യ പാൽപ്പൊടി|🥛||paal podi
+249|dairy|Amulya milk powder|അമൂല്യ പാൽപ്പൊടി|🥛||paal podi
+250|dairy|Milma milk powder|മിൽമ പാൽപ്പൊടി|🥛||paal podi
+251|dairy|Milma milk powder|മിൽമ പാൽപ്പൊടി|🥛||paal podi
+252|spice|Swecha asafoetida|സ്വെച്ഛ കായം|🫙||perungayam kayam
+253|spice|KT asafoetida|കെ.ടി കായം|🫙||perungayam kayam
+254|rice|Adhidi chakki fresh atta|അദിദി ചക്കി ഫ്രഷ് ആട്ട|🌾|atta|
+255|rice|Elite chakki fresh atta|എലൈറ്റ് ചക്കി ഫ്രഷ് ആട്ട|🌾|atta|
+256|rice|Adhidi maida|അദിദി മൈദ|🌾|maida|
+257|rice|Niradeepam upma rava|നിറദീപം ഉപ്പുമാവ് റവ|🌾|rava|uppuma
+258|rice|Niradeepam kanji rava|നിറദീപം കഞ്ഞി റവ|🌾|rava|
+259|rice|Niradeepam aval|നിറദീപം അവൽ|🍚|poha|avil poha
+260|rice|Brown rice aval|ബ്രൗൺ റൈസ് അവൽ|🍚|poha|avil poha
+261|rice|Red aval|ചുവന്ന അവൽ|🍚|poha|avil poha
+262|rice|Roasted rava|വറുത്ത റവ|🌾|rava|
+263|rice|Rice powder|അരിപ്പൊടി|🌾|appam|ari podi
+264|rice|Parisons corn flour|പാരിസൺസ് കോൺഫ്ലവർ|🌽||
+265|rice|Rice powder|അരിപ്പൊടി|🌾|appam|ari podi
+266|rice|Kaima rice, pack|കൈമ അരി (പാക്കറ്റ്)|🍚|biriyani|jeerakasala
+267|rice|Basmati rice|ബസ്മതി അരി|🍚|biriyani|basumathi
+268|rice|Ajmi chemba puttu podi|അജ്മി ചെമ്പ പുട്ടുപൊടി|🌾|puttu|
+269|rice|Ajmi palappam podi|അജ്മി പാലപ്പം പൊടി|🌾|appam|appam
+270|rice|Double Horse palappam podi|ഡബിൾ ഹോഴ്സ് പാലപ്പം പൊടി|🌾|appam|appam
+271|rice|White aval|വെള്ള അവൽ|🍚|poha|avil poha
+272|rice|Ajmi upma rava|അജ്മി ഉപ്പുമാവ് റവ|🌾|rava|uppuma
+273|rice|Ponkathir puttu podi|പൊൻകതിർ പുട്ടുപൊടി|🌾|puttu|
+274|rice|Ponkathir rice powder|പൊൻകതിർ അരിപ്പൊടി|🌾|appam|ari podi
+275|care|Cinthol, small|സിന്തോൾ (ചെറുത്)|🧼||soap
+276|care|Cinthol|സിന്തോൾ|🧼||soap
+277|care|Lux, small|ലക്സ് (ചെറുത്)|🧼||soap
+278|care|Lux, big|ലക്സ് (വലുത്)|🧼||soap
+279|care|Ena, small|എന (ചെറുത്)|🧼||soap
+280|care|Ena, big|എന (വലുത്)|🧼||soap
+281|care|Ena, medium|എന (ഇടത്തരം)|🧼||soap
+282|care|Lifebuoy, small|ലൈഫ്ബോയ് (ചെറുത്)|🧼||soap
+283|care|Lifebuoy, big|ലൈഫ്ബോയ് (വലുത്)|🧼||soap
+284|care|Dettol soap, small|ഡെറ്റോൾ സോപ്പ് (ചെറുത്)|🧼||
+285|care|Dettol soap, big|ഡെറ്റോൾ സോപ്പ് (വലുത്)|🧼||
+286|care|Vivel, small|വിവൽ (ചെറുത്)|🧼||soap
+287|care|Vivel|വിവൽ|🧼||soap
+288|care|Vivel|വിവൽ|🧼||soap
+289|care|Vivel|വിവൽ|🧼||soap
+290|care|Vivel combo|വിവൽ കോംബോ|🧼||soap
+291|care|Vivel combo|വിവൽ കോംബോ|🧼||soap
+292|care|Kairali soap|കൈരളി സോപ്പ്|🧼||
+293|care|Kerala Sandal soap|കേരള സാൻഡൽ സോപ്പ്|🧼||
+294|care|Fiama soap|ഫിയാമ സോപ്പ്|🧼||
+295|care|Papaya soap|പപ്പായ സോപ്പ്|🧼||
+296|care|Power avocado soap|പവർ അവോക്കാഡോ സോപ്പ്|🧼||
+297|care|Pears|പിയേഴ്സ്|🧼||soap
+298|care|Pears|പിയേഴ്സ്|🧼||soap
+299|care|Johnson's baby soap|ജോൺസൺസ് ബേബി സോപ്പ്|🧼||
+300|care|Johnson's baby soap|ജോൺസൺസ് ബേബി സോപ്പ്|🧼||
+301|care|Himalaya baby soap|ഹിമാലയ ബേബി സോപ്പ്|🧼||
+302|care|Rexona soap|റെക്സോണ സോപ്പ്|🧼||
+303|care|Santoor soap|സന്തൂർ സോപ്പ്|🧼||
+304|care|Hamam soap|ഹമാം സോപ്പ്|🧼||
+305|care|Liya|ലിയ|🧼||soap
+306|care|Cutee|ക്യൂട്ടി|🧼||soap
+307|care|Cutee|ക്യൂട്ടി|🧼||soap
+308|care|Cutee|ക്യൂട്ടി|🧼||soap
+309|care|Fiama gel bar|ഫിയാമ ജെൽ ബാർ|🧼||soap
+310|care|Nysa|നൈസ|🧼||soap
+311|misc|Ria|റിയ|🧺||
+312|clean|More Light bar|മോർ ലൈറ്റ് ബാർ|🫧||detergent
+313|misc|Power|പവർ|🧺||
+314|clean|Vim bar|വിം ബാർ|🧽||dishwash
+315|clean|Vim bar|വിം ബാർ|🧽||dishwash bim
+316|clean|Exo bar|എക്സോ ബാർ|🧽||dishwash
+317|clean|Exo round|എക്സോ റൗണ്ട്|🧽||dishwash
+318|clean|Dr. Wash|ഡോ. വാഷ്|🫧||detergent
+319|misc|Revito|റെവിറ്റോ|🧺||
+320|clean|Ujala|ഉജാല|🫧||whitener
+321|clean|Sunlight|സൺലൈറ്റ്|🫧||detergent
+322|misc|Freek bar|ഫ്രീക്ക് ബാർ|🧺||
+323|clean|Active Plus dishwash gel|ആക്ടീവ് പ്ലസ് ഡിഷ്‌വാഷ് ജെൽ|🧽||
+324|clean|Pril dishwash|പ്രിൽ ഡിഷ്‌വാഷ്|🧽||
+325|clean|Vim dishwash gel|വിം ഡിഷ്‌വാഷ് ജെൽ|🧽||
+326|care|Dettol handwash refill|ഡെറ്റോൾ ഹാൻഡ്‌വാഷ് റീഫിൽ|🧴||
+327|clean|More Light liquid detergent|മോർ ലൈറ്റ് ലിക്വിഡ്|🫧||
+328|clean|More Light washing powder|മോർ ലൈറ്റ് സോപ്പുപൊടി|🫧||
+329|clean|Ariel|ഏരിയൽ|🫧||washing powder
+330|clean|Ariel|ഏരിയൽ|🫧||washing powder
+331|clean|Sun Plus washing powder|സൺ പ്ലസ് സോപ്പുപൊടി|🫧||
+332|clean|Surf washing powder|സർഫ് സോപ്പുപൊടി|🫧||
+333|clean|Ujala washing powder|ഉജാല സോപ്പുപൊടി|🫧||
+334|clean|Tide|ടൈഡ്|🫧||washing powder
+335|clean|Active Plus|ആക്ടീവ് പ്ലസ്|🫧||washing powder
+336|clean|Live washing powder|ലൈവ് സോപ്പുപൊടി|🫧||
+337|clean|Ujala washing powder|ഉജാല സോപ്പുപൊടി|🫧||
+338|clean|Henko washing powder|ഹെങ്കോ സോപ്പുപൊടി|🫧||
+339|clean|Henko liquid|ഹെങ്കോ ലിക്വിഡ്|🫧||detergent
+340|clean|X-All bleaching powder|എക്സ്-ഓൾ ബ്ലീച്ചിംഗ് പൗഡർ|🫧||
+341|clean|Soda ash|സോഡാക്കാരം|🫧||alakku karam
+342|clean|Outshine washing soda|ഔട്ട്ഷൈൻ അലക്കുകാരം|🫧||
+343|clean|Surf Excel|സർഫ് എക്സൽ|🫧||washing powder
+344|clean|Sabeena|സബീന|🧽||dishwash
+345|clean|Sabeena|സബീന|🧽||dishwash
+346|clean|Rice washing powder|റൈസ് സോപ്പുപൊടി|🫧||
+347|care|Cavigo|കാവിഗോ|🪥||toothpaste
+348|care|Cavigo|കാവിഗോ|🪥||toothpaste
+349|care|Sensodyne|സെൻസോഡൈൻ|🪥||toothpaste
+350|care|Sensodyne|സെൻസോഡൈൻ|🪥||toothpaste
+351|care|Namboodiri's toothpaste|നമ്പൂതിരീസ് ടൂത്ത്പേസ്റ്റ്|🪥||
+352|care|Namboodiri's mint toothpaste|നമ്പൂതിരീസ് മിന്റ്|🪥||
+353|care|Close Up|ക്ലോസ് അപ്|🪥||toothpaste
+354|care|Colgate|കോൾഗേറ്റ്|🪥||toothpaste
+355|care|Cavigo|കാവിഗോ|🪥||toothpaste
+356|care|Namboodiri's tooth powder|നമ്പൂതിരീസ് പല്ലുപൊടി|🪥||
+357|care|Namboodiri's tooth powder|നമ്പൂതിരീസ് പല്ലുപൊടി|🪥||
+358|clean|Rat killer|എലിവിഷം|🐀||eli visham
+359|care|Umikkari tooth powder|ഉമിക്കരി|🪥||
+360|clean|Floor cleaner|ഫ്ലോർ ക്ലീനർ|🧽||
+361|clean|Hygin Plus phenyl|ഹൈജിൻ പ്ലസ് ഫിനോയിൽ|🧽||phenol
+362|clean|Python floor cleaner|പൈത്തൺ ഫ്ലോർ ക്ലീനർ|🧽||
+363|misc|Neo 100|നിയോ 100|🧺||
+364|clean|Crew toilet cleaner|ക്രൂ ടോയ്‌ലറ്റ് ക്ലീനർ|🚽||
+365|clean|Lizol|ലൈസോൾ|🧽||floor cleaner
+366|clean|Lizol|ലൈസോൾ|🧽||floor cleaner
+367|clean|Antol cockroach killer|ആന്റോൾ പാറ്റ കൊല്ലി|🪳||cockroach
+368|clean|Floor cleaner|ഫ്ലോർ ക്ലീനർ|🧽||
+369|clean|Ant killer|ഉറുമ്പ് കൊല്ലി|🐜||urumbu
+370|clean|Ariel power gel|ഏരിയൽ പവർ ജെൽ|🫧||
+371|clean|Active Plus|ആക്ടീവ് പ്ലസ്|🫧||washing powder
+372|clean|Terminate ant killer|ടെർമിനേറ്റ് ഉറുമ്പ് കൊല്ലി|🐜||urumbu
+373|clean|Floor cleaner|ഫ്ലോർ ക്ലീനർ|🧽||
+374|care|Savlon handwash|സാവ്‌ലോൺ ഹാൻഡ്‌വാഷ്|🧴||
+375|clean|Floor cleaner|ഫ്ലോർ ക്ലീനർ|🧽||
+376|clean|Ariel power gel|ഏരിയൽ പവർ ജെൽ|🫧||
+377|care|Stayfree|സ്റ്റേഫ്രീ|🌸||pad
+378|care|Stayfree|സ്റ്റേഫ്രീ|🌸||pad
+379|care|Stayfree|സ്റ്റേഫ്രീ|🌸||pad
+380|care|Stayfree|സ്റ്റേഫ്രീ|🌸||pad
+381|care|Stayfree|സ്റ്റേഫ്രീ|🌸||pad
+382|care|Whisper|വിസ്പർ|🌸||pad
+383|care|Whisper|വിസ്പർ|🌸||pad
+384|care|Whisper|വിസ്പർ|🌸||pad
+385|care|Whisper|വിസ്പർ|🌸||pad
+386|care|Dettol liquid handwash|ഡെറ്റോൾ ലിക്വിഡ് ഹാൻഡ്‌വാഷ്|🧴||
+387|care|Detrox handwash|ഡിട്രോക്സ് ഹാൻഡ്‌വാഷ്|🧴||
+388|care|Parachute coconut oil|പാരച്യൂട്ട് വെളിച്ചെണ്ണ|🥥||hair oil
+389|care|Parachute coconut oil|പാരച്യൂട്ട് വെളിച്ചെണ്ണ|🥥||hair oil
+390|clean|Hygino Max phenyl|ഹൈജിനോ മാക്സ് ഫിനോയിൽ|🧽||phenol
+391|clean|Harpic bathroom cleaner|ഹാർപിക് ബാത്ത്റൂം ക്ലീനർ|🚽||
+392|clean|Harpic|ഹാർപിക്|🚽||toilet cleaner
+393|clean|Harpic|ഹാർപിക്|🚽||toilet cleaner
+394|care|Dhathri herbal shampoo|ധാത്രി ഹെർബൽ ഷാംപൂ|🧴||
+395|care|Dhathri herbal shampoo|ധാത്രി ഹെർബൽ ഷാംപൂ|🧴||
+396|care|Chik shampoo|ചിക് ഷാംപൂ|🧴||
+397|care|Head & Shoulders|ഹെഡ് & ഷോൾഡേഴ്സ്|🧴||shampoo
+398|care|Fiama shower gel|ഫിയാമ ഷവർ ജെൽ|🧴||
+399|care|Fiama shower gel|ഫിയാമ ഷവർ ജെൽ|🧴||
+400|care|Chandrika glycerine soap|ചന്ദ്രിക ഗ്ലിസറിൻ|🧼||
+401|clean|Ujala whitener|ഉജാല|🫧||
+402|clean|Ujala whitener|ഉജാല|🫧||
+403|care|Young & Fresh conditioner|യംഗ് & ഫ്രഷ് കണ്ടീഷണർ|🧴||
+404|clean|Comfort fabric conditioner|കംഫർട്ട്|🫧||
+405|clean|Stiff & Bright|സ്റ്റിഫ് & ബ്രൈറ്റ്|🫧||starch
+406|clean|Stiff & Bright|സ്റ്റിഫ് & ബ്രൈറ്റ്|🫧||starch
+407|clean|Exo bar|എക്സോ ബാർ|🧽||dishwash
+408|clean|Exo scrubber|എക്സോ സ്ക്രബർ|🧽||
+409|clean|Citrus Plus scrubber|സിട്രസ് പ്ലസ് സ്ക്രബർ|🧽||
+410|clean|Hygino Max car shampoo|ഹൈജിനോ മാക്സ് കാർ ഷാംപൂ|🚗||
+411|clean|Fast Track car shampoo|ഫാസ്റ്റ് ട്രാക്ക് കാർ ഷാംപൂ|🚗||
+412|misc|Lackrol|ലാക്രോൾ|🧺||
+413|clean|Comfort fabric conditioner|കംഫർട്ട്|🫧||
+414|care|VIP hair colour shampoo|വിഐപി ഹെയർ കളർ ഷാംപൂ|🧴||
+415|care|Rich shampoo|റിച്ച് ഷാംപൂ|🧴||
+416|care|Parachute protein shampoo|പാരച്യൂട്ട് പ്രോട്ടീൻ ഷാംപൂ|🧴||
+417|care|Head & Shoulders shampoo|ഹെഡ് & ഷോൾഡേഴ്സ് ഷാംപൂ|🧴||
+418|care|Clinic Plus sachet|ക്ലിനിക് പ്ലസ്|🧴||shampoo
+419|misc|Shinol|ഷിനോൾ|🧺||
+420|dairy|Milma milk|മിൽമ പാൽ|🥛|milk|paal
+421|dairy|Elanadu milk|ഇളനാട് പാൽ|🥛|milk|paal
+422|dairy|YTE milk|വൈടിഇ പാൽ|🥛|milk|paal
+423|dairy|Milma butter, unsalted|മിൽമ ബട്ടർ (ഉപ്പില്ലാത്തത്)|🧈|butter|venna
+424|dairy|Milma cheese|മിൽമ ചീസ്|🧀|cheese|
+425|dairy|Milky Mist butter|മിൽക്കി മിസ്റ്റ് ബട്ടർ|🧈|butter|venna
+426|dairy|Milky Mist butter|മിൽക്കി മിസ്റ്റ് ബട്ടർ|🧈|butter|venna
+427|dairy|Milky Mist cheese|മിൽക്കി മിസ്റ്റ് ചീസ്|🧀|cheese|
+428|dairy|Milky Mist paneer|മിൽക്കി മിസ്റ്റ് പനീർ|🧀|paneer|
+429|dairy|Sherz samosa sheets|ഷെർസ് സമൂസ ഷീറ്റ്|❄️||
+430|dairy|Frozen green peas|ഫ്രോസൺ ഗ്രീൻ പീസ്|❄️|frozenpeas|pattani
+431|fruit|Nendran banana|നേന്ത്രപ്പഴം|🍌|nendran|nenthrapazham ethapazham
+432|fruit|Aani banana|ആണി പഴം|🍌|poovan|pazham
+433|fruit|Robusta banana|റോബസ്റ്റ പഴം|🍌|cat-fruit|pazham
+434|fruit|Mysore banana|മൈസൂർ പഴം|🍌|poovan|pazham
+435|dairy|Egg|മുട്ട|🥚|egg|mutta
+436|veg|Onion|സവാള|🧅|onion|savala valiya ulli
+437|veg|Potato|ഉരുളക്കിഴങ്ങ്|🥔|potato|urulakkizhangu
+438|veg|Garlic|വെളുത്തുള്ളി|🧄|garlic|veluthulli
+439|veg|Shallots|ചെറിയ ഉള്ളി|🧅|shallot|cheriya ulli chuvannulli
+440|veg|Cucumber|കക്കിരി|🥒|cucumber|kakkiri
+441|veg|Green chilli|പച്ചമുളക്|🌶️|greenchilli|pachamulaku
+442|veg|Tomato|തക്കാളി|🍅|tomato|thakkali
+443|veg|Ladies finger|വെണ്ടയ്ക്ക|🥒|okra|vendakka okra
+444|veg|Brinjal|വഴുതനങ്ങ|🍆|brinjal|vazhuthananga
+445|veg|Pumpkin|മത്തങ്ങ|🎃|pumpkin|mathanga
+446|veg|Elephant yam|ചേന|🍠||chena
+447|veg|Beans|ബീൻസ്|🫛|beans|beans
+448|veg|Vellari cucumber|വെള്ളരിക്ക|🥒|vellari|vellarikka
+449|veg|Ash gourd|ഇളവൻ|🥒|ashgourd|elavan kumbalanga
+450|veg|Snake gourd|പടവലങ്ങ|🥒|snakegourd|padavalanga
+451|veg|Bitter gourd|കയ്പക്ക|🥒|bittergourd|kaypakka pavakka
+452|veg|Curry leaves|കറിവേപ്പില|🌿|curryleaf|kariveppila
+453|veg|Mint|പുതിന|🌿|mint|puthina
+454|veg|Cauliflower|കോളിഫ്ലവർ|🥦|cauliflower|gobi
+455|veg|Capsicum|കാപ്സിക്കം|🫑|capsicum|
+456|veg|Drumstick|മുരിങ്ങക്കായ|🥒|drumstick|muringakka
+457|veg|Lemon|ചെറുനാരങ്ങ|🍋|lemon|cheru naranga
+458|veg|Ginger|ഇഞ്ചി|🫚|ginger|inji
+459|veg|Coriander leaves|മല്ലിയില|🌿|corianderleaf|malliyila
