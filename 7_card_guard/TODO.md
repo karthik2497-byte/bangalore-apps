@@ -6,9 +6,8 @@ physical device.
 
 ## Needs you (no code)
 
-1. **Contact email in `privacy.html`** — replace `REPLACE_WITH_CONTACT_EMAIL`.
-   Play rejects a listing whose policy page has no contact. MeterSmart's
-   `privacy.html` has the same placeholder; fix both together.
+1. ~~**Contact email in `privacy.html`**~~ — done 2026-10-10: ckventurestech@gmail.com in all five
+   policies.
 2. **Create the Play Console product** `cardguard_premium_yearly`, ₹99, yearly.
    Until it exists, `getDetails()` returns nothing and the upgrade button will
    say "Product not available yet" even inside the Play build.

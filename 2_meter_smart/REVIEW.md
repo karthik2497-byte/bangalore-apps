@@ -114,7 +114,7 @@ Severity: **P0** breaks data, trust or the core flow · **P1** real bug or WCAG 
 - [x] "No complaints filed yet" (2545): these are generated drafts, not filed complaints.
 - [ ] Kannada covers only the calculator. Ride Log, Tips and Profile are English (a known open item).
 - [x] Night auto-detect runs once at load. An app left open across 10 PM keeps the day rate.
-- [ ] `privacy.html` still has `REPLACE_WITH_CONTACT_EMAIL` (known, NEXT_STEPS §3).
+- [x] `privacy.html` contact: ckventurestech@gmail.com (2026-10-10).
 
 ### P3 / design-detector findings (taste: leave unless redesigning)
 

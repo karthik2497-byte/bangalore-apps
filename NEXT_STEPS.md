@@ -104,9 +104,6 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       Robusta ₹45 per kg.
       A corrected sheet re-imports with `python3 8_thraasu/tools/nanma-import.py "<sheet>.xlsx"`
       (names/categories live in `tools/nanma-table.txt`, one line per sheet row).
-- [ ] `REPLACE_WITH_CONTACT_EMAIL` in all five `privacy.html` files (Thraasu's before real shop owners
-      sign up: it is where they ask for deletion): Thraasu, MeterSmart,
-      LingoLocal, StockPing, CardGuard. Play Store listing requires a reachable address.
 - [ ] *(review)* MeterSmart now uses the **Aug 2025 Bengaluru tariff** (₹36 + ₹18/km,
       waiting ₹10 per 15 min after 5 free). It was checked on 2026-10-10 against press
       reports of the 14 Jul 2025 DTA notification. Confirm it against the notification

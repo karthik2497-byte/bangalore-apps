@@ -125,7 +125,7 @@ Severity: **P0** breaks data, trust or the core flow · **P1** real bug or WCAG 
 - [x] Splash: fixed 2 s on every launch (1189).
 - [x] **Stale TODO.** `TODO.md` item 9 (the MeterSmart/LingoLocal font CSP) was fixed on
   2026-08-29. Delete it.
-- [ ] `privacy.html` still has `REPLACE_WITH_CONTACT_EMAIL` (known, TODO.md #1).
+- [x] `privacy.html` contact: ckventurestech@gmail.com (2026-10-10).
 
 ### P3 / design-detector findings
 
