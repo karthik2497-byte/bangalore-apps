@@ -97,11 +97,12 @@ button:disabled { cursor: default; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 10px; }
 
 .cat {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-height: 116px; padding: 14px 14px 12px;
+  display: flex; flex-direction: column; overflow: hidden; padding: 0;
   border: 0; border-radius: var(--r); background: var(--tint); color: var(--tint-ink); text-align: left;
   transition: transform 160ms var(--ease);
 }
-.cat .emo { font-size: 34px; margin-bottom: auto; padding-bottom: 10px; }
+.cat .ph { aspect-ratio: 16 / 10; font-size: 40px; }
+.cat .meta { display: flex; flex-direction: column; gap: 1px; padding: 10px 14px 12px; }
 .cat b { font-size: 19px; font-weight: 680; line-height: 1.25; font-stretch: 92%; }
 .cat small { font-size: 13.5px; font-weight: 500; }
 .cat:active, .prod:active, .row:active { transform: scale(.97); }
@@ -122,7 +123,7 @@ button:disabled { cursor: default; }
 }
 .pan img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .prod {
-  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 152px; padding: 12px;
+  position: relative; display: flex; flex-direction: column; overflow: hidden; padding: 0;
   border: 1px solid var(--line); border-radius: var(--r); background: var(--slip); text-align: left; box-shadow: var(--lift);
   transition: transform 160ms var(--ease), border-color 160ms;
 }
@@ -130,12 +131,21 @@ button:disabled { cursor: default; }
 .names b { font-size: 17.5px; font-weight: 640; line-height: 1.3; font-stretch: 90%; overflow-wrap: anywhere; }
 .names small { font-size: 13px; color: var(--ink-2); }
 .rate { margin-top: auto; font-size: 15px; font-weight: 640; color: var(--leaf-deep); }
-.prod.in { border-color: var(--leaf); box-shadow: inset 0 0 0 1px var(--leaf), var(--lift); }
+/* A tile's photo: the emoji sits large on the sack tint, and the photo (if any) covers it. */
+.ph {
+  position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3; overflow: hidden;
+  background: var(--tint); font-size: 46px;
+}
+.ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.prod .meta { display: flex; flex: 1; flex-direction: column; gap: 6px; width: 100%; padding: 10px 12px 12px; }
+/* outline, not an inset shadow: it paints above the photo. Never over the focus ring. */
+.prod.in { border-color: var(--leaf); }
+.prod.in:not(:focus-visible) { outline: 1px solid var(--leaf); outline-offset: -2px; }
 .badge {
   padding: 2px 9px; border-radius: 999px; background: var(--leaf); color: #fff;
   font-size: 13px; font-weight: 650; white-space: nowrap;
 }
-.prod .badge { position: absolute; top: 12px; right: 10px; }
+.prod .badge { position: absolute; top: 8px; right: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
 
 .results { overflow: hidden; border: 1px solid var(--line); border-radius: var(--r); background: var(--slip); box-shadow: var(--lift); }
 .row {
@@ -495,7 +505,7 @@ let cats = [], products = [], byId = new Map(), catById = new Map();
 let bill = loadBill();
 let cat = null;             // open category, or null for the category grid
 let sheet = null;           // the quantity sheet's working state
-let undoState = null, toastTimer = 0;
+let undoState = null, toastTimer = 0, toastAct = null;
 let samplePrices = false;   // products.json says its rates are placeholders
 
 // ---------- small formatters ----------
@@ -507,7 +517,8 @@ const rateLabel = (rate, unit) => unit === 'pc' ? `${fmtMoney(rate, true)} ഒ�
 const lineDesc = (qty, rate, unit) => unit === 'pc' ? `${qty} × ${fmtMoney(rate, true)}` : `${fmtQty(qty, unit)} × ${fmtMoney(rate, true)}/${UNITS[unit].big}`;
 const asItem = p => ({ pid: p.id, cat: p.cat, ml: p.ml, en: p.en || '', icon: p.icon || '', img: safeImg(p.img), unit: p.unit, rate: p.rate });
 // A scale pan: the emoji always, a photo over it when products.json names one (a broken one is removed).
-const pan = x => `<span class="pan emo" aria-hidden="true">${esc(x.icon || '')}${x.img ? `<img src="./${esc(x.img)}" alt="" loading="lazy">` : ''}</span>`;
+const shot = cls => x => `<span class="${cls} emo" aria-hidden="true">${esc(x.icon || '')}${x.img ? `<img src="./${esc(x.img)}" alt="" loading="lazy">` : ''}</span>`;
+const pan = shot('pan'), photo = shot('ph');   // round pan in rows and the bill; across the top of a tile
 const lineOf = pid => bill.lines.find(l => l.pid === pid);
 
 // ---------- persistence ----------
@@ -558,14 +569,14 @@ function renderShelf() {
   if (cat && catById.has(cat)) return renderCategory(catById.get(cat));
   $('shelf').innerHTML = `<div class="shelf-head"><h2>വിഭാഗങ്ങൾ</h2></div><div class="grid">${cats.map(c => {
     const n = products.filter(p => p.cat === c.id).length;
-    return `<button class="cat" type="button" data-cat="${esc(c.id)}"><span class="emo" aria-hidden="true">${esc(c.icon || '')}</span><b>${esc(c.ml)}</b><small><span lang="en">${esc(c.en || '')}</span> · ${n}</small></button>`;
+    return `<button class="cat" type="button" data-cat="${esc(c.id)}">${photo({ icon: c.icon, img: safeImg(c.img) })}<span class="meta"><b>${esc(c.ml)}</b><small><span lang="en">${esc(c.en || '')}</span> · ${n}</small></span></button>`;
   }).join('')}</div>`;
 }
 function renderCategory(c) {
   const items = products.filter(p => p.cat === c.id);
   $('shelf').innerHTML = `<div class="crumb" data-cat="${esc(c.id)}"><button class="back" id="backBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>വിഭാഗങ്ങൾ</button><h2>${esc(c.ml)}<small lang="en">${esc(c.en || '')}</small></h2></div><div class="grid">${items.map(p => {
     const l = lineOf(p.id);
-    return `<button class="prod${l ? ' in' : ''}" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${pan({ icon: p.icon, img: safeImg(p.img) })}<span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}</span>${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</button>`;
+    return `<button class="prod${l ? ' in' : ''}" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${photo({ icon: p.icon, img: safeImg(p.img) })}<span class="meta"><span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}</span></span>${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</button>`;
   }).join('')}</div>`;
 }
 function renderResults(q) {
@@ -678,18 +689,73 @@ function renderBill() {
   $('bbCount').textContent = n ? countLabel(n) : 'ബില്ലിൽ ഒന്നുമില്ല';
   $('bbTotal').textContent = n ? fmtMoney(t.total, true) : '';
 }
-function renderReceipt() {
+// One receipt, two renderings: #receipt (print media) and receiptCanvas() (shared image).
+function receiptData() {
   const t = totals(bill.lines, bill.discount);
-  const shop = $('shopName').value.trim();
+  return {
+    shop: $('shopName').value.trim(),
+    meta: [`ബിൽ നം. ${billNo(bill.no)} · ${fmtDate(new Date())}`].concat(samplePrices ? ['മാതൃകാ വിലകൾ · sample prices'] : []),
+    items: bill.lines.map(l => [l.ml, lineDesc(l.qty, l.rate, l.unit), fmtMoney(lineAmount(l.rate, l.qty, l.unit))]),
+    sums: [['തുക', fmtMoney(t.subtotal)]]
+      .concat(t.discount ? [['കിഴിവ്', '−' + fmtMoney(t.discount)]] : [], t.roundOff ? [['റൗണ്ട് ഓഫ്', signed(t.roundOff)]] : []),
+    total: ['ആകെ', fmtMoney(t.total, true)],
+    thanks: 'നന്ദി, വീണ്ടും വരിക!',
+  };
+}
+function renderReceipt() {
+  const r = receiptData();
   const row = (a, b, cls = '') => `<tr${cls ? ` class="${cls}"` : ''}><td>${a}</td><td>${b}</td></tr>`;
-  $('receipt').innerHTML = (shop ? `<h1>${esc(shop)}</h1>` : '') +
-    `<p class="meta">ബിൽ നം. ${billNo(bill.no)} · ${esc(fmtDate(new Date()))}</p>` +
-    (samplePrices ? '<p class="meta">മാതൃകാ വിലകൾ · sample prices</p>' : '') + '<hr><table>' +
-    bill.lines.map(l => row(`${esc(l.ml)}<div class="sub">${esc(lineDesc(l.qty, l.rate, l.unit))}</div>`, fmtMoney(lineAmount(l.rate, l.qty, l.unit)))).join('') +
-    `</table><hr><table>${row('തുക', fmtMoney(t.subtotal))}` +
-    (t.discount ? row('കിഴിവ്', '−' + fmtMoney(t.discount)) : '') +
-    (t.roundOff ? row('റൗണ്ട് ഓഫ്', signed(t.roundOff)) : '') +
-    row('ആകെ', fmtMoney(t.total, true), 'grand') + `</table><hr><p class="thanks">നന്ദി, വീണ്ടും വരിക!</p>`;
+  $('receipt').innerHTML = (r.shop ? `<h1>${esc(r.shop)}</h1>` : '') +
+    r.meta.map(m => `<p class="meta">${esc(m)}</p>`).join('') + '<hr><table>' +
+    r.items.map(([name, desc, amt]) => row(`${esc(name)}<div class="sub">${esc(desc)}</div>`, amt)).join('') +
+    `</table><hr><table>${r.sums.map(([k, v]) => row(k, v)).join('')}` +
+    row(...r.total, 'grand') + `</table><hr><p class="thanks">${r.thanks}</p>`;
+}
+// The same receipt as an image, 576 px wide: the printable width of an 80 mm thermal roll
+// at 203 dpi, so it also prints 1:1 through RawBT. fillText's maxWidth squeezes long text
+// rather than overflowing.
+function receiptCanvas() {
+  const r = receiptData(), W = 576, P = 28, ff = getComputedStyle(document.body).fontFamily;
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  const pass = draw => {
+    let y = P;
+    const put = (s, px, wt, align, x, max) => {
+      if (!draw) return;
+      g.font = `${wt} ${px}px ${ff}`; g.textAlign = align; g.fillText(s, x, y, max);
+    };
+    const center = (s, px, wt) => { put(s, px, wt, 'center', W / 2, W - 2 * P); y += px * 1.45; };
+    const row = (a, b, px, wt) => { put(a, px, wt, 'left', P, W * .62 - P); put(b, px, wt, 'right', W - P, W * .36 - P); y += px * 1.45; };
+    const rule = () => {
+      if (draw) { g.setLineDash([6, 5]); g.beginPath(); g.moveTo(P, y + 9); g.lineTo(W - P, y + 9); g.stroke(); }
+      y += 20;
+    };
+    if (r.shop) center(r.shop, 34, 700);
+    r.meta.forEach(m => center(m, 19, 500));
+    rule();
+    r.items.forEach(([name, desc, amt]) => { row(name, amt, 25, 600); put(desc, 19, 500, 'left', P, W - 2 * P); y += 19 * 1.7; });
+    rule();
+    r.sums.forEach(([k, v]) => row(k, v, 22, 500));
+    row(...r.total, 32, 800);
+    rule();
+    center(r.thanks, 22, 500);
+    return Math.ceil(y + P);
+  };
+  c.width = W; c.height = pass(false);
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, c.height);
+  g.fillStyle = g.strokeStyle = '#000'; g.lineWidth = 2; g.textBaseline = 'top';
+  pass(true);
+  return c;
+}
+// iPhone Home Screen apps (and in-app browsers) ignore window.print(): no sheet, no events.
+// Sharing the image reaches the same printers: the share sheet offers Print, WhatsApp, Files.
+// Synchronous to the tap (toDataURL, not toBlob), so the share keeps its user activation.
+function shareBill() {
+  renderReceipt();
+  const name = `Thraasu-Bill-${billNo(bill.no)}.png`, url = receiptCanvas().toDataURL('image/png');
+  const file = new File([Uint8Array.from(atob(url.split(',')[1]), ch => ch.charCodeAt(0))], name, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: name }).catch(() => {});
+  const a = document.createElement('a');                // no file sharing (desktop): save the image
+  a.href = url; a.download = name; a.click();
 }
 function removeLine(i) {
   const l = bill.lines[i];
@@ -707,11 +773,15 @@ function newBill() {
   toast(`പുതിയ ബിൽ നം. ${billNo(bill.no)}`);
 }
 function printBill() {
+  if (navigator.standalone) return shareBill();         // iOS Home Screen: print() is a no-op
   renderReceipt();                                       // stamps the print time
   const title = document.title;
+  let opened = false;
   document.title = `Thraasu-Bill-${billNo(bill.no)}`;   // Save as PDF names the file from this
+  addEventListener('beforeprint', () => { opened = true; }, { once: true });
   addEventListener('afterprint', () => { document.title = title; }, { once: true });
   window.print();
+  setTimeout(() => { if (!opened) { document.title = title; toast('പ്രിന്റ് തുറന്നില്ലേ?', 'ഷെയർ ചെയ്യുക', shareBill); } }, 1500);
 }
 
 // Phones: the bill is a full-screen layer with a history entry, so Android's back
@@ -735,8 +805,10 @@ function showBill(on) {
 }
 
 // ---------- toast with undo ----------
-function toast(msg) {
+function toast(msg, label = 'പഴയപടി', act = undo) {
   $('toastMsg').textContent = msg;
+  $('toastUndo').textContent = label;
+  toastAct = act;
   $('toast').classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(hideToast, 6000);
@@ -812,12 +884,13 @@ $('discount').addEventListener('change', () => {
 $('shopName').addEventListener('input', () => { try { localStorage.setItem(SHOP_KEY, $('shopName').value); } catch {} });
 $('printBtn').addEventListener('click', printBill);
 $('newBill').addEventListener('click', newBill);
-$('toastUndo').addEventListener('click', () => {
+function undo() {
   if (!undoState) return hideToast();
   bill = JSON.parse(undoState);
   undoState = null;
   saveBill(); renderBill(); renderShelf(); hideToast();
-});
+}
+$('toastUndo').addEventListener('click', () => toastAct());
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('bill').classList.contains('open') && !sheetEl.open) closeBill();
 });

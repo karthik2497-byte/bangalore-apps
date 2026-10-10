@@ -1,0 +1,80 @@
+# Photo credits
+
+All photos are from Unsplash under the Unsplash License (free for commercial use, no attribution required; listed here for provenance). Fetched 2026-10-10 at 400×400, WebP q72.
+
+- `tomato.webp`: Aleksander Joachimiak, https://unsplash.com/photos/a-couple-of-tomatoes-sitting-next-to-each-other-czNnLt2GRcs
+- `onion.webp`: K8, https://unsplash.com/photos/pink-and-white-garlic-on-white-surface-0_fkPHulv-M
+- `shallot.webp`: Dhivyaa Naraayani, https://unsplash.com/photos/purple-onions-TrpbyLfOG14
+- `potato.webp`: Lars Blankers, https://unsplash.com/photos/brown-potato-lot-B0s3Xndk6tw
+- `carrot.webp`: K8, https://unsplash.com/photos/carrots-with-green-leafy-tops-GHRT9j21m2M
+- `beans.webp`: Arinal Izzah, https://unsplash.com/photos/bundle-of-green-yardlong-beans-oPMH50cYrZE
+- `greenchilli.webp`: Hari Krishnan, https://unsplash.com/photos/green-chili-on-white-surface-f1BMuugVyyM
+- `ginger.webp`: Mockup Graphics, https://unsplash.com/photos/white-and-brown-stone-on-white-surface-1q4IIdEnIWA
+- `garlic.webp`: Mockup Graphics, https://unsplash.com/photos/blue-and-white-butterfly-wings-PR79IfX9Hi8
+- `tapioca.webp`: Daniel Dan, https://unsplash.com/photos/pile-of-freshly-harvested-cassava-roots-sixDoAtyVwo
+- `cucumber.webp`: Mockup Graphics, https://unsplash.com/photos/green-cucumber-on-white-surface-UrLT3x0x9sA
+- `brinjal.webp`: Mockup Graphics, https://unsplash.com/photos/black-and-green-chili-pepper-Ox_u9F-UqPI
+- `cabbage.webp`: Dixit Dhinakaran, https://unsplash.com/photos/a-head-of-cabbage-sitting-on-top-of-a-cutting-board-zuNdZ2t0-44
+- `coconut.webp`: Irene Kredenets, https://unsplash.com/photos/coconuts-on-white-surface-E95Lpkg-bgc
+- `curryleaf.webp`: Jordan Ling, https://unsplash.com/photos/a-close-up-of-a-green-plant-with-drops-of-water-on-it-ggcUXltg9M4
+- `lemon.webp`: Mockup Graphics, https://unsplash.com/photos/sliced-orange-fruit-on-white-background-G693X4i3F2I
+- `nendran.webp`: Mockup Graphics, https://unsplash.com/photos/yellow-banana-on-white-background-Kl3467edwsE
+- `poovan.webp`: Gabriel Mihalcea, https://unsplash.com/photos/a-bunch-of-bananas-sitting-on-top-of-a-white-table-1jyRHJPkpz8
+- `apple.webp`: Amit Lahav, https://unsplash.com/photos/red-apple-on-white-background-rxN2MRdFJVg
+- `orange.webp`: Abdullah Nazeer, https://unsplash.com/photos/a-single-orange-sitting-on-top-of-a-white-surface-E3tj-mse3W4
+- `pineapple.webp`: Julien Pianetti, https://unsplash.com/photos/pineapple-on-white-surface-Cr9hZrpC1Oc
+- `grapes.webp`: Mockup Graphics, https://unsplash.com/photos/yellow-and-white-pearl-beaded-necklace-y2l-biN_kPE
+- `mango.webp`: Becky Mattson, https://unsplash.com/photos/yellow-mango-7iLlgS5o09c
+- `watermelon.webp`: Mockup Graphics, https://unsplash.com/photos/sliced-watermelon-on-white-background-13PBliWTDng
+- `matta.webp`: Łukasz Rawa, https://unsplash.com/photos/brown-and-white-dried-leaves-_yMoUYfDnTY
+- `jaya.webp`: Rens D, https://unsplash.com/photos/a-spoon-filled-with-rice-on-top-of-a-table-q5oFM2GYbWM
+- `biriyani.webp`: Pierre Bamin, https://unsplash.com/photos/raw-white-rice-grains-background--LdilhDx3sk
+- `puttu.webp`: Roman Matveev, https://unsplash.com/photos/a-bowl-of-flour-sitting-on-top-of-a-table-quVArOn8-30
+- `appam.webp`: Tania Melnyczuk, https://unsplash.com/photos/round-white-ceramic-bowl-hicsLTRz0DA
+- `atta.webp`: Immo Wegmann, https://unsplash.com/photos/brown-wooden-brush-on-white-sand-clUKWRNm27w
+- `rava.webp`: Wolfgang Hasselmann, https://unsplash.com/photos/brown-textile-on-brown-textile-tdNWPQUqxZE
+- `maida.webp`: Olga Kudriavtseva, https://unsplash.com/photos/stainless-steel-cup-with-brown-powder-xw8pttN8MBg
+- `toor.webp`: Jaspreet Kalsi, https://unsplash.com/photos/a-close-up-of-a-pile-of-yellow-corn-fG-hTySl7kI
+- `moong.webp`: David Gabrielyan, https://unsplash.com/photos/yellow-beans-on-white-surface-ecpymDlXwHE
+- `kadala.webp`: Karyna Panchenko, https://unsplash.com/photos/a-bowl-filled-with-chickpeas-sitting-on-top-of-a-table-5352eOUYay4
+- `urad.webp`: Alex Bayev, https://unsplash.com/photos/a-bowl-filled-with-white-beans-on-top-of-a-table-wfPwYKKJbMY
+- `vanpayar.webp`: Łukasz Rawa, https://unsplash.com/photos/red-round-fruits-on-white-surface-h-xmD_Sg_08
+- `peas.webp`: Mrs Chimpanzeee, https://unsplash.com/photos/a-full-frame-of-dried-light-brown-chickpeas-TO7zLB2i-QI
+- `coconutoil.webp`: Towfiqu barbhuiya, https://unsplash.com/photos/red-tomato-on-white-ceramic-plate-vuctv0AnlwY
+- `sunflower.webp`: jonathan ocampo, https://unsplash.com/photos/oil-dispenser-bottle-iCgfwfqgdzo
+- `gingelly.webp`: Addilyn Ragsdill @clockworklemon.com, https://unsplash.com/photos/a-bottle-of-garlic-oil-sitting-on-top-of-a-counter-47Pg5Eswnnk
+- `ghee.webp`: Megumi Nachev, https://unsplash.com/photos/jar-of-butter-with-spoon-xhOUnxVVb6s
+- `milk.webp`: Kim Leary, https://unsplash.com/photos/clear-drinking-glass-with-white-liquid-p3ViLmVgVJ4
+- `curd.webp`: micheile henderson, https://unsplash.com/photos/a-bowl-of-yogurt-with-a-spoon-in-it-NFHeBysjCTI
+- `egg.webp`: Zaz Noba, https://unsplash.com/photos/a-carton-of-eggs-next-to-a-dozen-eggs-ooLc2cM9m7c
+- `butter.webp`: Jess Bailey, https://unsplash.com/photos/white-ceramic-bowl-with-white-liquid-tT5ACBfqo0s
+- `paneer.webp`: Christina, https://unsplash.com/photos/a-plate-of-cheese-jntQPBIK_sE
+- `salt.webp`: charlesdeluvio, https://unsplash.com/photos/white-snow-on-brown-sand-sSLI7KXPwzU
+- `sugar.webp`: Immo Wegmann, https://unsplash.com/photos/a-spoon-full-of-sugar-on-top-of-a-table-gUORqj2KYGE
+- `jaggery.webp`: Ashwini Chaudhary(Monty), https://unsplash.com/photos/jaggery-pieces-on-metal-plate-uTMRZExOjbs
+- `tea.webp`: Oleg Guijinsky, https://unsplash.com/photos/black-burnt-matchsticks-closeup-photography-2CRgKZAyPXg
+- `coffee.webp`: Christina Rumpf, https://unsplash.com/photos/coffee-beans-and-ground-coffee-breakfast-LMzwJDu6hTE
+- `chillipowder.webp`: Towfiqu barbhuiya, https://unsplash.com/photos/red-chili-on-clear-glass-bowl-ul3G99O5oIA
+- `turmeric.webp`: Mockup Graphics, https://unsplash.com/photos/round-brown-powder-on-white-surface-4kwng1w5Lwg
+- `coriander.webp`: Mockupo, https://unsplash.com/photos/brown-and-beige-beans-on-white-ceramic-bowl-nOyjlj-dse0
+- `mustard.webp`: Jaspreet Kalsi, https://unsplash.com/photos/a-pile-of-black-seed-next-to-a-spoon-Wcw3xd5Nk78
+- `pepper.webp`: Nancy Hughes, https://unsplash.com/photos/a-white-bowl-filled-with-lots-of-black-pepper-oMX8ae2Scmo
+- `cardamom.webp`: Karyna Panchenko, https://unsplash.com/photos/a-pile-of-green-beans-sitting-on-top-of-a-white-table-bF404j83DH0
+- `matchbox.webp`: Cris DiNoto, https://unsplash.com/photos/orange-and-black-book-with-white-background-Sh_Q0cPzO7g
+- `soap.webp`: Sincerely Media, https://unsplash.com/photos/white-and-brown-cake-on-white-textile-gKqUuChJ83g
+- `notebook.webp`: Marissa Grootes, https://unsplash.com/photos/empty-spiral-notebook-near-keyboard-and-pen-vdaJJbls3xE
+- `pen.webp`: Kiran CK, https://unsplash.com/photos/black-pen-on-white-background-6rXpQzfCYlw
+- `pencil.webp`: Daniel Shapiro, https://unsplash.com/photos/a-pencil-with-a-yellow-tip-X08CpWnZtWY
+- `eraser.webp`: Daniel Shapiro, https://unsplash.com/photos/text-r5KFjtLvB_I
+- `ruler.webp`: William Warby, https://unsplash.com/photos/gray-and-yellow-measures-WahfNoqbYnM
+- `chart.webp`: Merve Sehirli Nasir, https://unsplash.com/photos/a-cup-of-coffee-sitting-on-top-of-a-table-aQKpYpUtfOI
+- `glue.webp`: charlesdeluvio, https://unsplash.com/photos/orange-and-white-plastic-bottle-AJIJ6Gmy0KM
+- `envelope.webp`: Valeria Reverdo, https://unsplash.com/photos/a-white-envelope-with-a-red-stamp-on-it-rKluCY7dPN4
+- `cat-veg.webp`: Mockuuups, https://unsplash.com/photos/a-table-topped-with-bags-filled-with-different-types-of-vegetables-HeP33WOkVqM
+- `cat-fruit.webp`: Giorgio Trovato, https://unsplash.com/photos/yellow-bananas-fczCr7MdE7U
+- `cat-rice.webp`: Mehmet Keskin, https://unsplash.com/photos/a-glass-bowl-filled-with-rice-on-top-of-a-white-table-wGDGlVxEE20
+- `cat-pulses.webp`: Łukasz Rawa, https://unsplash.com/photos/brown-and-black-dried-leaves-HoEYJxkVJk8
+- `cat-oil.webp`: Roberta Sorge, https://unsplash.com/photos/clear-glass-cruet-bottle-uOBApnN_K7w
+- `cat-dairy.webp`: Mary Skrynnikova 💛💙, https://unsplash.com/photos/a-bottle-of-milk-next-to-a-glass-of-milk-c6TKtsi8C1k
+- `cat-spice.webp`: Merve Sehirli Nasir, https://unsplash.com/photos/assorted-spices-in-clear-glass-containers-dSbUXPQ8Sm8
+- `cat-stat.webp`: engin akyurt, https://unsplash.com/photos/notebook-and-pen-on-white-IZj7vckPGiw

@@ -3,7 +3,7 @@
 // Run: node 8_thraasu/test-bill.mjs
 // bill-core.js is the file the page loads, run here as-is, never copied.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import vm from 'node:vm';
@@ -127,6 +127,13 @@ t('every emoji in the price list is in the subset webfont request', () => {
   const subset = new Set([...decodeURIComponent(m[1])]);
   const icons = [...data.categories, ...data.products].map(x => x.icon);
   for (const icon of icons) for (const ch of icon) assert.ok(subset.has(ch), `${icon} U+${ch.codePointAt(0).toString(16)} not in &text=`);
+});
+
+t('every product and category photo is a safe path to a file that ships', () => {
+  for (const x of [...data.categories, ...data.products]) {
+    assert.ok(safeImg(x.img), `${x.id}: img missing or unsafe`);
+    assert.ok(existsSync(join(APP, x.img)), `${x.id}: ${x.img} not in the repo`);
+  }
 });
 
 console.log(`OK: ${n} checks passed (thraasu bill-core)`);

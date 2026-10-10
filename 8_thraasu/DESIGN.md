@@ -136,14 +136,12 @@ components:
   category-tile:
     typography: "{typography.tile}"
     rounded: "{rounded.r}"
-    padding: "14px 14px 12px"
-    height: "116px"
+    padding: "10px 14px 12px"
   product-card:
     backgroundColor: "{colors.slip}"
     typography: "{typography.item}"
     rounded: "{rounded.r}"
-    padding: "12px"
-    height: "152px"
+    padding: "10px 12px 12px"
   bill-bar:
     backgroundColor: "{colors.leaf}"
     textColor: "{colors.slip}"
@@ -166,7 +164,7 @@ components:
 
 **Creative North Star: "The Brass Thraasu on the Bill Pad"**
 
-Thraasu is an operate-mode counter tool: one shelf screen, a quantity bottom sheet, and a receipt slip. Its world is the Kerala shop counter: a warm bill-pad paper ground, a white receipt slip with a torn zigzag edge, banana-leaf green for the action that commits, the brass of the weighing balance for the brand and the scale, and chilli red for taking things off the bill. Products sit on round "pans" (scale pans) in produce-sack tints, one tint per category.
+Thraasu is an operate-mode counter tool: one shelf screen, a quantity bottom sheet, and a receipt slip. Its world is the Kerala shop counter: a warm bill-pad paper ground, a white receipt slip with a torn zigzag edge, banana-leaf green for the action that commits, the brass of the weighing balance for the brand and the scale, and chilli red for taking things off the bill. Products are photo tiles in produce-sack tints, one tint per category; in search rows and on the bill the photo sits on a round "pan" (scale pan).
 
 Density is phone-counter density: large tiles in the thumb zone, a pinned live total, every control at least 48 px. Type is a single family, Anek Malayalam, using its width axis to condense names on tiles and its weight range for money. All numbers are tabular. The system is light-only (a brand commitment in PRODUCT.md).
 
@@ -203,7 +201,7 @@ A warm paper-and-brass neutral field with one leaf-green action colour, one chil
 - **Divider** (line): card and list borders, row and line dividers, the bill panel's left edge on wide screens, the edge of label-bearing buttons (back, ghost).
 
 ### Produce-sack tints
-Each category in `products.json` sets a `--tint` / `--tint-ink` pair through `data-cat` (veg, fruit, rice, pulses, oil, dairy, spice, stat). The tint fills category tiles and pans; the ink colours tile text and the category heading. A category without a pair falls back to brass-wash / brass-ink.
+Each category in `products.json` sets a `--tint` / `--tint-ink` pair through `data-cat` (veg, fruit, rice, pulses, oil, dairy, spice, stat). The tint fills category tiles, the photo area of product tiles, and pans; the ink colours tile text and the category heading. A category without a pair falls back to brass-wash / brass-ink.
 
 ### Named Rules
 **The Edge Is Not A Divider Rule.** Controls a user types into or toggles (inputs, preset chips, the unit segmented toggle) take a 1.5 px field edge. The line colour is for dividers and for buttons whose label already identifies them; it never outlines an input.
@@ -283,13 +281,16 @@ Segmented kg/g or L/ml control beside the quantity input: field edge, 62px segme
 - **Shop name:** borderless, centred, with a dashed field-colour underline that turns leaf on focus.
 
 ### Category tiles
-Full-tint sack colour, no border, 116px min height; a 34px emoji top-left, the name in tile type, English gloss and item count below. Press scales to 0.97.
+Full-tint sack colour, no border: a 16:10 photo across the top (the 40px emoji on the tint until a photo exists), then the name in tile type, English gloss and item count. Press scales to 0.97.
 
-### Product cards
-Slip white, divider border, lift shadow, 152px min height: a pan, the Malayalam name over the English one, the rate in leaf-deep at the bottom. A product already on the bill gets a 2px leaf edge and a leaf badge with its quantity top-right.
+### Product tiles
+Slip white, divider border, lift shadow: a 4:3 photo across the top (the 46px emoji on the tint until a photo exists), then the Malayalam name over the English one and the rate in leaf-deep at the bottom. A product already on the bill gets a 2px leaf edge (an outline, so it paints over the photo, dropped while the focus ring shows) and a leaf badge with its quantity top-right over the photo.
+
+### Photos
+`img/<id>.webp`, 400×400 WebP, named per product and category in `products.json`. Every photo covers its emoji and is removed if it fails to load, so the emoji always shows through. Photos are cached on first view, not at install.
 
 ### Pan
-A 50px circle (44px in search rows, 38px on bill lines) in the category tint with a brass rim, holding the product emoji. When `products.json` names an image, the photo covers the emoji and is removed if it fails to load, so the emoji always shows through.
+A 50px circle (44px in search rows, 38px on bill lines) in the category tint with a brass rim, holding the product emoji, or its photo in search rows and on the bill.
 
 ### Bill bar
 Fixed at the bottom on narrow screens: leaf, 18px radius, item count over the live total (750 / 23px) and a translucent "view bill" pill. Empty, it turns to slip white with ink-2 text and the lift shadow. Adding an item bumps it (scale 1.035, 280ms).
@@ -309,7 +310,7 @@ Ink pill-ish bar above the bill bar with a brass-gold undo action, sliding up 16
 - **Do** edge inputs, chips and toggles with field (#8F836B); keep line (#E1D9C8) for dividers.
 - **Do** show money in leaf-deep, tabular, at display weight when it is the figure being read out.
 - **Do** give every new category a tint / tint-ink pair; the brass fallback is a safety net, not a style.
-- **Do** put product imagery inside a pan, over the emoji, never in place of it.
+- **Do** put product photos across the top of the tile (a round pan in search rows and on the bill), always over the emoji, never in place of it.
 - **Do** keep the receipt print-only, black on white, within 72mm.
 
 ### Don't:

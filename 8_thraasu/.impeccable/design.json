@@ -630,17 +630,17 @@
       "name": "Category Tile",
       "kind": "card",
       "refersTo": "category-tile",
-      "description": "Full produce-sack tint, keyed by category.",
-      "html": "<button class=\"ds-cat\"><span class=\"ds-emo\">🥬</span><b>പച്ചക്കറി</b><small>Vegetables · 14</small></button>",
-      "css": ".ds-cat{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:170px;min-height:116px;padding:14px 14px 12px;border:0;border-radius:14px;background:#E2EED9;color:#2E5E22;text-align:left;font-family:'Anek Malayalam',system-ui,sans-serif;cursor:pointer;transition:transform 160ms cubic-bezier(.2,.8,.2,1)} .ds-cat:active{transform:scale(.97)} .ds-cat:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-emo{font-family:'Noto Color Emoji','Apple Color Emoji',sans-serif;font-size:34px;line-height:1;margin-bottom:auto;padding-bottom:10px} .ds-cat b{font-size:19px;font-weight:680;line-height:1.25;font-stretch:92%} .ds-cat small{font-size:13.5px;font-weight:500}"
+      "description": "Photo (emoji on the sack tint until one exists) across the top; name, English gloss and count below on the full tint.",
+      "html": "<button class=\"ds-cat\"><span class=\"ds-ph\">🥬</span><span class=\"ds-meta\"><b>പച്ചക്കറി</b><small>Vegetables · 16</small></span></button>",
+      "css": ".ds-cat{display:flex;flex-direction:column;width:170px;overflow:hidden;padding:0;border:0;border-radius:14px;background:#E2EED9;color:#2E5E22;text-align:left;font-family:'Anek Malayalam',system-ui,sans-serif;cursor:pointer;transition:transform 160ms cubic-bezier(.2,.8,.2,1)} .ds-cat:active{transform:scale(.97)} .ds-cat:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-cat .ds-ph{display:grid;place-items:center;width:100%;aspect-ratio:16/10;font:40px/1 'Noto Color Emoji','Apple Color Emoji',sans-serif} .ds-cat .ds-meta{display:flex;flex-direction:column;gap:1px;padding:10px 14px 12px} .ds-cat b{font-size:19px;font-weight:680;line-height:1.25;font-stretch:92%} .ds-cat small{font-size:13.5px;font-weight:500}"
     },
     {
-      "name": "Product Card with Pan",
+      "name": "Product Tile with Photo",
       "kind": "custom",
       "refersTo": "product-card",
-      "description": "Slip-white card; brass-rimmed pan; leaf edge and badge once on the bill.",
-      "html": "<button class=\"ds-prod ds-in\"><span class=\"ds-pan\">🍅</span><span class=\"ds-names\"><b>തക്കാളി</b><small>Tomato</small></span><span class=\"ds-rate\">₹40 / kg</span><span class=\"ds-badge\">500 g</span></button>",
-      "css": ".ds-prod{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:170px;min-height:152px;padding:12px;border:1px solid #E1D9C8;border-radius:14px;background:#fff;color:#1C2620;text-align:left;font-family:'Anek Malayalam',system-ui,sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(60,45,15,.06),0 3px 10px rgba(60,45,15,.06);cursor:pointer;transition:transform 160ms cubic-bezier(.2,.8,.2,1)} .ds-prod:active{transform:scale(.97)} .ds-prod:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-in{border-color:#1E6B3A;box-shadow:inset 0 0 0 1px #1E6B3A,0 1px 2px rgba(60,45,15,.06),0 3px 10px rgba(60,45,15,.06)} .ds-pan{display:grid;place-items:center;width:50px;height:50px;border-radius:50%;background:#E2EED9;font:27px/1 'Noto Color Emoji','Apple Color Emoji',sans-serif;box-shadow:inset 0 0 0 2px rgba(184,134,43,.3)} .ds-names{display:flex;flex-direction:column} .ds-names b{font-size:17.5px;font-weight:640;line-height:1.3;font-stretch:90%} .ds-names small{font-size:13px;color:#4B584F} .ds-rate{margin-top:auto;font-size:15px;font-weight:640;color:#154F2A} .ds-badge{position:absolute;top:12px;right:10px;padding:2px 9px;border-radius:999px;background:#1E6B3A;color:#fff;font-size:13px;font-weight:650}"
+      "description": "Slip-white tile; 4:3 photo (emoji on the sack tint until one exists) across the top; leaf edge and badge once on the bill.",
+      "html": "<button class=\"ds-prod ds-in\"><span class=\"ds-ph\">🍅</span><span class=\"ds-meta\"><span class=\"ds-names\"><b>തക്കാളി</b><small>Tomato</small></span><span class=\"ds-rate\">₹40 / kg</span></span><span class=\"ds-badge\">500 g</span></button>",
+      "css": ".ds-prod{position:relative;display:flex;flex-direction:column;width:170px;overflow:hidden;padding:0;border:1px solid #E1D9C8;border-radius:14px;background:#fff;color:#1C2620;text-align:left;font-family:'Anek Malayalam',system-ui,sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(60,45,15,.06),0 3px 10px rgba(60,45,15,.06);cursor:pointer;transition:transform 160ms cubic-bezier(.2,.8,.2,1)} .ds-prod:active{transform:scale(.97)} .ds-prod:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-in{border-color:#1E6B3A} .ds-in:not(:focus-visible){outline:1px solid #1E6B3A;outline-offset:-2px} .ds-prod .ds-ph{display:grid;place-items:center;width:100%;aspect-ratio:4/3;background:#E2EED9;font:46px/1 'Noto Color Emoji','Apple Color Emoji',sans-serif} .ds-prod .ds-meta{display:flex;flex-direction:column;gap:6px;padding:10px 12px 12px} .ds-names{display:flex;flex-direction:column} .ds-names b{font-size:17.5px;font-weight:640;line-height:1.3;font-stretch:90%} .ds-names small{font-size:13px;color:#4B584F} .ds-rate{font-size:15px;font-weight:640;color:#154F2A} .ds-badge{position:absolute;top:8px;right:8px;padding:2px 9px;border-radius:999px;background:#1E6B3A;color:#fff;font-size:13px;font-weight:650;box-shadow:0 2px 6px rgba(0,0,0,.25)}"
     },
     {
       "name": "Bill Bar",
@@ -711,7 +711,7 @@
       "Do edge inputs, chips and toggles with field (#8F836B); keep line (#E1D9C8) for dividers.",
       "Do show money in leaf-deep, tabular, at display weight when it is the figure being read out.",
       "Do give every new category a tint / tint-ink pair; the brass fallback is a safety net, not a style.",
-      "Do put product imagery inside a pan, over the emoji, never in place of it.",
+      "Do put product photos across the top of the tile (a round pan in search rows and on the bill), always over the emoji, never in place of it.",
       "Do keep the receipt print-only, black on white, within 72mm."
     ],
     "donts": [

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thraasu-v1';
+const CACHE_NAME = 'thraasu-v2';
 const urlsToCache = ['./', './index.html', './bill-core.js', './products.json', './manifest.json', './icon-192.svg', './icon-512.svg'];
 const FONTS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
 
@@ -33,7 +33,10 @@ self.addEventListener('fetch', event => {
 
   // Font CSS and files are versioned by URL: cache on first use so Malayalam and the
   // emoji subset still render offline. The <link>s are crossorigin, so these are not opaque.
-  if (FONTS.includes(url.origin)) {
+  // ponytail: photos cache on first view, not at install (2.3 MB); a category never opened
+  // online shows its emoji offline. Precache img/ if shops need every photo from day one.
+  // A replaced photo needs a new filename (or a CACHE_NAME bump) to reach installed copies.
+  if (FONTS.includes(url.origin) || (url.origin === self.location.origin && url.pathname.includes('/img/'))) {
     event.respondWith(caches.match(event.request).then(hit => hit || fetch(event.request).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE_NAME).then(c => c.put(event.request, copy)); }
       return res;
