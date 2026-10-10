@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#FF6B35">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="PGBuddy">
@@ -18,13 +19,13 @@
 :root {
   --bg: #FFF8F0;
   --bg-card: #FFFFFF;
-  --primary: #FF6B35;
+  --primary: #C2410C; /* was #FF6B35: white on it was 2.84:1; the logo keeps the bright orange */
   --primary-light: #FF8F65;
   --primary-dark: #E55A28;
   --primary-glow: rgba(255,107,53,0.18);
   --text: #3D2C2E;
   --text-light: #7A6365;
-  --text-muted: #A89092;
+  --text-muted: #7E686A; /* was #A89092 (2.97:1) */
   --green: #7CB342;
   --green-light: #AED581;
   --green-bg: rgba(124,179,66,0.12);
@@ -1363,6 +1364,14 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 /* ===================== MISC ===================== */
 .pb-safe { padding-bottom: calc(20px + var(--safe-bottom)); }
 .divider { height: 8px; background: rgba(0,0,0,0.02); }
+.sample-banner {
+  margin: 0 16px 12px; padding: 10px 14px; border-radius: 12px;
+  background: #FFF1E6; color: #7C2D12; font-size: 13px; line-height: 1.45;
+}
+.sample-banner button { background: none; border: 0; padding: 0; color: #7C2D12; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.sample-chip { display: inline-block; margin-top: 6px; padding: 3px 10px; border-radius: 999px; background: rgba(0,0,0,0.35); color: #fff; font-size: 12px; font-weight: 600; }
+.review-send { margin-top: 8px; }
+:root :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -1390,9 +1399,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <span>PG<span class="accent">Buddy</span></span>
     </div>
     <div class="header-actions">
-      <button class="header-btn" onclick="showToast('Notifications coming soon!','info')">
-        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-      </button>
     </div>
   </header>
 
@@ -1407,6 +1413,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
           <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
           <input type="text" placeholder="Search PGs in Bangalore..." id="searchInput" oninput="filterPGs()">
         </div>
+      </div>
+
+      <div class="sample-banner" id="sampleBanner" role="note" hidden>
+        <strong>Sample listings.</strong> These are not real PGs: no one has visited them yet.
+        Own a PG? <button onclick="switchTab('tabProfile');document.getElementById('ownerPgName').focus()">List it free</button>
       </div>
 
       <!-- Filter Chips -->
@@ -1441,13 +1452,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
         <div class="swipe-container" id="swipeContainer"></div>
         <div class="swipe-actions">
-          <button class="swipe-btn skip" onclick="swipeAction('left')">
+          <button class="swipe-btn skip" onclick="swipeAction('left')" aria-label="Skip">
             <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
           </button>
-          <button class="swipe-btn info" onclick="openDetailFromSwipe()">
+          <button class="swipe-btn info" onclick="openDetailFromSwipe()" aria-label="Details">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
           </button>
-          <button class="swipe-btn save" onclick="swipeAction('right')">
+          <button class="swipe-btn save" onclick="swipeAction('right')" aria-label="Save">
             <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
           </button>
         </div>
@@ -1456,16 +1467,14 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <!-- List View -->
       <div id="listView" style="display:none;">
         <!-- Featured PGs -->
-        <div class="section-header">
-          <h2>Featured PGs ✨</h2>
-          <button class="see-all" onclick="showToast('Showing all PGs','info')">See all</button>
+        <div class="section-header" id="featuredHeader">
+          <h2>Verified PGs ✨</h2>
         </div>
         <div class="featured-scroll" id="featuredScroll"></div>
 
         <!-- Recently Reviewed -->
         <div class="section-header">
-          <h2>Recently Reviewed</h2>
-          <button class="see-all" onclick="showToast('Showing all reviews','info')">See all</button>
+          <h2>All PGs</h2>
         </div>
         <div class="pg-list" id="recentList"></div>
       </div>
@@ -1477,7 +1486,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <div class="tab-panel" id="tabReviews">
       <div class="tab-title">
         <h1>Write a Review ✍️</h1>
-        <p>Help fellow PG hunters make better choices</p>
+        <p>Saved on this phone. Send it to PG Buddy to get it onto the listing.</p>
       </div>
       <div class="review-form-section">
         <div class="form-group">
@@ -1512,16 +1521,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
         </div>
 
         <div class="form-group">
-          <label class="form-label">Add Photos</label>
-          <div class="photo-upload-area">
-            <div class="photo-upload-box" onclick="simulatePhotoUpload(this)">
-              <svg viewBox="0 0 24 24"><path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/></svg>
-              <span>Add</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
           <label class="form-label">Best thing about this PG</label>
           <textarea class="form-input" id="reviewBest" placeholder="e.g., The sambar rice on Mondays is absolutely amazing!"></textarea>
         </div>
@@ -1533,7 +1532,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
         <div class="form-group">
           <label class="form-label">Monthly rent you pay</label>
-          <input type="text" class="form-input" id="reviewRent" placeholder="e.g., 8500">
+          <input type="text" class="form-input" id="reviewRent" placeholder="e.g., 8500" inputmode="numeric">
         </div>
 
         <div class="form-group">
@@ -1596,10 +1595,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
     <div class="tab-panel" id="tabProfile">
       <div class="profile-section">
         <div class="profile-header">
-          <div class="profile-avatar">R</div>
+          <div class="profile-avatar">★</div>
           <div class="profile-info">
-            <h3>Rahul Kumar</h3>
-            <p>PG Hunter since Dec 2024</p>
+            <h3>Your PG hunt</h3>
+            <p>Saved on this phone only</p>
           </div>
         </div>
 
@@ -1611,10 +1610,11 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
         <div class="pref-card">
           <h3>📍 Preferred Areas</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin:-4px 0 10px;">Pick any to show only those areas. None picked shows all.</p>
           <div class="area-chips" id="areaChips">
-            <button class="chip active" onclick="toggleAreaPref(this)" data-area="Koramangala">Koramangala</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="Koramangala">Koramangala</button>
             <button class="chip" onclick="toggleAreaPref(this)" data-area="HSR Layout">HSR Layout</button>
-            <button class="chip active" onclick="toggleAreaPref(this)" data-area="BTM Layout">BTM Layout</button>
+            <button class="chip" onclick="toggleAreaPref(this)" data-area="BTM Layout">BTM Layout</button>
             <button class="chip" onclick="toggleAreaPref(this)" data-area="Indiranagar">Indiranagar</button>
             <button class="chip" onclick="toggleAreaPref(this)" data-area="Whitefield">Whitefield</button>
             <button class="chip" onclick="toggleAreaPref(this)" data-area="Electronic City">Electronic City</button>
@@ -1661,9 +1661,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
   <!-- PG DETAIL MODAL -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeDetail()"></div>
-  <div class="detail-modal" id="detailModal">
+  <div class="detail-modal" id="detailModal" role="dialog" aria-modal="true" aria-label="PG details">
     <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeDetail()">
+    <button class="modal-close" onclick="closeDetail()" aria-label="Close">
       <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
     </button>
     <div class="modal-scroll" id="modalScroll"></div>
@@ -1725,13 +1725,25 @@ function validPGs(data) {
     p.amenities && typeof p.amenities === 'object' &&
     p.ratings && typeof p.ratings === 'object'
   );
+  // A "Verified" badge without a visit date is a claim nobody checked, so a
+  // publish carrying one is rejected rather than shown.
+  const honest = data.pgs.every(p => p.verified !== true || isDate(p.verifiedOn));
   // Duplicate ids would make openDetail() and toggleSave() ambiguous.
-  return ok && new Set(data.pgs.map(p => p.id)).size === data.pgs.length;
+  return ok && honest && new Set(data.pgs.map(p => p.id)).size === data.pgs.length;
 }
+
+const isDate = (s) => typeof s === 'string' && s.trim() !== '' && !isNaN(Date.parse(s));
+// The badge is a rule, not a flag: verified AND a real visit date.
+const isVerified = (pg) => pg.verified === true && isDate(pg.verifiedOn);
+// Values that land in class/style attributes are checked, not escaped.
+const gradOf = (pg) => /^grad-\d+$/.test(pg.grad) ? pg.grad : 'grad-1';
+const safeColor = (c) => /^#[0-9a-f]{3,8}$/i.test(c) ? c : '#9E9E9E';
+let SAMPLE = false;
 
 function applyPGs(data) {
   pgData = data.pgs;
   filteredPGs = [...pgData];
+  SAMPLE = data.sample === true;
   // Where owner submissions go is config, not code — same reason the listings
   // are: changing it must not need a release.
   if (data.listingContact && typeof data.listingContact === 'object') {
@@ -1789,13 +1801,8 @@ let touchStartX = 0, touchStartY = 0, currentCard = null, isDragging = false;
 
 /* ===================== INIT ===================== */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Splash screen
-  setTimeout(() => {
-    document.getElementById('splash').classList.add('hide');
-    setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
-  }, 1800);
-
   initStarInputs();
+  restorePrefs();
   renderChecklist();
 
   // Cached listings paint immediately; the network refresh then replaces them.
@@ -1807,6 +1814,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateBudget();   // sets the label and runs applyFilters(), which renders
   renderSavedList();
   renderUserReviews();
+  // The splash covers the first fetch only — no fixed 1.8 s on top of it.
+  document.getElementById('splash').classList.add('hide');
+  setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
 });
 
 /* ===================== TAB NAVIGATION ===================== */
@@ -1852,12 +1862,15 @@ function toggleFilter(btn) {
 function applyFilters() {
   const query = document.getElementById('searchInput').value.toLowerCase();
   const cap = budgetCap();
+  const areas = preferredAreas();
   filteredPGs = pgData.filter(pg => {
     const matchSearch = !query || pg.name.toLowerCase().includes(query) || pg.area.toLowerCase().includes(query);
     const matchFilter = activeFilters.size === 0 || [...activeFilters].every(f => pg.filters.includes(f));
-    return matchSearch && matchFilter && pg.price <= cap;
+    const matchArea = areas.length === 0 || areas.includes(pg.area);
+    return matchSearch && matchFilter && matchArea && pg.price <= cap;
   });
   swipeIndex = 0;
+  document.getElementById('sampleBanner').hidden = !SAMPLE;
   renderSwipeCards();
   renderFeatured();
   renderRecentList();
@@ -1895,19 +1908,19 @@ function renderSwipeCards() {
       <div class="swipe-label like">SAVE ❤️</div>
       <div class="swipe-label nope">SKIP ✕</div>
       <div class="card-photo">
-        <div class="card-photo-bg ${pg.grad}">
+        <div class="card-photo-bg ${gradOf(pg)}">
           <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </div>
-        ${pg.verified ? '<div class="card-badge"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</div>' : ''}
-        <button class="card-bookmark ${savedPGs.includes(pg.id) ? 'saved' : ''}" onclick="event.stopPropagation();toggleSave(${pg.id},this)">
+        ${isVerified(pg) ? '<div class="card-badge"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</div>' : ''}
+        <button class="card-bookmark ${savedPGs.includes(pg.id) ? 'saved' : ''}" onclick="event.stopPropagation();toggleSave(${pg.id},this)" aria-label="Save">
           <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         </button>
       </div>
       <div class="card-info">
-        <h3>${pg.name}</h3>
+        <h3>${esc(pg.name)}</h3>
         <div class="card-location">
           <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-          ${pg.area}
+          ${esc(pg.area)}
         </div>
         <div class="card-meta">
           <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
@@ -1917,7 +1930,7 @@ function renderSwipeCards() {
           </div>
         </div>
         <div class="card-tags">
-          ${pg.tags.map((t,i) => `<span class="card-tag ${i > 0 ? 'neutral' : ''}">${t}</span>`).join('')}
+          ${pg.tags.map((t,i) => `<span class="card-tag ${i > 0 ? 'neutral' : ''}">${esc(t)}</span>`).join('')}
         </div>
       </div>
     `;
@@ -2023,26 +2036,27 @@ function openDetailFromSwipe() {
 /* ===================== FEATURED & LIST ===================== */
 function renderFeatured() {
   const el = document.getElementById('featuredScroll');
-  const featured = filteredPGs.filter(p => p.verified);
+  const featured = filteredPGs.filter(isVerified);
+  document.getElementById('featuredHeader').style.display = featured.length ? '' : 'none';
   el.innerHTML = featured.map(pg => `
     <div class="pg-card-featured" onclick="openDetail(${pg.id})">
       <div class="card-photo">
-        <div class="card-photo-bg ${pg.grad}">
+        <div class="card-photo-bg ${gradOf(pg)}">
           <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </div>
-        ${pg.verified ? '<div class="card-badge"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</div>' : ''}
-        <button class="card-bookmark ${savedPGs.includes(pg.id) ? 'saved' : ''}" onclick="event.stopPropagation();toggleSave(${pg.id},this)">
+        ${isVerified(pg) ? '<div class="card-badge"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</div>' : ''}
+        <button class="card-bookmark ${savedPGs.includes(pg.id) ? 'saved' : ''}" onclick="event.stopPropagation();toggleSave(${pg.id},this)" aria-label="Save">
           <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         </button>
       </div>
       <div class="card-info">
-        <h3>${pg.name}</h3>
-        <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${pg.area}</div>
+        <h3>${esc(pg.name)}</h3>
+        <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${esc(pg.area)}</div>
         <div class="card-meta">
           <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
           <div class="card-rating"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#FFB300"/></svg> ${pg.rating}</div>
         </div>
-        <div class="card-tags">${pg.tags.slice(0,2).map((t,i) => `<span class="card-tag ${i>0?'neutral':''}">${t}</span>`).join('')}</div>
+        <div class="card-tags">${pg.tags.slice(0,2).map((t,i) => `<span class="card-tag ${i>0?'neutral':''}">${esc(t)}</span>`).join('')}</div>
       </div>
     </div>
   `).join('');
@@ -2053,17 +2067,17 @@ function renderRecentList() {
   const list = filteredPGs.slice(0, 6);
   el.innerHTML = list.map(pg => `
     <div class="pg-card-list" onclick="openDetail(${pg.id})">
-      <div class="pg-card-list-photo ${pg.grad}">
+      <div class="pg-card-list-photo ${gradOf(pg)}">
         <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="rgba(255,255,255,0.5)"/></svg>
       </div>
       <div class="pg-card-list-info">
-        <h3>${pg.name}</h3>
-        <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${pg.area}</div>
+        <h3>${esc(pg.name)}</h3>
+        <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${esc(pg.area)}</div>
         <div class="card-meta">
           <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
           <div class="card-rating"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#FFB300"/></svg> ${pg.rating}</div>
         </div>
-        <div class="card-tags">${pg.tags.slice(0,2).map((t,i) => `<span class="card-tag ${i>0?'neutral':''}">${t}</span>`).join('')}</div>
+        <div class="card-tags">${pg.tags.slice(0,2).map((t,i) => `<span class="card-tag ${i>0?'neutral':''}">${esc(t)}</span>`).join('')}</div>
       </div>
     </div>
   `).join('');
@@ -2112,9 +2126,10 @@ function openDetail(pgId) {
 
   const modalScroll = document.getElementById('modalScroll');
   modalScroll.innerHTML = `
-    <div class="detail-hero ${pg.grad}">
+    <div class="detail-hero ${gradOf(pg)}">
       <div class="detail-hero-overlay"></div>
-      <h1>${pg.name}</h1>
+      <h1>${esc(pg.name)}</h1>
+      ${SAMPLE ? '<div class="sample-chip">Sample listing — not a real PG</div>' : ''}
     </div>
     <div class="detail-quick-info">
       <div class="quick-item">
@@ -2126,7 +2141,7 @@ function openDetail(pgId) {
         <div class="lbl">per month</div>
       </div>
       <div class="quick-item">
-        <div class="val">${pg.area}</div>
+        <div class="val">${esc(pg.area)}</div>
         <div class="lbl">Location</div>
       </div>
     </div>
@@ -2135,11 +2150,11 @@ function openDetail(pgId) {
       <h2>Rating Breakdown</h2>
       ${Object.entries(pg.ratings).map(([key, val]) => `
         <div class="rating-row">
-          <span class="r-label">${key.charAt(0).toUpperCase() + key.slice(1)}</span>
+          <span class="r-label">${esc(key.charAt(0).toUpperCase() + key.slice(1))}</span>
           <div class="rating-bar-bg">
             <div class="rating-bar-fill" data-width="${val * 20}" style="background:${ratingColor(val)};"></div>
           </div>
-          <span class="r-val">${val}</span>
+          <span class="r-val">${esc(val)}</span>
         </div>
       `).join('')}
     </div>
@@ -2149,14 +2164,14 @@ function openDetail(pgId) {
       ${pg.reviews.map(r => `
         <div class="review-card fade-in-up">
           <div class="review-header">
-            <div class="review-avatar" style="background:${r.color}">${r.initials}</div>
+            <div class="review-avatar" style="background:${safeColor(r.color)}">${esc(r.initials)}</div>
             <div>
-              <div class="review-name">${r.name}</div>
-              <div class="review-date">${r.date}</div>
+              <div class="review-name">${esc(r.name)}</div>
+              <div class="review-date">${esc(r.date)}</div>
             </div>
           </div>
           <div class="review-stars">${renderStars(r.rating)}</div>
-          <div class="review-text">${r.text}</div>
+          <div class="review-text">${esc(r.text)}</div>
         </div>
       `).join('')}
     </div>
@@ -2167,8 +2182,8 @@ function openDetail(pgId) {
       <div class="menu-scroll">
         ${pg.menu.map(m => `
           <div class="menu-day">
-            <div class="day">${m.day}</div>
-            <div class="meal">${m.meal.replace(/\n/g, '<br>')}</div>
+            <div class="day">${esc(m.day)}</div>
+            <div class="meal">${esc(m.meal).replace(/\n/g, '<br>')}</div>
           </div>
         `).join('')}
       </div>
@@ -2191,7 +2206,7 @@ function openDetail(pgId) {
       ${pg.rules.map(r => `
         <div class="rule-item">
           <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-          <div class="rule-text"><span class="rule-label">${r.label}:</span> ${r.text}</div>
+          <div class="rule-text"><span class="rule-label">${esc(r.label)}:</span> ${esc(r.text)}</div>
         </div>
       `).join('')}
     </div>
@@ -2279,7 +2294,7 @@ function setStarRating(cat, val, container) {
 }
 
 function populateSelects() {
-  const opts = pgData.map(pg => `<option value="${pg.id}">${pg.name} - ${pg.area}</option>`).join('');
+  const opts = pgData.map(pg => `<option value="${pg.id}">${esc(pg.name)} - ${esc(pg.area)}</option>`).join('');
   document.getElementById('reviewPgSelect').innerHTML = '<option value="">Choose a PG...</option>' + opts;
   document.getElementById('compareA').innerHTML = '<option value="">Select PG 1...</option>' + opts;
   document.getElementById('compareB').innerHTML = '<option value="">Select PG 2...</option>' + opts;
@@ -2289,16 +2304,6 @@ function setRecommend(val) {
   recommend = val;
   document.getElementById('toggleYes').className = 'toggle-btn' + (val === true ? ' active-yes' : '');
   document.getElementById('toggleNo').className = 'toggle-btn' + (val === false ? ' active-no' : '');
-}
-
-function simulatePhotoUpload(box) {
-  const preview = document.createElement('div');
-  const grads = ['grad-1','grad-2','grad-3','grad-4','grad-5','grad-6'];
-  const randGrad = grads[Math.floor(Math.random()*grads.length)];
-  preview.className = `photo-preview ${randGrad}`;
-  preview.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>';
-  box.parentElement.insertBefore(preview, box);
-  showToast('Photo added! 📸', 'success');
 }
 
 function submitReview() {
@@ -2334,7 +2339,7 @@ function submitReview() {
   document.getElementById('toggleYes').className = 'toggle-btn';
   document.getElementById('toggleNo').className = 'toggle-btn';
 
-  showToast('Review submitted! Thank you! 🎉', 'success');
+  showToast('Review saved on this phone. Use "Send to PG Buddy" to share it.', 'success');
   renderUserReviews();
 }
 
@@ -2348,27 +2353,47 @@ function renderUserReviews() {
     el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg><h3>No reviews yet</h3><p>Be the first to share your PG experience!</p></div>`;
     return;
   }
-  el.innerHTML = userReviews.map(r => {
+  el.innerHTML = userReviews.map((r, i) => {
     const avg = Object.values(r.ratings).filter(v => v > 0);
     const avgRating = avg.length ? (avg.reduce((a,b) => a+b, 0) / avg.length).toFixed(1) : 'N/A';
     return `
       <div class="review-card" style="margin-bottom:10px;">
         <div class="review-header">
-          <div class="review-avatar" style="background:var(--primary)">R</div>
+          <div class="review-avatar" style="background:var(--primary)">★</div>
           <div>
-            <div class="review-name">${r.pgName}</div>
-            <div class="review-date">${r.date} &bull; Avg: ${avgRating} ⭐</div>
+            <div class="review-name">${esc(r.pgName)}</div>
+            <div class="review-date">${esc(r.date)} &bull; Avg: ${avgRating} ⭐</div>
           </div>
         </div>
         ${r.best ? `<div class="review-text" style="margin-bottom:4px;">👍 <strong>Best:</strong> ${esc(r.best)}</div>` : ''}
         ${r.worst ? `<div class="review-text">👎 <strong>Worst:</strong> ${esc(r.worst)}</div>` : ''}
         ${r.recommend !== null ? `<div style="margin-top:6px;"><span class="card-tag ${r.recommend ? '' : 'neutral'}">${r.recommend ? '✅ Recommended' : '❌ Not recommended'}</span></div>` : ''}
+        <button class="btn-secondary review-send" onclick="sendReview(${i})">Send to PG Buddy</button>
       </div>
     `;
   }).join('');
 }
 
 /* ===================== COMPARE TAB ===================== */
+// Reviews reach the listing the same way owner submissions do: as a message
+// to the curator, who checks it and adds it to pgs.json.
+function sendReview(i) {
+  const r = userReviews[i];
+  if (!r) return;
+  const labels = { food: 'Food', cleanliness: 'Cleanliness', wifi: 'WiFi', location: 'Location', value: 'Value' };
+  const stars = Object.entries(r.ratings).filter(([, v]) => v > 0).map(([k, v]) => `${labels[k] || k} ${v}/5`).join(', ');
+  const body = `PG review for PG Buddy\n\nPG: ${r.pgName}\nRatings: ${stars || 'none'}` +
+    (r.best ? `\nBest: ${r.best}` : '') + (r.worst ? `\nWorst: ${r.worst}` : '') +
+    (r.rent ? `\nRent paid: ₹${r.rent}` : '') + (r.duration ? `\nStayed: ${r.duration}` : '') +
+    (r.recommend !== null ? `\nRecommend: ${r.recommend ? 'Yes' : 'No'}` : '');
+  if (!LISTING_CONTACT.whatsapp && LISTING_CONTACT.email) {
+    window.open(`mailto:${LISTING_CONTACT.email}?subject=${encodeURIComponent('PG Buddy review: ' + r.pgName)}&body=${encodeURIComponent(body)}`, '_blank', 'noopener');
+  } else {
+    const to = String(LISTING_CONTACT.whatsapp || '').replace(/\D/g, '');
+    window.open(`https://wa.me/${to}?text=${encodeURIComponent(body)}`, '_blank', 'noopener');
+  }
+}
+
 function runComparison() {
   const aId = parseInt(document.getElementById('compareA').value);
   const bId = parseInt(document.getElementById('compareB').value);
@@ -2402,8 +2427,8 @@ function runComparison() {
   el.innerHTML = `
     <div class="compare-card">
       <div class="compare-names">
-        <span>${a.name}</span>
-        <span>${b.name}</span>
+        <span>${esc(a.name)}</span>
+        <span>${esc(b.name)}</span>
       </div>
       <h3>Ratings Comparison</h3>
       ${categories.map(cat => {
@@ -2416,12 +2441,12 @@ function runComparison() {
         <div class="compare-row">
           <div class="compare-bar-left">
             <div class="compare-fill left" style="width:${aVal * 20}%;${aW ? 'opacity:1;' : 'opacity:0.5;'}"></div>
-            <span class="compare-val left">${aVal}${aW ? ' 🏆' : ''}</span>
+            <span class="compare-val left">${esc(aVal)}${aW ? ' 🏆' : ''}</span>
           </div>
           <div class="compare-cat">${cat.label}</div>
           <div class="compare-bar-right">
             <div class="compare-fill right" style="width:${bVal * 20}%;${bW ? 'opacity:1;' : 'opacity:0.5;'}"></div>
-            <span class="compare-val right">${bVal}${bW ? ' 🏆' : ''}</span>
+            <span class="compare-val right">${esc(bVal)}${bW ? ' 🏆' : ''}</span>
           </div>
         </div>`;
       }).join('')}
@@ -2434,15 +2459,15 @@ function runComparison() {
         <span>₹${b.price.toLocaleString()}/mo</span>
       </div>
       <div style="text-align:center;margin-top:8px;">
-        <span class="winner-badge ${a.price <= b.price ? 'left' : 'right'}">💰 ${a.price <= b.price ? a.name : b.name} is cheaper${a.price === b.price ? ' (same)' : ''}</span>
+        <span class="winner-badge ${a.price <= b.price ? 'left' : 'right'}">💰 ${esc(a.price <= b.price ? a.name : b.name)} is cheaper${a.price === b.price ? ' (same)' : ''}</span>
       </div>
     </div>
 
     <div class="compare-card">
       <h3>🏠 Amenities</h3>
       <div class="compare-names">
-        <span>${a.name}</span>
-        <span>${b.name}</span>
+        <span>${esc(a.name)}</span>
+        <span>${esc(b.name)}</span>
       </div>
       ${amenities.map(am => `
         <div class="compare-amenity-row">
@@ -2455,7 +2480,7 @@ function runComparison() {
 
     <div class="overall-pick">
       <div class="pick-label">⭐ Overall Pick</div>
-      <div class="pick-name">${aWins > bWins ? a.name : bWins > aWins ? b.name : "It's a tie!"}</div>
+      <div class="pick-name">${esc(aWins > bWins ? a.name : bWins > aWins ? b.name : "It's a tie!")}</div>
       <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${aWins > bWins ? `Wins ${aWins} of 5 categories` : bWins > aWins ? `Wins ${bWins} of 5 categories` : 'Both PGs are equally matched'}</div>
     </div>
   `;
@@ -2465,7 +2490,7 @@ function runComparison() {
 function renderChecklist() {
   const el = document.getElementById('checklistItems');
   el.innerHTML = checklistItems.map((item, i) => `
-    <div class="check-item ${checkedItems.includes(i) ? 'checked' : ''}" onclick="toggleCheck(${i})">
+    <div class="check-item ${checkedItems.includes(i) ? 'checked' : ''}" onclick="toggleCheck(${i})" role="checkbox" tabindex="0" aria-checked="${checkedItems.includes(i)}">
       <div class="check-box">
         <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
       </div>
@@ -2497,17 +2522,21 @@ function renderSavedList() {
     el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg><h3>No saved PGs yet</h3><p>Swipe right or tap the heart to save PGs</p></div>`;
     return;
   }
+  if (!savedPGs.some(id => pgData.some(p => p.id === id))) {
+    el.innerHTML = `<div class="empty-state"><h3>Your saved PGs are no longer listed</h3><p>Swipe right or tap the heart to save PGs</p></div>`;
+    return;
+  }
   el.innerHTML = savedPGs.map(id => {
     const pg = pgData.find(p => p.id === id);
     if (!pg) return '';
     return `
       <div class="pg-card-list" onclick="openDetail(${pg.id})">
-        <div class="pg-card-list-photo ${pg.grad}">
+        <div class="pg-card-list-photo ${gradOf(pg)}">
           <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="rgba(255,255,255,0.5)"/></svg>
         </div>
         <div class="pg-card-list-info">
-          <h3>${pg.name}</h3>
-          <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${pg.area}</div>
+          <h3>${esc(pg.name)}</h3>
+          <div class="card-location"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> ${esc(pg.area)}</div>
           <div class="card-meta">
             <div class="card-price">₹${pg.price.toLocaleString()}<small>/mo</small></div>
             <div class="card-rating"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#FFB300"/></svg> ${pg.rating}</div>
@@ -2529,6 +2558,7 @@ function budgetCap() {
 
 function updateBudget() {
   const cap = budgetCap();
+  try { localStorage.setItem('pgbuddy_budget', document.getElementById('budgetSlider').value); } catch (e) {}
   document.getElementById('budgetValue').textContent =
     cap === Infinity ? 'Any budget' : `Up to ₹${cap.toLocaleString()}/mo`;
   applyFilters();
@@ -2582,11 +2612,37 @@ function submitListing(via) {
   showToast('Opening your message…', 'success');
 }
 
+function preferredAreas() {
+  return [...document.querySelectorAll('#areaChips .chip.active')].map(c => c.dataset.area);
+}
+
 function toggleAreaPref(btn) {
   btn.classList.toggle('active');
+  btn.setAttribute('aria-pressed', btn.classList.contains('active'));
+  try { localStorage.setItem('pgbuddy_areas', JSON.stringify(preferredAreas())); } catch (e) {}
+  applyFilters();
+}
+
+function restorePrefs() {
+  let areas = [];
+  try { areas = JSON.parse(localStorage.getItem('pgbuddy_areas') || '[]'); } catch (e) {}
+  document.querySelectorAll('#areaChips .chip').forEach(c => {
+    const on = Array.isArray(areas) && areas.includes(c.dataset.area);
+    c.classList.toggle('active', on);
+    c.setAttribute('aria-pressed', on);
+  });
+  const budget = parseInt(localStorage.getItem('pgbuddy_budget'), 10);
+  const slider = document.getElementById('budgetSlider');
+  if (budget >= parseInt(slider.min, 10) && budget <= parseInt(slider.max, 10)) slider.value = budget;
 }
 
 /* ===================== TOAST ===================== */
+// Escape closes the detail sheet; Enter/Space operate role="checkbox" rows.
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('detailModal').classList.contains('open')) closeDetail();
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="checkbox"]')) { e.preventDefault(); e.target.click(); }
+});
+
 function showToast(message, type = 'info') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');

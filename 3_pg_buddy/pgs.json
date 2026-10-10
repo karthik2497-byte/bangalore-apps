@@ -1,7 +1,8 @@
 {
-  "version": 1,
-  "updated": "2026-08-15",
-  "source": "PG Buddy seed listings",
+  "version": 2,
+  "updated": "2026-10-10",
+  "source": "PG Buddy sample listings (not real PGs)",
+  "sample": true,
   "listingContact": {
     "whatsapp": "",
     "email": ""
@@ -20,7 +21,7 @@
         "Clean"
       ],
       "grad": "grad-1",
-      "verified": true,
+      "verified": false,
       "type": "veg",
       "amenities": {
         "wifi": true,
@@ -128,7 +129,7 @@
     },
     {
       "id": 2,
-      "name": "Zolo Stays HSR",
+      "name": "HSR Comfort Stays",
       "area": "HSR Layout",
       "price": 12000,
       "priceRange": "₹10,000 - ₹14,000",
@@ -139,7 +140,7 @@
         "Modern"
       ],
       "grad": "grad-2",
-      "verified": true,
+      "verified": false,
       "type": "both",
       "amenities": {
         "wifi": true,
@@ -240,7 +241,7 @@
         "Budget"
       ],
       "grad": "grad-3",
-      "verified": true,
+      "verified": false,
       "type": "veg",
       "amenities": {
         "wifi": true,
@@ -349,7 +350,7 @@
     },
     {
       "id": 4,
-      "name": "CoLive Indiranagar",
+      "name": "Indiranagar Co-living",
       "area": "Indiranagar",
       "price": 15000,
       "priceRange": "₹13,000 - ₹18,000",
@@ -360,7 +361,7 @@
         "Gym"
       ],
       "grad": "grad-4",
-      "verified": true,
+      "verified": false,
       "type": "both",
       "amenities": {
         "wifi": true,
@@ -549,7 +550,7 @@
         "Great Food"
       ],
       "grad": "grad-6",
-      "verified": true,
+      "verified": false,
       "type": "veg",
       "amenities": {
         "wifi": true,
@@ -670,7 +671,7 @@
         "Clean"
       ],
       "grad": "grad-7",
-      "verified": true,
+      "verified": false,
       "type": "both",
       "amenities": {
         "wifi": true,

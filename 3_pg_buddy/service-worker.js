@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pgbuddy-v2';
+const CACHE_NAME = 'pgbuddy-v3';
 const urlsToCache = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg', './pgs.json'];
 
 self.addEventListener('install', event => {
@@ -6,8 +6,10 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
+// All 7 apps share one origin, so caches.keys() lists every app's caches.
+// Delete only this app's old versions — purging the rest wipes the others.
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('pgbuddy-') && k !== CACHE_NAME).map(k => caches.delete(k)))));
   self.clients.claim();
 });
 

@@ -46,7 +46,8 @@ const make = new Function('__env', `
   let fetch = async () => { throw new Error('no fetch stub set'); };
   ${code}
   return {
-    validPGs, applyPGs, loadCachedPGs, refreshPGs, contactPG, submitListing,
+    validPGs, applyPGs, loadCachedPGs, refreshPGs, contactPG, submitListing, isVerified, gradOf, safeColor,
+    getSample: () => SAMPLE,
     LISTING_CONTACT, PG_STORE,
     getPgData: () => pgData,
     getFiltered: () => filteredPGs,
@@ -122,6 +123,39 @@ check('rejects duplicate ids', () => {
   // Duplicates would make openDetail and toggleSave ambiguous.
   const p = goodPG();
   assert.equal(api.validPGs({ version: 1, pgs: [p, { ...p }] }), false);
+});
+
+check('a Verified badge needs a real visit date', () => {
+  const pg = (over) => ({ version: 1, pgs: [{ ...goodPG(), ...over }] });
+  assert.equal(api.validPGs(pg({ verified: true, verifiedOn: '' })), false, 'verified with no date must be rejected');
+  assert.equal(api.validPGs(pg({ verified: true })), false);
+  assert.equal(api.validPGs(pg({ verified: true, verifiedOn: 'soon' })), false);
+  // Date.parse(2026) is a valid date in V8, so the type check is load-bearing.
+  assert.equal(api.validPGs(pg({ verified: true, verifiedOn: 2026 })), false, 'a bare number is not a visit date');
+  assert.equal(api.validPGs(pg({ verified: true, verifiedOn: '2026-10-01' })), true);
+  assert.equal(api.isVerified({ verified: true, verifiedOn: '2026-10-01' }), true);
+  assert.equal(api.isVerified({ verified: true, verifiedOn: '' }), false);
+  assert.equal(api.isVerified({ verified: false, verifiedOn: '2026-10-01' }), false);
+});
+
+check('the shipped sample data claims nothing it cannot back', () => {
+  assert.equal(real.sample, true, 'sample rows must be labelled as samples');
+  assert.equal(real.pgs.filter(p => api.isVerified(p)).length, real.pgs.filter(p => p.verified).length);
+  assert.ok(!/zolo|colive/i.test(JSON.stringify(real)), 'no real co-living brand names on invented listings');
+});
+
+check('values that land in attributes are checked, not trusted', () => {
+  assert.equal(api.gradOf({ grad: 'grad-3' }), 'grad-3');
+  assert.equal(api.gradOf({ grad: 'x" onmouseover="alert(1)' }), 'grad-1');
+  assert.equal(api.safeColor('#E91E63'), '#E91E63');
+  assert.equal(api.safeColor('red;background:url(x)'), '#9E9E9E');
+});
+
+check('the sample flag is read from the payload', () => {
+  api.applyPGs({ ...real, sample: true });
+  assert.equal(api.getSample(), true);
+  api.applyPGs({ ...real, sample: false });
+  assert.equal(api.getSample(), false);
 });
 
 /* ---------------- load path ---------------- */
