@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#3B82F6">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PowerPulse">
@@ -27,7 +28,7 @@
   --bg-glass-border: rgba(59, 130, 246, 0.15);
   --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-muted: #8B9AB0; /* was #64748B: 3.81:1 on the navy background */
   --accent-blue: #3B82F6;
   --accent-blue-light: #60A5FA;
   --accent-blue-glow: rgba(59, 130, 246, 0.3);
@@ -73,7 +74,7 @@
   --bg-glass-border: rgba(59, 130, 246, 0.2);
   --text-primary: #0F172A;
   --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  --text-muted: #5B6577; /* was #94A3B8: 2.32:1 on the light background */
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
   --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
@@ -335,22 +336,6 @@ body {
 }
 
 .tab-content::-webkit-scrollbar { width: 0; }
-
-/* Pull to refresh */
-.ptr-indicator {
-  text-align: center;
-  padding: 12px;
-  color: var(--text-muted);
-  font-size: 12px;
-  opacity: 0;
-  transform: translateY(-30px);
-  transition: all 0.3s ease;
-}
-
-.ptr-indicator.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
 
 /* ============================================
    BOTTOM NAVIGATION
@@ -1415,7 +1400,8 @@ body {
   max-width: 28px;
   border-radius: 6px 6px 2px 2px;
   background: var(--gradient-blue);
-  transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.6s ease-out;
+  transform-origin: bottom;
   position: relative;
   min-height: 4px;
 }
@@ -1875,6 +1861,34 @@ body {
   }
 }
 
+/* Outage actions: the log is only useful if an outage can end, and shared. */
+.card-actions { display: flex; gap: 8px; margin-top: 12px; }
+.card-action {
+  flex: 1; padding: 8px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--bg-glass-border); background: transparent;
+  color: var(--accent-blue-light); font: 600 13px var(--font-body); cursor: pointer;
+}
+[data-theme="light"] .card-action { color: #1D4ED8; }
+.sev-chip {
+  display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: var(--radius-full);
+  font-size: 11px; font-weight: 600; background: rgba(239,68,68,0.15); color: #FCA5A5;
+}
+[data-theme="light"] .sev-chip { color: #B91C1C; }
+.pw-empty { font-size: 13px; color: var(--text-muted); padding: 8px 0; line-height: 1.5; }
+.area-detail-sheet { position: relative; }
+.sheet-close {
+  position: absolute; top: 12px; right: 16px; width: 36px; height: 36px;
+  border: none; border-radius: 50%; background: var(--bg-glass); color: var(--text-primary);
+  font-size: 20px; line-height: 1; cursor: pointer;
+}
+.sheet-helpline { display: inline-block; margin-top: 6px; color: var(--accent-blue-light); font-weight: 600; font-size: 13px; text-decoration: none; }
+a.setting-value { text-decoration: none; color: var(--accent-blue-light); font-weight: 600; }
+[data-theme="light"] a.setting-value, [data-theme="light"] .sheet-helpline { color: #1D4ED8; }
+:root :focus-visible { outline: 3px solid var(--accent-blue-light); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
 /* Utility */
 .visually-hidden {
   position: absolute;
@@ -1945,7 +1959,6 @@ body {
   <main class="content-area">
     <!-- ===================== HOME TAB ===================== -->
     <div class="tab-content active" id="tab-home">
-      <div class="ptr-indicator" id="ptr">Pull to refresh...</div>
       <div class="hero-section">
         <div class="status-card animate-in">
           <div class="status-pulse-ring alert" id="status-ring">
@@ -1953,19 +1966,19 @@ body {
               <path d="M17 4L8 18h6l-2 10 10-14h-6.5L17 4z" fill="#EF4444"/>
             </svg>
           </div>
-          <div class="status-text" id="status-text">4 Outages Reported</div>
-          <div class="status-subtext" id="status-subtext">Across Bangalore right now</div>
+          <div class="status-text" id="status-text">No Outages Logged</div>
+          <div class="status-subtext" id="status-subtext">Reports you log stay on this phone</div>
           <div class="status-meta">
             <div class="status-meta-item">
-              <div class="status-meta-value" id="meta-power">3</div>
+              <div class="status-meta-value" id="meta-power">0</div>
               <div class="status-meta-label">Power</div>
             </div>
             <div class="status-meta-item">
-              <div class="status-meta-value" id="meta-water">1</div>
+              <div class="status-meta-value" id="meta-water">0</div>
               <div class="status-meta-label">Water</div>
             </div>
             <div class="status-meta-item">
-              <div class="status-meta-value" id="meta-areas">4</div>
+              <div class="status-meta-value" id="meta-areas">0</div>
               <div class="status-meta-label">Areas</div>
             </div>
           </div>
@@ -1973,19 +1986,18 @@ body {
       </div>
 
       <div class="filter-pills">
-        <button class="filter-pill active" data-filter="all">All Outages</button>
-        <button class="filter-pill" data-filter="power">
+        <button class="filter-pill active" data-filter="all" aria-pressed="true">All Outages</button>
+        <button class="filter-pill" data-filter="power" aria-pressed="false">
           <span style="color: var(--accent-amber);">&#9889;</span> Power
         </button>
-        <button class="filter-pill" data-filter="water">
+        <button class="filter-pill" data-filter="water" aria-pressed="false">
           <span style="color: var(--accent-blue);">&#128167;</span> Water
         </button>
-        <button class="filter-pill" data-filter="my-area">My Area</button>
+        <button class="filter-pill" data-filter="my-area" aria-pressed="false">My Area</button>
       </div>
 
       <div class="section-header">
         <div class="section-title">Active Outages</div>
-        <button class="section-action" id="refresh-btn">Refresh</button>
       </div>
 
       <div class="outage-cards" id="outage-list">
@@ -2020,11 +2032,11 @@ body {
     <div class="tab-content" id="tab-report">
       <div class="report-header">
         <div class="report-title">Report an Outage</div>
-        <div class="report-subtitle">Help your community stay informed</div>
+        <div class="report-subtitle">Saved on this phone. Share it so your neighbours know.</div>
       </div>
       <form class="report-form" id="report-form" autocomplete="off">
         <div class="form-group">
-          <label class="form-label">Area</label>
+          <label class="form-label" for="report-area">Area</label>
           <div class="form-select-wrapper">
             <select class="form-select" id="report-area" required>
               <option value="">Select your area...</option>
@@ -2048,22 +2060,22 @@ body {
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Description (Optional)</label>
+          <label class="form-label" for="report-desc">Description (Optional)</label>
           <textarea class="form-textarea" id="report-desc" placeholder="e.g. Power went off suddenly, no BESCOM notice..."></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Severity</label>
+          <label class="form-label" for="severity-slider">Severity</label>
           <div class="severity-slider-container">
             <div class="severity-labels">
               <span class="severity-label" data-sev="1">Mild</span>
-              <span class="severity-label" data-sev="2">Moderate</span>
-              <span class="severity-label active" data-sev="3">Severe</span>
+              <span class="severity-label active" data-sev="2">Moderate</span>
+              <span class="severity-label" data-sev="3">Severe</span>
             </div>
-            <input type="range" class="severity-slider" id="severity-slider" min="1" max="3" value="2">
+            <input type="range" class="severity-slider" id="severity-slider" min="1" max="3" value="2" aria-valuetext="Moderate">
           </div>
         </div>
         <button type="submit" class="submit-btn" id="submit-btn">
-          Submit Report
+          Log Outage
           <div class="submit-btn-spinner"></div>
         </button>
       </form>
@@ -2073,7 +2085,7 @@ body {
     <div class="tab-content" id="tab-patterns">
       <div class="patterns-header">
         <div class="patterns-title">Your Area Insights</div>
-        <div class="patterns-subtitle">Outage patterns &amp; predictions</div>
+        <div class="patterns-subtitle">From outages logged on this phone</div>
       </div>
       <div class="patterns-area-select">
         <div class="area-chip-scroll" id="pattern-area-chips">
@@ -2083,8 +2095,8 @@ body {
 
       <div class="chart-section">
         <div class="chart-card">
-          <div class="chart-title">Weekly Outage Frequency</div>
-          <div class="chart-subtitle" id="chart-subtitle">Power outages in Koramangala</div>
+          <div class="chart-title">Outages by Weekday</div>
+          <div class="chart-subtitle" id="chart-subtitle"></div>
           <div class="bar-chart" id="bar-chart">
             <!-- Populated by JS -->
           </div>
@@ -2098,8 +2110,8 @@ body {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             </div>
             <div>
-              <div class="predicted-title">Predicted Outage Windows</div>
-              <div class="predicted-subtitle">Based on historical patterns</div>
+              <div class="predicted-title">Usual Outage Window</div>
+              <div class="predicted-subtitle">From your logged outages</div>
             </div>
           </div>
           <div class="predicted-windows" id="predicted-windows">
@@ -2122,7 +2134,7 @@ body {
         <div class="profile-avatar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <div class="profile-name">Bangalore Resident</div>
+        <div class="profile-name">Your Outage Log</div>
         <div class="profile-area" id="profile-area-text">Koramangala</div>
       </div>
 
@@ -2143,43 +2155,6 @@ body {
         </div>
 
         <div class="settings-group">
-          <div class="settings-group-title">Notifications</div>
-          <div class="setting-item">
-            <div class="setting-left">
-              <div class="setting-icon amber">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              </div>
-              <span class="setting-label">Power Outage Alerts</span>
-            </div>
-            <button class="toggle-switch on" id="toggle-power" aria-label="Toggle power alerts">
-              <div class="toggle-knob"></div>
-            </button>
-          </div>
-          <div class="setting-item">
-            <div class="setting-left">
-              <div class="setting-icon blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-              </div>
-              <span class="setting-label">Water Outage Alerts</span>
-            </div>
-            <button class="toggle-switch on" id="toggle-water" aria-label="Toggle water alerts">
-              <div class="toggle-knob"></div>
-            </button>
-          </div>
-          <div class="setting-item">
-            <div class="setting-left">
-              <div class="setting-icon green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-              </div>
-              <span class="setting-label">Resolved Notifications</span>
-            </div>
-            <button class="toggle-switch" id="toggle-resolved" aria-label="Toggle resolved notifications">
-              <div class="toggle-knob"></div>
-            </button>
-          </div>
-        </div>
-
-        <div class="settings-group">
           <div class="settings-group-title">Appearance</div>
           <div class="setting-item">
             <div class="setting-left">
@@ -2188,7 +2163,7 @@ body {
               </div>
               <span class="setting-label">Dark Mode</span>
             </div>
-            <button class="toggle-switch on" id="toggle-theme" aria-label="Toggle dark mode">
+            <button class="toggle-switch on" id="toggle-theme" role="switch" aria-checked="true" aria-label="Dark mode">
               <div class="toggle-knob"></div>
             </button>
           </div>
@@ -2212,7 +2187,7 @@ body {
               </div>
               <span class="setting-label">BESCOM Helpline</span>
             </div>
-            <span class="setting-value">1912</span>
+            <a class="setting-value" href="tel:1912">1912</a>
           </div>
           <div class="setting-item">
             <div class="setting-left">
@@ -2221,15 +2196,15 @@ body {
               </div>
               <span class="setting-label">BWSSB Helpline</span>
             </div>
-            <span class="setting-value">1916</span>
+            <a class="setting-value" href="tel:1916">1916</a>
           </div>
         </div>
       </div>
 
       <div class="app-info">
         <div class="app-info-name">PowerPulse v1.0</div>
-        <p>Community-powered outage tracker for Bangalore</p>
-        <p style="margin-top: 4px;">BESCOM &amp; BWSSB service monitoring</p>
+        <p>Outage log for Bangalore. Reports stay on this phone;</p>
+        <p style="margin-top: 4px;">live shared reports need a server and are on the roadmap.</p>
       </div>
     </div>
   </main>
@@ -2266,8 +2241,9 @@ body {
 
 <!-- Area Detail Bottom Sheet -->
 <div class="area-detail-overlay" id="area-detail-overlay">
-  <div class="area-detail-sheet" id="area-detail-sheet">
+  <div class="area-detail-sheet" id="area-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-area-name">
     <div class="sheet-handle"></div>
+    <button class="sheet-close" id="sheet-close" aria-label="Close">&times;</button>
     <div class="sheet-area-name" id="sheet-area-name">Koramangala</div>
     <div class="sheet-stats" id="sheet-stats"></div>
     <div class="sheet-outages-title">Current Outages</div>
@@ -2276,7 +2252,7 @@ body {
 </div>
 
 <!-- Toast -->
-<div class="toast" id="toast">
+<div class="toast" id="toast" role="status" aria-live="polite">
   <div class="toast-icon success" id="toast-icon">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   </div>
@@ -2299,66 +2275,45 @@ body {
     'Banashankari', 'JP Nagar', 'Malleshwaram', 'Rajajinagar', 'Basavanagudi'
   ];
 
-  const now = Date.now();
-  const mins = m => m * 60 * 1000;
-
-  let activeOutages = [
-    {
-      id: 1, area: 'Koramangala', type: 'power', reports: 23,
-      firstReported: now - mins(47), severity: 3,
-      description: 'Complete power cut, no BESCOM notice posted'
-    },
-    {
-      id: 2, area: 'HSR Layout', type: 'water', reports: 15,
-      firstReported: now - mins(120), severity: 2,
-      description: 'Low pressure / no water supply since morning'
-    },
-    {
-      id: 3, area: 'Whitefield', type: 'power', reports: 31,
-      firstReported: now - mins(35), severity: 3,
-      description: 'Sudden power cut, transformer area sparking reported'
-    },
-    {
-      id: 4, area: 'Marathahalli', type: 'power', reports: 8,
-      firstReported: now - mins(15), severity: 1,
-      description: 'Intermittent power fluctuations'
-    }
-  ];
-
-  let resolvedOutages = [
-    {
-      id: 101, area: 'Indiranagar', type: 'power', reports: 42,
-      firstReported: now - mins(240), resolvedAt: now - mins(60),
-      description: 'Scheduled maintenance completed'
-    },
-    {
-      id: 102, area: 'Jayanagar', type: 'water', reports: 19,
-      firstReported: now - mins(360), resolvedAt: now - mins(180),
-      description: 'Pipeline repair finished'
-    }
-  ];
+  // No seed data: earlier builds opened on invented outages ("transformer
+  // sparking, 31 people reported") timestamped minutes before launch.
+  let activeOutages = [];
+  let resolvedOutages = [];
 
   // Persistence: restore saved outages, auto-expire active ones older than 12h
   try {
     const saved = JSON.parse(localStorage.getItem('pp_outages'));
     if (saved && saved.active && saved.resolved) {
-      activeOutages = saved.active;
-      resolvedOutages = saved.resolved;
+      // Drop the old seed rows (ids 1-4, 101-102); real reports use Date.now() ids.
+      activeOutages = saved.active.filter(o => o.id > 1000);
+      resolvedOutages = saved.resolved.filter(o => o.id > 1000);
     }
-  } catch (e) { /* corrupt storage — fall back to seed data */ }
+  } catch (e) { /* corrupt storage — start empty */ }
 
   const EXPIRE_MS = 12 * 60 * 60 * 1000;
-  activeOutages = activeOutages.filter(o => {
-    if (Date.now() - o.firstReported > EXPIRE_MS) {
-      resolvedOutages.unshift({ ...o, resolvedAt: o.firstReported + EXPIRE_MS });
-      return false;
-    }
-    return true;
-  });
-  resolvedOutages = resolvedOutages.slice(0, 10);
+  const MAX_RESOLVED = 200;   // Patterns reads this history; 200 is years of one area
+  // Runs at launch and every minute, so an outage that passes 12 h while the
+  // app is open still ends.
+  function expireOld() {
+    const now = Date.now();
+    let changed = false;
+    activeOutages = activeOutages.filter(o => {
+      if (now - o.firstReported > EXPIRE_MS) {
+        resolvedOutages.unshift({ ...o, resolvedAt: o.firstReported + EXPIRE_MS, autoExpired: true });
+        changed = true;
+        return false;
+      }
+      return true;
+    });
+    resolvedOutages = resolvedOutages.slice(0, MAX_RESOLVED);
+    return changed;
+  }
+  expireOld();
 
   function saveOutages() {
-    localStorage.setItem('pp_outages', JSON.stringify({ active: activeOutages, resolved: resolvedOutages }));
+    try {
+      localStorage.setItem('pp_outages', JSON.stringify({ active: activeOutages, resolved: resolvedOutages }));
+    } catch (e) { /* storage full or blocked: keep running on in-memory data */ }
   }
   saveOutages();
 
@@ -2371,80 +2326,37 @@ body {
     return { status: 'danger', count: totalReports, outages: areaOutages };
   }
 
-  // Pattern data (per area)
-  const patternData = {
-    'Koramangala': {
-      weekly: [3, 1, 5, 2, 4, 1, 0],
-      predictions: [
-        { day: 'Tue', time: '2:00 PM - 5:00 PM', type: 'power' },
-        { day: 'Wed', time: '10:00 AM - 12:00 PM', type: 'power' },
-        { day: 'Fri', time: '6:00 AM - 8:00 AM', type: 'water' }
-      ],
-      history: [
-        { type: 'power', date: 'Dec 15, 2024', duration: '3h 20m' },
-        { type: 'water', date: 'Dec 12, 2024', duration: '5h 45m' },
-        { type: 'power', date: 'Dec 10, 2024', duration: '1h 10m' },
-        { type: 'power', date: 'Dec 8, 2024', duration: '2h 30m' },
-        { type: 'water', date: 'Dec 3, 2024', duration: '4h 15m' }
-      ]
-    },
-    'Indiranagar': {
-      weekly: [2, 3, 1, 4, 2, 0, 1],
-      predictions: [
-        { day: 'Thu', time: '1:00 PM - 4:00 PM', type: 'power' },
-        { day: 'Sat', time: '7:00 AM - 9:00 AM', type: 'water' }
-      ],
-      history: [
-        { type: 'power', date: 'Dec 16, 2024', duration: '4h 00m' },
-        { type: 'power', date: 'Dec 13, 2024', duration: '2h 15m' },
-        { type: 'water', date: 'Dec 9, 2024', duration: '6h 30m' },
-        { type: 'power', date: 'Dec 5, 2024', duration: '1h 45m' }
-      ]
-    },
-    'HSR Layout': {
-      weekly: [1, 2, 3, 1, 2, 4, 1],
-      predictions: [
-        { day: 'Wed', time: '9:00 AM - 11:00 AM', type: 'water' },
-        { day: 'Sat', time: '2:00 PM - 6:00 PM', type: 'power' }
-      ],
-      history: [
-        { type: 'water', date: 'Dec 17, 2024', duration: '2h 00m' },
-        { type: 'power', date: 'Dec 14, 2024', duration: '3h 30m' },
-        { type: 'water', date: 'Dec 11, 2024', duration: '4h 00m' },
-        { type: 'power', date: 'Dec 7, 2024', duration: '1h 20m' }
-      ]
-    },
-    'Whitefield': {
-      weekly: [4, 2, 3, 5, 1, 2, 0],
-      predictions: [
-        { day: 'Mon', time: '10:00 AM - 2:00 PM', type: 'power' },
-        { day: 'Thu', time: '3:00 PM - 6:00 PM', type: 'power' },
-        { day: 'Sat', time: '6:00 AM - 8:00 AM', type: 'water' }
-      ],
-      history: [
-        { type: 'power', date: 'Dec 17, 2024', duration: '35m ongoing' },
-        { type: 'power', date: 'Dec 15, 2024', duration: '4h 10m' },
-        { type: 'power', date: 'Dec 12, 2024', duration: '2h 45m' },
-        { type: 'water', date: 'Dec 8, 2024', duration: '3h 00m' }
-      ]
-    }
-  };
-
-  // Default patterns for areas without specific data
-  const defaultPattern = {
-    weekly: [1, 1, 2, 1, 1, 0, 0],
-    predictions: [
-      { day: 'Wed', time: '11:00 AM - 1:00 PM', type: 'power' }
-    ],
-    history: [
-      { type: 'power', date: 'Dec 14, 2024', duration: '2h 00m' },
-      { type: 'water', date: 'Dec 10, 2024', duration: '3h 15m' }
-    ]
-  };
+  // Patterns come only from outages logged on this phone. Earlier builds showed
+  // invented weekly counts, "predicted windows" and Dec 2024 history (§4.5).
+  const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const hourLabel = h => ((h % 12) || 12) + (h % 24 < 12 ? ' AM' : ' PM');
 
   function getPatternData(area) {
-    return patternData[area] || defaultPattern;
+    const list = [...activeOutages, ...resolvedOutages]
+      .filter(o => o.area === area)
+      .sort((a, b) => b.firstReported - a.firstReported);
+    const weekly = [0, 0, 0, 0, 0, 0, 0];
+    const blocks = {};
+    list.forEach(o => {
+      const d = new Date(o.firstReported);
+      weekly[(d.getDay() + 6) % 7]++;
+      const block = Math.floor(d.getHours() / 3) * 3;
+      blocks[block] = (blocks[block] || 0) + 1;
+    });
+    let busiest = null;
+    // ponytail: busiest weekday and busiest 3-hour block, counted separately.
+    // Needs a few logged outages before it means anything.
+    if (list.length >= 3) {
+      const block = +Object.keys(blocks).sort((a, b) => blocks[b] - blocks[a])[0];
+      busiest = { day: WEEKDAYS[weekly.indexOf(Math.max(...weekly))], time: hourLabel(block) + ' – ' + hourLabel(block + 3), count: list.length };
+    }
+    return { weekly, busiest, history: list.slice(0, 10) };
   }
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  const SEVERITY = { 1: 'Mild', 2: 'Moderate', 3: 'Severe' };
 
   // ============================================
   // STATE
@@ -2455,9 +2367,6 @@ body {
   let selectedPatternArea = null;
   let userArea = localStorage.getItem('pp_userArea') || 'Koramangala';
   let darkMode = localStorage.getItem('pp_darkMode') !== 'false'; // default true
-  let notifPower = localStorage.getItem('pp_notifPower') !== 'false';
-  let notifWater = localStorage.getItem('pp_notifWater') !== 'false';
-  let notifResolved = localStorage.getItem('pp_notifResolved') === 'true';
 
   // ============================================
   // DOM REFS
@@ -2468,12 +2377,8 @@ body {
   // ============================================
   // SPLASH SCREEN
   // ============================================
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      $('#splash-screen').classList.add('hide');
-      setTimeout(() => { $('#splash-screen').style.display = 'none'; }, 500);
-    }, 1500);
-  });
+  // Hidden right after the first render (see init) — no fixed delay on an app
+  // people open during a power cut.
 
   // ============================================
   // THEME
@@ -2486,8 +2391,8 @@ body {
     }
     const toggle = $('#toggle-theme');
     if (toggle) {
-      if (darkMode) toggle.classList.add('on');
-      else toggle.classList.remove('on');
+      toggle.classList.toggle('on', darkMode);
+      toggle.setAttribute('aria-checked', String(darkMode));
     }
   }
   applyTheme();
@@ -2579,15 +2484,15 @@ body {
     if (total === 0) {
       ring.className = 'status-pulse-ring clear';
       icon.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"/><polyline points="22 4 12 14.01 9 11.01" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-      statusText.textContent = 'All Clear';
+      statusText.textContent = 'No Outages Logged';
       statusText.style.color = 'var(--accent-green)';
-      statusSub.textContent = 'No outages reported in Bangalore';
+      statusSub.textContent = 'Reports you log stay on this phone';
     } else {
       ring.className = 'status-pulse-ring alert';
       icon.innerHTML = '<path d="M17 4L8 18h6l-2 10 10-14h-6.5L17 4z" fill="#EF4444"/>';
-      statusText.textContent = total + ' Outage' + (total > 1 ? 's' : '') + ' Reported';
+      statusText.textContent = total + ' Active Outage' + (total > 1 ? 's' : '');
       statusText.style.color = 'var(--accent-red)';
-      statusSub.textContent = 'Across Bangalore right now';
+      statusSub.textContent = 'Logged on this phone — tap Share to tell neighbours';
     }
 
     $('#meta-power').textContent = powerCount;
@@ -2602,26 +2507,30 @@ body {
 
     const list = $('#outage-list');
     if (filtered.length === 0) {
-      list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px;">No active outages matching filter</div>';
+      list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:14px;">No active outages logged' + (currentFilter === 'all' ? '' : ' for this filter') + '</div>';
     } else {
       list.innerHTML = filtered.map((o, i) => `
-        <div class="outage-card ${o.type} animate-in delay-${i + 1}" data-id="${o.id}">
+        <div class="outage-card ${o.type === 'water' ? 'water' : 'power'} animate-in delay-${i + 1}" data-id="${o.id}">
           <div class="outage-card-top">
             <div class="outage-card-info">
-              <div class="outage-area">${o.area}</div>
-              <span class="outage-type-badge ${o.type}">
-                ${o.type === 'power' ? powerIconSVG : waterIconSVG}
-                ${o.type === 'power' ? 'BESCOM' : 'BWSSB'} - ${o.type}
-              </span>
+              <div class="outage-area">${esc(o.area)}</div>
+              <span class="outage-type-badge ${o.type === 'water' ? 'water' : 'power'}">
+                ${o.type === 'water' ? waterIconSVG : powerIconSVG}
+                ${o.type === 'water' ? 'BWSSB - water' : 'BESCOM - power'}
+              </span>${SEVERITY[o.severity] ? `<span class="sev-chip">${SEVERITY[o.severity]}</span>` : ''}
             </div>
             <div class="outage-status-dot"></div>
           </div>
           <div class="outage-card-bottom">
             <div class="outage-reports">
               ${peopleIconSVG}
-              ${o.reports} people reported
+              ${o.reports} report${o.reports === 1 ? '' : 's'}
             </div>
             <div class="outage-time">${timeAgo(o.firstReported)}</div>
+          </div>
+          <div class="card-actions">
+            <button class="card-action" data-action="resolve" data-id="${o.id}">${o.type === 'water' ? "Water's back" : "Power's back"}</button>
+            <button class="card-action" data-action="share" data-id="${o.id}">Share</button>
           </div>
         </div>
       `).join('');
@@ -2629,14 +2538,14 @@ body {
 
     // Resolved
     const resList = $('#resolved-list');
-    resList.innerHTML = resolvedOutages.map((o, i) => `
-      <div class="outage-card ${o.type} animate-in delay-${i + 1}" data-id="${o.id}">
+    resList.innerHTML = resolvedOutages.slice(0, 10).map((o, i) => `
+      <div class="outage-card ${o.type === 'water' ? 'water' : 'power'} animate-in delay-${i + 1}" data-id="${o.id}">
         <div class="outage-card-top">
           <div class="outage-card-info">
-            <div class="outage-area">${o.area}</div>
-            <span class="outage-type-badge ${o.type}">
-              ${o.type === 'power' ? powerIconSVG : waterIconSVG}
-              ${o.type === 'power' ? 'BESCOM' : 'BWSSB'} - ${o.type}
+            <div class="outage-area">${esc(o.area)}</div>
+            <span class="outage-type-badge ${o.type === 'water' ? 'water' : 'power'}">
+              ${o.type === 'water' ? waterIconSVG : powerIconSVG}
+              ${o.type === 'water' ? 'BWSSB - water' : 'BESCOM - power'}
             </span>
           </div>
           <div class="outage-status-dot resolved"></div>
@@ -2644,9 +2553,9 @@ body {
         <div class="outage-card-bottom">
           <div class="outage-reports">
             ${peopleIconSVG}
-            ${o.reports} people reported
+            ${o.reports} report${o.reports === 1 ? '' : 's'}
           </div>
-          <div class="outage-time">Resolved ${timeAgo(o.resolvedAt)}</div>
+          <div class="outage-time">${o.autoExpired ? 'Ended (not logged)' : 'Resolved ' + timeAgo(o.resolvedAt)}</div>
         </div>
       </div>
     `).join('');
@@ -2655,41 +2564,14 @@ body {
   // Filter pills
   $$('.filter-pill').forEach(pill => {
     pill.addEventListener('click', () => {
-      $$('.filter-pill').forEach(p => p.classList.remove('active'));
+      $$('.filter-pill').forEach(p => { p.classList.remove('active'); p.setAttribute('aria-pressed', 'false'); });
       pill.classList.add('active');
+      pill.setAttribute('aria-pressed', 'true');
       currentFilter = pill.dataset.filter;
       renderHome();
     });
   });
 
-  // Pull to refresh simulation
-  let touchStartY = 0;
-  const homeTab = $('#tab-home');
-  homeTab.addEventListener('touchstart', e => {
-    if (homeTab.scrollTop === 0) touchStartY = e.touches[0].clientY;
-  }, { passive: true });
-  homeTab.addEventListener('touchmove', e => {
-    if (homeTab.scrollTop === 0 && e.touches[0].clientY - touchStartY > 60) {
-      $('#ptr').classList.add('visible');
-    }
-  }, { passive: true });
-  homeTab.addEventListener('touchend', () => {
-    if ($('#ptr').classList.contains('visible')) {
-      $('#ptr').textContent = 'Refreshing...';
-      setTimeout(() => {
-        renderHome();
-        $('#ptr').classList.remove('visible');
-        $('#ptr').textContent = 'Pull to refresh...';
-        showToast('Data refreshed!', 'info');
-      }, 1000);
-    }
-  });
-
-  // Refresh button
-  $('#refresh-btn').addEventListener('click', () => {
-    showToast('Data refreshed!', 'info');
-    renderHome();
-  });
 
   // ============================================
   // RENDER MAP
@@ -2708,9 +2590,9 @@ body {
         icon = '<svg class="map-tile-icon" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
       }
       return `
-        <div class="map-tile ${statusClass}" data-area="${area}">
+        <div class="map-tile ${statusClass}" data-area="${esc(area)}" role="button" tabindex="0" aria-label="${esc(area)}: ${statusClass === 'clear' ? 'nothing logged' : info.count + ' reports'}">
           ${icon}
-          <div class="map-tile-name">${area}</div>
+          <div class="map-tile-name">${esc(area)}</div>
           ${info.count > 0 ? `<div class="map-tile-count">${info.count} reports</div>` : ''}
         </div>
       `;
@@ -2725,7 +2607,6 @@ body {
   function openAreaDetail(area) {
     const overlay = $('#area-detail-overlay');
     const info = getAreaStatus(area);
-    const patterns = getPatternData(area);
 
     $('#sheet-area-name').textContent = area;
 
@@ -2751,7 +2632,7 @@ body {
 
     // Outages list
     if (info.outages.length === 0) {
-      $('#sheet-outages').innerHTML = '<div style="padding:16px 0;color:var(--text-muted);font-size:13px;">No active outages. All clear!</div>';
+      $('#sheet-outages').innerHTML = '<div style="padding:16px 0;color:var(--text-muted);font-size:13px;">Nothing logged here right now.</div>';
     } else {
       $('#sheet-outages').innerHTML = info.outages.map(o => `
         <div class="sheet-outage-item">
@@ -2759,22 +2640,73 @@ body {
             ${o.type === 'power' ? '<svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'}
           </div>
           <div class="sheet-outage-info">
-            <div class="sheet-outage-type">${o.type === 'power' ? 'Power Outage' : 'Water Supply Issue'}</div>
-            <div class="sheet-outage-time">${o.reports} reports &middot; ${timeAgo(o.firstReported)}</div>
-            ${o.description ? `<div class="sheet-outage-time" style="margin-top:2px;">${String(o.description).replace(/</g, '&lt;')}</div>` : ''}
+            <div class="sheet-outage-type">${o.type === 'power' ? 'Power Outage' : 'Water Supply Issue'}${SEVERITY[o.severity] ? `<span class="sev-chip">${SEVERITY[o.severity]}</span>` : ''}</div>
+            <div class="sheet-outage-time">${o.reports} report${o.reports === 1 ? '' : 's'} &middot; ${timeAgo(o.firstReported)}</div>
+            ${o.description ? `<div class="sheet-outage-time" style="margin-top:2px;">${esc(o.description)}</div>` : ''}
+            <a class="sheet-helpline" href="tel:${o.type === 'power' ? '1912' : '1916'}">Call ${o.type === 'power' ? 'BESCOM 1912' : 'BWSSB 1916'}</a>
+            <div class="card-actions">
+              <button class="card-action" data-action="resolve" data-id="${o.id}">${o.type === 'water' ? "Water's back" : "Power's back"}</button>
+              <button class="card-action" data-action="share" data-id="${o.id}">Share</button>
+            </div>
           </div>
         </div>
       `).join('');
     }
 
+    if (!overlay.classList.contains('show')) lastFocus = document.activeElement;
     overlay.classList.add('show');
+    $('#sheet-close').focus();
   }
 
+  let lastFocus = null;
+  function closeSheet() {
+    $('#area-detail-overlay').classList.remove('show');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  $('#sheet-close').addEventListener('click', closeSheet);
   $('#area-detail-overlay').addEventListener('click', e => {
-    if (e.target === $('#area-detail-overlay')) {
-      $('#area-detail-overlay').classList.remove('show');
-    }
+    if (e.target === $('#area-detail-overlay')) closeSheet();
   });
+
+  // Escape closes the sheet; Enter/Space open a focused map tile.
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('#area-detail-overlay').classList.contains('show')) closeSheet();
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.map-tile[role="button"]')) { e.preventDefault(); e.target.click(); }
+  });
+
+  // ============================================
+  // RESOLVE + SHARE (the two real actions a local log can offer)
+  // ============================================
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const o = activeOutages.find(x => String(x.id) === btn.dataset.id);
+    if (!o) return;
+    if (btn.dataset.action === 'resolve') resolveOutage(o);
+    else if (btn.dataset.action === 'share') shareOutage(o);
+  });
+
+  function resolveOutage(o) {
+    activeOutages = activeOutages.filter(x => x !== o);
+    resolvedOutages.unshift({ ...o, resolvedAt: Date.now() });
+    resolvedOutages = resolvedOutages.slice(0, MAX_RESOLVED);
+    saveOutages();
+    renderHome();
+    renderMap();
+    renderPatterns(selectedPatternArea);
+    if ($('#area-detail-overlay').classList.contains('show')) openAreaDetail(o.area);
+    showToast((o.type === 'water' ? 'Water' : 'Power') + ' back in ' + o.area + ' — logged', 'success');
+  }
+
+  // Posting to the society WhatsApp group is how outage news actually spreads.
+  function shareOutage(o) {
+    const since = new Date(o.firstReported).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+    const text = (o.type === 'water' ? '💧 No water supply' : '⚡ Power cut') + ` in ${o.area} since ${since}.` +
+      (o.description ? ` ${o.description}.` : '') +
+      (o.type === 'water' ? ' BWSSB helpline: 1916' : ' BESCOM helpline: 1912');
+    if (navigator.share) navigator.share({ text }).catch(() => {});
+    else window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  }
 
   // ============================================
   // RENDER REPORT FORM
@@ -2814,6 +2746,7 @@ body {
     $$('.severity-label').forEach(l => {
       l.classList.toggle('active', parseInt(l.dataset.sev) === val);
     });
+    sevSlider.setAttribute('aria-valuetext', SEVERITY[val]);
   });
 
   // Form submit
@@ -2825,45 +2758,39 @@ body {
       return;
     }
 
-    const btn = $('#submit-btn');
-    btn.classList.add('loading');
-
-    setTimeout(() => {
-      // Add new outage
-      const newOutage = {
+    // Logged instantly: there is no server to wait for, so no fake spinner.
+    const desc = $('#report-desc').value.trim();
+    const severity = parseInt(sevSlider.value);
+    const existing = activeOutages.find(o => o.area === area && o.type === selectedReportType);
+    if (existing) {
+      // A second report is an update: keep the worst severity and the latest note.
+      existing.reports += 1;
+      existing.severity = Math.max(existing.severity || 1, severity);
+      if (desc) existing.description = desc;
+    } else {
+      activeOutages.push({
         id: Date.now(),
         area: area,
         type: selectedReportType,
         reports: 1,
         firstReported: Date.now(),
-        severity: parseInt(sevSlider.value),
-        description: $('#report-desc').value || 'Community report'
-      };
+        severity: severity,
+        description: desc
+      });
+    }
+    saveOutages();
+    showToast('Outage logged on this phone. Tap Share to tell your neighbours.', 'success');
 
-      // Check if there's already an active outage for this area + type
-      const existing = activeOutages.find(o => o.area === area && o.type === selectedReportType);
-      if (existing) {
-        existing.reports += 1;
-      } else {
-        activeOutages.push(newOutage);
-      }
-      saveOutages();
+    // Reset form
+    $('#report-desc').value = '';
+    sevSlider.value = 2;
+    sevSlider.setAttribute('aria-valuetext', SEVERITY[2]);
+    $$('.severity-label').forEach(l => l.classList.toggle('active', parseInt(l.dataset.sev) === 2));
 
-      btn.classList.remove('loading');
-      showToast('Report submitted! Thank you for helping your community.', 'success');
-
-      // Reset form
-      $('#report-desc').value = '';
-      sevSlider.value = 2;
-      $$('.severity-label').forEach(l => l.classList.toggle('active', parseInt(l.dataset.sev) === 2));
-
-      // Refresh home
-      renderHome();
-      renderMap();
-
-      // Switch to home after delay
-      setTimeout(() => switchTab('home'), 800);
-    }, 1500);
+    renderHome();
+    renderMap();
+    renderPatterns(selectedPatternArea);
+    switchTab('home');
   });
 
   // ============================================
@@ -2872,13 +2799,13 @@ body {
   function renderPatterns(area) {
     selectedPatternArea = area || userArea;
     const data = getPatternData(selectedPatternArea);
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const days = WEEKDAYS;
     const maxVal = Math.max(...data.weekly, 1);
 
     // Area chips
     const chips = $('#pattern-area-chips');
     chips.innerHTML = AREAS.map(a => `
-      <button class="area-chip ${a === selectedPatternArea ? 'active' : ''}" data-area="${a}">${a}</button>
+      <button class="area-chip ${a === selectedPatternArea ? 'active' : ''}" data-area="${esc(a)}" aria-pressed="${a === selectedPatternArea}">${esc(a)}</button>
     `).join('');
 
     chips.querySelectorAll('.area-chip').forEach(c => {
@@ -2886,7 +2813,7 @@ body {
     });
 
     // Chart subtitle
-    $('#chart-subtitle').textContent = `Outages per day in ${selectedPatternArea}`;
+    $('#chart-subtitle').textContent = `Logged in ${selectedPatternArea}, by weekday`;
 
     // Bar chart
     const chart = $('#bar-chart');
@@ -2901,37 +2828,38 @@ body {
       `;
     }).join('');
 
-    // Animate bars after a tick
-    requestAnimationFrame(() => {
-      chart.querySelectorAll('.bar').forEach(bar => {
-        const h = bar.style.height;
-        bar.style.height = '4px';
-        requestAnimationFrame(() => { bar.style.height = h; });
-      });
-    });
+    // Grow the bars with transform, not height (no layout work per frame).
+    chart.querySelectorAll('.bar').forEach(bar => { bar.style.transform = 'scaleY(0)'; });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      chart.querySelectorAll('.bar').forEach(bar => { bar.style.transform = 'scaleY(1)'; });
+    }));
 
-    // Predictions
+    // Usual window — only once there is enough logged to say anything.
     const pw = $('#predicted-windows');
-    pw.innerHTML = data.predictions.map(p => `
+    pw.innerHTML = data.busiest ? `
       <div class="predicted-window">
-        <div class="pw-day">${p.day}</div>
-        <div class="pw-time">${p.time}</div>
-        <div class="pw-type ${p.type}">${p.type}</div>
-      </div>
-    `).join('');
+        <div class="pw-day">${data.busiest.day}</div>
+        <div class="pw-time">${data.busiest.time}</div>
+        <div class="pw-type">${data.busiest.count} logged</div>
+      </div>` : `<div class="pw-empty">Log 3 or more outages in ${esc(selectedPatternArea)} to see when they usually happen.</div>`;
 
     // History
     const hl = $('#history-list');
-    hl.innerHTML = data.history.map(h => `
+    hl.innerHTML = data.history.length ? data.history.map(h => `
       <div class="history-item">
-        <div class="history-dot ${h.type}"></div>
+        <div class="history-dot ${h.type === 'water' ? 'water' : 'power'}"></div>
         <div class="history-info">
-          <div class="history-type">${h.type === 'power' ? 'Power Outage' : 'Water Issue'}</div>
-          <div class="history-meta">${h.date}</div>
+          <div class="history-type">${h.type === 'water' ? 'Water Issue' : 'Power Outage'}</div>
+          <div class="history-meta">${new Date(h.firstReported).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
         </div>
-        <div class="history-duration">${h.duration}</div>
+        <div class="history-duration">${!h.resolvedAt ? 'ongoing' : h.autoExpired ? 'end not logged' : duration(h.resolvedAt - h.firstReported)}</div>
       </div>
-    `).join('');
+    `).join('') : `<div class="pw-empty">Nothing logged for ${esc(selectedPatternArea)} yet.</div>`;
+  }
+
+  function duration(ms) {
+    const m = Math.max(1, Math.round(ms / 60000));
+    return m < 60 ? m + 'm' : Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm';
   }
 
   // ============================================
@@ -2943,39 +2871,20 @@ body {
 
   $('#profile-area-select').addEventListener('change', e => {
     userArea = e.target.value;
-    localStorage.setItem('pp_userArea', userArea);
+    try { localStorage.setItem('pp_userArea', userArea); } catch (err) {}
     updateProfileArea();
     renderHome();
     renderPatterns(userArea);
     showToast('Home area updated to ' + userArea, 'info');
   });
 
-  // Toggles
-  function setupToggle(id, getter, setter, key) {
-    const el = $(id);
-    if (getter()) el.classList.add('on');
-    else el.classList.remove('on');
-    el.addEventListener('click', () => {
-      const newVal = !el.classList.contains('on');
-      el.classList.toggle('on', newVal);
-      setter(newVal);
-      localStorage.setItem(key, String(newVal));
-    });
-  }
-
   function initToggles() {
-    setupToggle('#toggle-power', () => notifPower, v => notifPower = v, 'pp_notifPower');
-    setupToggle('#toggle-water', () => notifWater, v => notifWater = v, 'pp_notifWater');
-    setupToggle('#toggle-resolved', () => notifResolved, v => notifResolved = v, 'pp_notifResolved');
-
-    // Theme toggle is special
     const themeToggle = $('#toggle-theme');
     if (darkMode) themeToggle.classList.add('on');
     else themeToggle.classList.remove('on');
     themeToggle.addEventListener('click', () => {
       darkMode = !darkMode;
-      themeToggle.classList.toggle('on', darkMode);
-      localStorage.setItem('pp_darkMode', String(darkMode));
+      try { localStorage.setItem('pp_darkMode', String(darkMode)); } catch (e) {}
       applyTheme();
     });
   }
@@ -2986,9 +2895,9 @@ body {
   $('#notif-btn').addEventListener('click', () => {
     const userOutages = activeOutages.filter(o => o.area === userArea);
     if (userOutages.length > 0) {
-      showToast(`${userOutages.length} active outage(s) in ${userArea}`, 'info');
+      showToast(`${userOutages.length} active outage${userOutages.length === 1 ? '' : 's'} logged in ${userArea}`, 'info');
     } else {
-      showToast(`No outages in ${userArea}`, 'success');
+      showToast(`Nothing logged for ${userArea} on this phone`, 'success');
     }
   });
 
@@ -3003,15 +2912,17 @@ body {
     updateProfileArea();
     initToggles();
 
-    // Simulate live update every 30s - add random reports
+    // Earlier builds added 1-3 invented reports to a random outage every 30 s
+    // and saved them. Now the minute timer only ends stale outages and keeps
+    // the "47m ago" labels honest.
     setInterval(() => {
-      if (activeOutages.length > 0) {
-        const randomOutage = activeOutages[Math.floor(Math.random() * activeOutages.length)];
-        randomOutage.reports += Math.floor(Math.random() * 3) + 1;
-        saveOutages();
-        if (currentTab === 'home') renderHome();
-      }
-    }, 30000);
+      if (expireOld()) saveOutages();
+      renderHome();
+      renderMap();
+    }, 60000);
+
+    requestAnimationFrame(() => $('#splash-screen').classList.add('hide'));
+    setTimeout(() => { $('#splash-screen').style.display = 'none'; }, 600);
   }
 
   init();
