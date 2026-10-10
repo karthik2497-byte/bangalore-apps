@@ -140,9 +140,10 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 - [ ] **Thraasu printing on a real phone.** `window.print()` is proven to fire with the PDF
       title `Thraasu-Bill-NNNN`, and print media is proven to show only the receipt. Not proven:
       Android's dialog itself, a Wi-Fi printer, and a 58 mm Bluetooth printer through RawBT.
-      **iPhone:** Home Screen apps ignore `window.print()`, so Print shares the bill as a 576 px PNG
-      (share sheet → Print / WhatsApp). Proven in WebKit up to `navigator.share`; confirm the real
-      sheet on an iPhone, both in Safari and from the Home Screen icon.
+      **iPhone:** Print is a plain `window.print()` (works in Safari, per Karthik); Firefox Focus
+      ignores it, so a separate **Share** button sends the bill as a 576 px PNG (share sheet →
+      Print / WhatsApp). Confirm Share → Print once in Firefox Focus. WebKit defers `print()` while
+      any image is still loading, so on a slow connection the sheet can lag the tap.
 - [ ] **Thraasu photos are generic Unsplash stock** (option C, photo tiles, chosen 2026-10-10; review
       page https://claude.ai/artifact/VQ4SJJgo6EWVLy6BQ91Dtp). Swap in a shop's own photos as
       `img/<id>.webp` under a **new filename** (installed copies cache photos by URL); credits in
