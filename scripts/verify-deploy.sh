@@ -42,9 +42,17 @@ done
 # HTTP 200, and a status code proves nothing — verified the hard way.
 [ "$(code "$B/nonexistent-probe-$$")" = 404 ] || say "no 404.html: unmatched paths soft-404, leak check below is meaningless"
 for leak in EXECUTION_PLAN.md WORK_LOG.md MISTAKES.md PLAYBOOK.html CLAUDE.md \
-            scripts/build-site.sh .gitignore 2_meter_smart/test-fares.mjs 7_card_guard/TODO.md 8_thraasu/test-bill.mjs 8_thraasu/PRODUCT.md 8_thraasu/.impeccable/design.json; do
+            scripts/build-site.sh .gitignore 2_meter_smart/test-fares.mjs 7_card_guard/TODO.md 8_thraasu/test-bill.mjs 8_thraasu/PRODUCT.md 8_thraasu/.impeccable/design.json \
+            8_thraasu/tools/shop-admin.mjs 8_thraasu/tools/catalogs/NANMA.json 8_thraasu/NANMA-IMPORT-NOTES.md wrangler.toml; do
   c=$(code "$B/$leak"); [ "$c" = 404 ] || say "LEAKED $leak -> HTTP $c"
 done
 
-[ $fail = 0 ] && echo "PASS — 8 apps, CSPs applied, assetlinks 8/8, 404s real, no leaks" || echo "FAILED"
+# Thraasu shop sync is a Pages Function: it must answer (not the static 404) and refuse
+# without a login. A 500 here usually means the D1 binding in wrangler.toml did not apply.
+api=$(curl -s --max-time 20 -w ' %{http_code}' "$B/api/thraasu/state")
+[ "$api" = '{"error":"login"} 401' ] || say "Thraasu sync API: expected a JSON 401, got: ${api:0:80}"
+api=$(curl -s --max-time 20 -w ' %{http_code}' -X POST -H 'content-type: application/json' -d '{"code":"NOSUCHSHOP","pin":"0000"}' "$B/api/thraasu/login")
+[ "$api" = '{"error":"wrong"} 401' ] || say "Thraasu login (D1 reachable?): got: ${api:0:80}"
+
+[ $fail = 0 ] && echo "PASS — 8 apps, CSPs applied, assetlinks 8/8, 404s real, no leaks, sync API up" || echo "FAILED"
 exit $fail

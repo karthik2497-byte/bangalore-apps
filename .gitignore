@@ -3,3 +3,6 @@ scripts/package.json
 scripts/package-lock.json
 .DS_Store
 dist/
+
+# Thraasu shop lists carry real stock counts: they go to D1, never to this public repo
+8_thraasu/tools/catalogs/
