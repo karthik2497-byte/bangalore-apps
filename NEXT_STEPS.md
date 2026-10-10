@@ -79,10 +79,15 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       verified. The 8 current rows are the original demo data. Numbers were left
       blank deliberately: inventing plausible Indian mobile numbers would point
       real users at real strangers.
-- [ ] **Thraasu `8_thraasu/products.json` is sample data** (68 Kerala items, `"sample": true` shows
-      a മാതൃകാ വിലകൾ pill). Shops now set their own prices in-app (pill → price list, stored on
-      the phone as `thraasu_prices`); **no backup yet**: add export/import before shops rely on it.
-      `test-bill.mjs` asserts the flag, so flipping it means updating that check too.
+- [ ] **Thraasu carries Nanma Store's real list**: 433 items live (`sample: false`). **27 sheet rows
+      are held back until the shop clarifies them**, each with its sheet row and reason in
+      **`8_thraasu/NANMA-IMPORT-NOTES.md`**: all UK/Hyza coconut oil and Milma ghee rows (prices
+      shifted), Punerva gingelly 200 ml (₹1), glucose (₹0), 8 double entries, 3 shared SKUs, and the
+      unclear "con flower" / "savoonari". Karthik fixed sugar ₹59, jaggery ₹85, kaima rice ₹190,
+      Robusta ₹45 per kg. Prices and photos set on a phone have **no backup yet**: add export/import
+      before shops rely on them.
+      A corrected sheet re-imports with `python3 8_thraasu/tools/nanma-import.py "<sheet>.xlsx"`
+      (names/categories live in `tools/nanma-table.txt`, one line per sheet row).
 - [ ] `REPLACE_WITH_CONTACT_EMAIL` in all four `privacy.html` files: MeterSmart,
       LingoLocal, StockPing, CardGuard. Play Store listing requires a reachable address.
 - [ ] *(review)* MeterSmart now uses the **Aug 2025 Bengaluru tariff** (₹36 + ₹18/km,
@@ -100,7 +105,7 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       no Kannada TTS at all — but not accent. A native speaker should review all 108
       phrases (is ನೇರೆ ಹೋಗಿ idiomatic?) and re-record; replacements are a drop-in under
       the same filenames, then re-run the tool for the manifest.
-- [ ] **Thraasu Malayalam is unreviewed.** The UI copy and the 68 product names were written
+- [ ] **Thraasu Malayalam is unreviewed.** The UI copy and the 459 product names (Nanma Store) were written
       by the build agent. A native speaker should read every label in `8_thraasu/index.html`
       and every `ml` field in `products.json`. Thraasu also needs a `privacy.html` before Play.
 - [ ] **CardGuard Play Billing**: create the `cardguard_premium_yearly` product in
