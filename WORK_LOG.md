@@ -40,7 +40,9 @@ each one confirmed applied before its result was trusted.
 - Anything that needs a backend (§4.3/§4.5/§4.7), an account (Play Console, contact email),
   or a real device (Android notification paint, OAuth popup, `clip.play()` under a gesture).
 - Taste-call design findings: Inter, overshoot easing, StockPing's GitHub-like palette.
-- Nothing was committed. Changes are in the working tree, separable per app folder.
+- Committed one commit per app and deployed the same day: `main` fast-forwarded c6d74dd→421f465.
+  Live: `verify-deploy.sh` PASS, 24/24 served app pages, service workers and JSON files
+  byte-identical to `dist/`, and `/7_card_guard/` sends no COOP header.
 
 ## Phase A — deploy config, and two CSP bugs only a browser could find (2026-08-29)
 

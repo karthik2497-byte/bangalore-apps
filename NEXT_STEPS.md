@@ -12,14 +12,9 @@ and `WORK_LOG.md` (what was built and how it was verified). This file is only th
 
 Each app folder has a `REVIEW.md`: findings ranked P0–P3, what to keep, and a **Status**
 block listing what was fixed on 2026-10-10 and what is still open. All P0/P1 items that
-need no server or account were fixed and verified in headless Chrome (162 checks, 6 unit
-suites). Items below marked *(review)* came out of that pass.
-
-- [ ] **Deploy the 2026-10-10 fixes.** They are committed on branch `review-fixes-2026-10-10`:
-      one commit per app, then the smoke harness, then the docs. Fast-forward `main` and push
-      (Pages deploys `main`), then run `verify-deploy.sh` and `browser-smoke.sh`.
-      Every app's SW cache name was bumped (`powerpulse-v2`, `metersmart-v3`, `pgbuddy-v3`,
-      `nesthub-v3`, `lingolocal-v3`, `stockping-v4`, `cardguard-v3`), so clients pick up the change.
+need no server or account were fixed, verified in headless Chrome (162 checks, 6 unit
+suites) and deployed on 2026-10-10 (`main` at `421f465`). Items below marked *(review)*
+came out of that pass.
 
 ## 1. Phase A is done — the site is live
 
@@ -29,8 +24,9 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 **fixed permanently at first Play publish** — get them right before submitting.
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
-      effect on Pages, so nothing in the repo proves the CSPs work. Last run: PASS —
-      7 apps, CSPs applied, assetlinks 7/7, real 404s, no repo file reachable.
+      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-10,
+      after the review deploy: PASS — 7 apps, CSPs applied, assetlinks 7/7, real 404s,
+      no repo file reachable.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
 
@@ -125,9 +121,10 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       in-app reminders now go through `registration.showNotification`, because
       `new Notification()` throws on Chrome for Android. This was proven in headless Chrome
       with the constructor forced to throw. Confirm once on a phone.
-- [ ] *(review)* **CardGuard COOP detach:** after deploy,
-      `curl -sI https://tinkerhouse.uk/7_card_guard/ | grep -i opener` must print nothing.
-      Then run one Gmail Sync with a real Client ID, because the OAuth popup needs `window.opener`.
+- [ ] *(review)* **CardGuard Gmail Sync with a real Client ID.** The COOP detach is live
+      (2026-10-10: `curl -sI https://tinkerhouse.uk/7_card_guard/ | grep -i opener` prints
+      nothing; the other apps still send `same-origin`). One real sync proves the OAuth popup
+      gets its `window.opener`.
 - [ ] **StockPing's proxy origins in `connect-src`** are in `_headers` but were never
       exercised live — driving that path hits the real CORS proxies and real retail
       sites. Confirm on the first live deploy.

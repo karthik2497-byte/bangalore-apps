@@ -3,6 +3,7 @@
 Newest at top. One line each. Format:
 `- YYYY-MM-DD — <what I assumed/did> → <what was actually true>. Rule: <do this instead>.`
 
+- 2026-10-10 — Diffed live `/<app>/index.html` against `dist/` with plain `curl` → Pages 308-redirects `/index.html` to `/`, so curl got an empty body and all 8 pages "differed" on a correct deploy. Rule: fetch pages by their directory URL (or `curl -L`) when comparing live with `dist/`.
 - 2026-10-10 — Asserted day-rate fares in a MeterSmart browser test → the app auto-detects night from the clock, the run happened at night, and ₹36 read ₹54. Rule: pin clock-dependent state (`state.nightManual = true; state.nightMode = false`) before asserting a fare.
 - 2026-10-10 — Read `innerText` / called `focus()` right after `switchTab()` → PowerPulse tabs fade in through a `visibility` transition, so for a frame the new tab is unfocusable and its `innerText` is empty; CSS `text-transform` also rewrites `innerText` (PG Buddy's "IS CHEAPER"). Rule: assert on `textContent`, and wait ~400 ms after a tab switch before a focus check.
 - 2026-10-10 — Clicked `.frequent-approve-btn` to approve a NestHub visitor → the red Cancel Pass button reuses that class, so the test cancelled a pass. Rule: scope test selectors to their container (`#frequentVisitors .frequent-approve-btn`).
