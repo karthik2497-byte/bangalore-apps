@@ -55,7 +55,7 @@ api=$(curl -s --max-time 20 -w ' %{http_code}' -X POST -H 'content-type: applica
 [ "$api" = '{"error":"wrong"} 401' ] || say "Thraasu login (D1 reachable?): got: ${api:0:80}"
 api=$(curl -s --max-time 20 -w ' %{http_code}' -X POST -H 'content-type: application/json' -d '{"name":"","mobile":"0","pin":"x"}' "$B/api/thraasu/signup")
 [ "$api" = '{"error":"bad"} 400' ] || say "Thraasu sign-up should refuse a bad request, got: ${api:0:80}"
-curl -s --max-time 20 "$B/8_thraasu/privacy.html" | grep -q 'Thraasu — Privacy Policy' || say "Thraasu privacy page missing"
+curl -sL --max-time 20 "$B/8_thraasu/privacy.html" | grep -q 'Thraasu — Privacy Policy' || say "Thraasu privacy page missing"
 
 [ $fail = 0 ] && echo "PASS — 8 apps, CSPs applied, assetlinks 8/8, 404s real, no leaks, sync API up" || echo "FAILED"
 exit $fail

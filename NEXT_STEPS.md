@@ -25,7 +25,7 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
       effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-10,
-      after the Thraasu stock deploy (`main` at `1561c60`): PASS — 8 apps, CSPs applied,
+      after the Thraasu sign-up deploy (`main` at `4763a5c`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
@@ -81,8 +81,13 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       real users at real strangers.
 - [ ] **Thraasu shop accounts are live** (2026-10-10): Nanma Store is shop `NANMA` (PIN given to Karthik;
       reset with `node 8_thraasu/tools/shop-admin.mjs pin NANMA`). Its own list (real prices, stock)
-      is on the server; the public `products.json` is now the labelled template without stock. New
-      shop: `shop-admin.mjs add CODE "Name"`, then `catalog CODE list.json` if it has its own list.
+      is on the server; the public `products.json` is now the labelled template without stock.
+      **New shops sign up in the app** (live 2026-10-10, `4763a5c`): the owner taps പുതിയ കട രജിസ്റ്റർ
+      ചെയ്യുക in the shop sheet and gets a code; run `shop-admin.mjs requests`, call the mobile if unsure,
+      then `approve CODE` (or `reject CODE`). Nothing notifies you of a request. Or make one directly with
+      `add CODE "Name"`; `catalog CODE list.json` if it has its own list. Fee: `MONTHLY_FEE = 0` in the
+      app, a label only; charging (manual UPI or Razorpay) is built when it goes above 0. At most 20
+      requests wait at once; 25 MB of photos per shop; sold bills kept 60 days.
       Open: a shop must log in once on each phone; a shop changing its *list* (adding items) still
       goes through me (sheet → import → `catalog`).
 - [ ] **Thraasu stock goes down as bills are sold (live 2026-10-10, `1561c60`).** A bill counts once
@@ -99,7 +104,8 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       Robusta ₹45 per kg.
       A corrected sheet re-imports with `python3 8_thraasu/tools/nanma-import.py "<sheet>.xlsx"`
       (names/categories live in `tools/nanma-table.txt`, one line per sheet row).
-- [ ] `REPLACE_WITH_CONTACT_EMAIL` in all four `privacy.html` files: MeterSmart,
+- [ ] `REPLACE_WITH_CONTACT_EMAIL` in all five `privacy.html` files (Thraasu's before real shop owners
+      sign up: it is where they ask for deletion): Thraasu, MeterSmart,
       LingoLocal, StockPing, CardGuard. Play Store listing requires a reachable address.
 - [ ] *(review)* MeterSmart now uses the **Aug 2025 Bengaluru tariff** (₹36 + ₹18/km,
       waiting ₹10 per 15 min after 5 free). It was checked on 2026-10-10 against press
