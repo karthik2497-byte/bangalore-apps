@@ -1,5 +1,47 @@
 # Work Log
 
+## Per-app review + fixes (2026-10-10)
+
+Every app got a `REVIEW.md` in its folder (findings P0–P3, what to keep, a Status block).
+Then every P0/P1 that needs no server or account was fixed. Summary per app is in each
+REVIEW.md; the audit row in EXECUTION_PLAN §0.4 lists the changes. What matters for the
+next person:
+
+- **The cross-app cache purge.** Every service worker's `activate` deleted every cache on
+  the origin except its own. All 7 apps share `tinkerhouse.uk`, so opening or updating
+  any app wiped the others' caches: LingoLocal's 108 clips, and CardGuard's
+  `cardguard-state`, which is the mirror its background reminders read. Reproduced in
+  headless Chrome, where only `metersmart-v2` survived. Each worker now deletes only its
+  own prefix. AGENTS.md rule 2 records the rule.
+- **Honesty fixes that change what users see:** MeterSmart prices with the Aug-2025
+  Bengaluru tariff. PG Buddy's sample listings are labelled and show no "Verified" badges.
+  PowerPulse starts empty and only shows what the device logged. NestHub carries a demo
+  banner, and its SOS dials 112.
+- **CardGuard's cycle model changed.** An unpaid bill stays current for up to 10 days after
+  its due date (`OVERDUE_DAYS`), and reminds for the first 3 (`GRACE_DAYS`, the RBI
+  no-late-fee window). The worker uses the same `reminder-core.js`, so background and
+  in-app reminders agree.
+
+### How it was verified
+
+`bash scripts/browser-smoke.sh` re-runs all of it in one command. `scripts/browser/serve.mjs`
+is a 40-line static server that applies `_headers` exactly as Pages does (rules are additive,
+duplicate headers are comma-joined, `! Name` detaches a header). `scripts/browser/cdp.mjs`
+drives headless Chrome over the DevTools protocol, using Node's built-in WebSocket, with no
+npm installs. There was one suite per app plus a cross-app cache suite
+and a privacy-page suite: 162 checks, all text assertions, no screenshots. Retailer and
+proxy traffic was stubbed, and notification permission was granted through CDP. The
+Android notification failure was simulated by making `Notification` a constructor that
+throws. Unit suites were extended, and the new logic was mutation-tested with sed mutants,
+each one confirmed applied before its result was trusted.
+
+### Not done, on purpose
+
+- Anything that needs a backend (§4.3/§4.5/§4.7), an account (Play Console, contact email),
+  or a real device (Android notification paint, OAuth popup, `clip.play()` under a gesture).
+- Taste-call design findings: Inter, overshoot easing, StockPing's GitHub-like palette.
+- Nothing was committed. Changes are in the working tree, separable per app folder.
+
 ## Phase A — deploy config, and two CSP bugs only a browser could find (2026-08-29)
 
 Scope: §7 Phase A, repo side only. No app code touched. Creating the Cloudflare

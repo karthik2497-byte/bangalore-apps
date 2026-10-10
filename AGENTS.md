@@ -22,6 +22,7 @@ worker and manifest. No framework, no bundler, no backend, no npm install.
 - `.well-known/assetlinks.json` — Digital Asset Links, one statement per Android app
 - `scripts/build-site.sh` — assembles `dist/`; **fails the build** if a private file or an under-specified CSP gets through
 - `scripts/verify-deploy.sh` — checks the deployed origin
+- `scripts/browser-smoke.sh` — §0.3 runtime gate for all 7 apps in headless Chrome (suites in `scripts/browser/tests/`)
 - `EXECUTION_PLAN.md` — roadmap, audit log, per-app backlog. **The source of truth for what to do next**
 - `MISTAKES.md` — one line per mistake that cost a retry. Read before touching an area it names
 
@@ -36,7 +37,8 @@ this repo, auto-deploys on every push to `main`. Each app is a path:
 ```bash
 bash scripts/build-site.sh          # build dist/ (also the CI build command)
 bash scripts/verify-deploy.sh       # verify the live origin; exit code is the verdict
-for t in [1-7]_*/test-*.mjs; do node "$t"; done   # 5 suites
+for t in [1-7]_*/test-*.mjs; do node "$t"; done   # 6 suites
+bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (162 checks)
 node --check <file>                 # syntax-check any extracted inline script
 ```
 
@@ -45,10 +47,14 @@ node --check <file>                 # syntax-check any extracted inline script
 1. **Never change the origin.** `tinkerhouse.uk` is baked into every user's
    `localStorage` (scoped per origin) and into every signed Android bundle.
    Changing it silently destroys user data and breaks every published app.
-2. **Namespace every `localStorage` key.** All 7 apps share one origin and
-   therefore one storage bucket. Existing prefixes: `pp_`, `meterSmart`,
-   `pgbuddy_`, `nesthub_state`, `ll_`, `stockping_`, `cardguard_`. An unprefixed
-   key will collide with another app.
+2. **Namespace every `localStorage` key and every Cache Storage name.** All 7 apps
+   share one origin and therefore one storage bucket. Existing prefixes: `pp_`,
+   `meterSmart`, `pgbuddy_`, `nesthub_state`, `ll_`, `stockping_`, `cardguard_`.
+   An unprefixed key will collide with another app. Cache Storage is per origin
+   too. A service worker's `activate` may delete only caches with its own prefix
+   (`powerpulse-`, `metersmart-`, `pgbuddy-`, `nesthub-`, `lingolocal-`, `stockping-`,
+   `cardguard-v`). "Delete everything but mine" wiped the other six apps' caches,
+   including CardGuard's reminder state, until 2026-10-10.
 3. **Keep paths relative.** `./service-worker.js`, `start_url: "./index.html"`.
    An absolute path escapes the app's subpath and lands on the site root.
 4. **`_headers` only takes effect on Cloudflare Pages.** Nothing in this repo
@@ -62,6 +68,8 @@ node --check <file>                 # syntax-check any extracted inline script
 ## Where the work is
 
 - **`NEXT_STEPS.md`** — the open-items index. Start here.
+- **`<app>/REVIEW.md`** — per-app review (2026-10-10): findings by severity, what to
+  keep, and a Status block of what is fixed and what is open.
 - **`EXECUTION_PLAN.md`** — §4 per-app roadmap, §7 phases, §0.3 verification gate,
   §0.4 audit log (append a row per work session).
 - **`MONETISATION.md`** — which apps can earn passively and which cannot, with the

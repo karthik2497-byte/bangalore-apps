@@ -8,6 +8,19 @@ Authoritative detail lives in `EXECUTION_PLAN.md` (§4 per-app roadmap, §7 phas
 and `WORK_LOG.md` (what was built and how it was verified). This file is only the
 "what is still open" index.
 
+## 0. Per-app reviews (2026-10-10): read `<app>/REVIEW.md` before touching an app
+
+Each app folder has a `REVIEW.md`: findings ranked P0–P3, what to keep, and a **Status**
+block listing what was fixed on 2026-10-10 and what is still open. All P0/P1 items that
+need no server or account were fixed and verified in headless Chrome (162 checks, 6 unit
+suites). Items below marked *(review)* came out of that pass.
+
+- [ ] **Deploy the 2026-10-10 fixes.** They are committed on branch `review-fixes-2026-10-10`:
+      one commit per app, then the smoke harness, then the docs. Fast-forward `main` and push
+      (Pages deploys `main`), then run `verify-deploy.sh` and `browser-smoke.sh`.
+      Every app's SW cache name was bumped (`powerpulse-v2`, `metersmart-v3`, `pgbuddy-v3`,
+      `nesthub-v3`, `lingolocal-v3`, `stockping-v4`, `cardguard-v3`), so clients pick up the change.
+
 ## 1. Phase A is done — the site is live
 
 **`https://tinkerhouse.uk`** — Cloudflare Pages project `tinkerhouse`, repo-connected,
@@ -70,19 +83,23 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       verified. The 8 current rows are the original demo data. Numbers were left
       blank deliberately: inventing plausible Indian mobile numbers would point
       real users at real strangers.
-- [ ] `REPLACE_WITH_CONTACT_EMAIL` in `2_meter_smart/privacy.html` and
-      `7_card_guard/privacy.html`. Play Store listing requires a reachable address.
+- [ ] `REPLACE_WITH_CONTACT_EMAIL` in all four `privacy.html` files: MeterSmart,
+      LingoLocal, StockPing, CardGuard. Play Store listing requires a reachable address.
+- [ ] *(review)* MeterSmart now uses the **Aug 2025 Bengaluru tariff** (₹36 + ₹18/km,
+      waiting ₹10 per 15 min after 5 free). It was checked on 2026-10-10 against press
+      reports of the 14 Jul 2025 DTA notification. Confirm it against the notification
+      itself, and settle whether meters step per km or per 100 m (`ponytail:` in `fareBreakdown`).
+- [ ] *(review)* PG Buddy ships **sample** listings (`"sample": true` shows a banner). When
+      real, visited PGs replace them, set `sample: false`. Set `verified` only together with
+      a `verifiedOn` date, since `validPGs()` rejects one without the other.
 
 ## 4. Missing artifacts before Play submission
 
-- [ ] `privacy.html` for **LingoLocal** and **StockPing** (`2_meter_smart/privacy.html`
-      is the template). Mandatory for the Play listing, and Amazon Associates wants
-      one for the affiliate disclosure.
 - [ ] **LingoLocal audio is synthesised**, not a native speaker (macOS `kn_IN` voice
       via `tools/gen-audio.mjs`). It solves availability — most Android devices ship
-      no Kannada TTS at all — but not accent. A native speaker should review the 18
-      new phrases and re-record; replacements are a drop-in under the same
-      filenames, then re-run the tool for the manifest.
+      no Kannada TTS at all — but not accent. A native speaker should review all 108
+      phrases (is ನೇರೆ ಹೋಗಿ idiomatic?) and re-record; replacements are a drop-in under
+      the same filenames, then re-run the tool for the manifest.
 - [ ] **CardGuard Play Billing**: create the `cardguard_premium_yearly` product in
       Play Console, and verify bubblewrap's `alphaDependencies.playBilling` field
       name against the installed `@bubblewrap/core` before wiring it into
@@ -104,9 +121,13 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 
 ## 6. Verification debt
 
-- [ ] **§8 browser smoke test for PowerPulse and NestHub** — never run since the
-      2026-07-11 fix pass. MeterSmart, LingoLocal, StockPing, PG Buddy and CardGuard
-      all have browser evidence in the Audit Log; these two do not.
+- [ ] *(review)* **One real Android device:** StockPing restock alerts and CardGuard
+      in-app reminders now go through `registration.showNotification`, because
+      `new Notification()` throws on Chrome for Android. This was proven in headless Chrome
+      with the constructor forced to throw. Confirm once on a phone.
+- [ ] *(review)* **CardGuard COOP detach:** after deploy,
+      `curl -sI https://tinkerhouse.uk/7_card_guard/ | grep -i opener` must print nothing.
+      Then run one Gmail Sync with a real Client ID, because the OAuth popup needs `window.opener`.
 - [ ] **StockPing's proxy origins in `connect-src`** are in `_headers` but were never
       exercised live — driving that path hits the real CORS proxies and real retail
       sites. Confirm on the first live deploy.
@@ -115,9 +136,6 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       there). Decode is proven end to end; one tap on a real device closes it.
 - [ ] **CardGuard notification actually painting** — same shape: proven up to and
       including the `showNotification` call; needs one tap on a real device.
-- [ ] **SW cache version bump** — deliberately skipped for the first deploy (nothing
-      is live, so no client holds a stale cache). Applies from the *second* deploy
-      onward, per §0.2.
 
 ## 7. Design findings — all pre-existing, none introduced by recent work
 
@@ -126,13 +144,8 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 **No ignore command has been run** — suppressing a finding needs Karthik's explicit
 confirmation, and none has been given.
 
-Worth fixing (real defects, small diffs):
-
-- [ ] `5_lingo_local/index.html:117` — `[dark-glow]` zero-offset purple halo
-      (`box-shadow: 0 0 60px rgba(124,58,237,0.15)`). Replace with a neutral
-      elevation shadow.
-- [ ] `5_lingo_local/index.html:233` and `:428` — `[layout-transition]` animating
-      `width` (progress bars). Use `transform: scaleX` instead.
+The two "worth fixing" LingoLocal findings (purple glow, `width` transitions) were fixed on
+2026-10-10, along with PowerPulse's `height` transition.
 
 Taste calls — Karthik's decision, do not "fix" unasked:
 
