@@ -2,7 +2,7 @@
 // longer contacts Google on launch.
 const B = 'http://localhost:8811/';
 export default async (t) => {
-  for (const app of ['2_meter_smart', '5_lingo_local', '6_stock_ping', '7_card_guard']) {
+  for (const app of ['2_meter_smart', '5_lingo_local', '6_stock_ping', '7_card_guard', '8_thraasu']) {
     await t.goto(B + app + '/privacy.html');
     const r = await t.evaluate(() => ({ h1: document.querySelector('h1').textContent, back: document.querySelector('footer a').getAttribute('href'), fonts: /fonts\.googleapis\.com/.test(document.body.textContent) }));
     t.check(`${app} policy renders, names Google Fonts, links back`, /Privacy Policy/.test(r.h1) && r.back === './index.html' && r.fonts, r);

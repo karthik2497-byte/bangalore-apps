@@ -5,6 +5,9 @@
 //   node 8_thraasu/tools/shop-admin.mjs stock CODE list.json         counts from the list's stock fields (a stocktake: replaces all)
 //   node 8_thraasu/tools/shop-admin.mjs remove CODE                  the shop and all its data
 //   node 8_thraasu/tools/shop-admin.mjs list
+//   node 8_thraasu/tools/shop-admin.mjs requests                     shops asked for in the app, waiting
+//   node 8_thraasu/tools/shop-admin.mjs approve CODE                 let a requested shop log in
+//   node 8_thraasu/tools/shop-admin.mjs reject CODE                  delete a request
 // A PIN given on the command line lands in shell history; leave it out to get a random one.
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -64,6 +67,15 @@ DELETE FROM sessions WHERE shop = ${q(code)};`);
   d1(['shops WHERE code', 'sessions WHERE shop', 'prices WHERE shop', 'photos WHERE shop', 'catalog_parts WHERE shop', 'stock WHERE shop', 'sales WHERE shop']
     .map(w => `DELETE FROM ${w} = ${q(code)};`).join('\n'));
   console.log(`${code} removed with its prices, photos, list, stock, sales and sessions`);
+} else if (cmd === 'requests') {
+  const rows = d1read("SELECT code, name, mobile, datetime(created / 1000, 'unixepoch', '+330 minutes') AS asked_ist FROM shops WHERE status = 'pending' ORDER BY created");
+  rows.length ? console.table(rows) : console.log('no requests waiting');
+} else if (cmd === 'approve' || cmd === 'reject') {
+  needCode();
+  const [shop] = d1read(`SELECT status FROM shops WHERE code = ${q(code)}`);
+  if (shop?.status !== 'pending') die(`${code} is not a waiting request`);
+  d1(cmd === 'approve' ? `UPDATE shops SET status = 'active' WHERE code = ${q(code)};` : `DELETE FROM shops WHERE code = ${q(code)} AND status = 'pending';`);
+  console.log(cmd === 'approve' ? `${code} approved: it can log in now` : `${code} request deleted`);
 } else if (cmd === 'list') {
-  console.table(d1read(`SELECT s.code, s.name, (SELECT COUNT(*) FROM prices p WHERE p.shop = s.code) AS prices, (SELECT COUNT(*) FROM photos f WHERE f.shop = s.code) AS photos, (SELECT COUNT(*) FROM stock k WHERE k.shop = s.code) AS counted, (SELECT COUNT(*) FROM sales b WHERE b.shop = s.code) AS bills, s.catalog_at IS NOT NULL AS own_list FROM shops s ORDER BY s.code`));
-} else die(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 8).join('\n'));
+  console.table(d1read(`SELECT s.code, s.name, s.status, s.mobile, (SELECT COUNT(*) FROM prices p WHERE p.shop = s.code) AS prices, (SELECT COUNT(*) FROM photos f WHERE f.shop = s.code) AS photos, (SELECT COUNT(*) FROM stock k WHERE k.shop = s.code) AS counted, (SELECT COUNT(*) FROM sales b WHERE b.shop = s.code) AS bills, s.catalog_at IS NOT NULL AS own_list FROM shops s ORDER BY s.code`));
+} else die(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 11).join('\n'));

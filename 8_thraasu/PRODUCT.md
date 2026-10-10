@@ -49,7 +49,10 @@ phone can already reach.
 - Nanma Store's list (2026-10-10, from `Inventory - Nanma store .xlsx`): 433 items, 15 categories.
   `products.json` is the public template (sample, no stock); the real list with prices is on the
   server behind the shop's login. Stock counts (g for kg items, pieces otherwise) live in D1 `stock`,
-  set by `shop-admin.mjs stock` and lowered by each bill once it is printed, shared or closed. Stock photos (Unsplash) for single-ingredient items; branded packs keep an emoji
+  set by `shop-admin.mjs stock` and lowered by each bill once it is printed, shared or closed.
+- New shops (2026-10-10): the owner asks in the app (shop name, mobile, PIN) and gets a code; the
+  shop logs in once Karthik approves it (`shop-admin.mjs requests` / `approve`). Fee shown as ₹0 a
+  month (`MONTHLY_FEE`); charging is not built. Policy: `privacy.html`. Stock photos (Unsplash) for single-ingredient items; branded packs keep an emoji
   until the shop adds its own photo (stored on the phone, IndexedDB). Behaviour tests run against
   the frozen sample list in `scripts/browser/fixtures/thraasu-sample.json`.
 - Malayalam copy and product names were written by the build agent and need a native

@@ -399,11 +399,16 @@ button:disabled { cursor: default; }
 .box h3 { font-size: 18px; font-weight: 700; line-height: 1.3; }
 .box p { font-size: 15px; color: var(--ink-2); }
 .box form { display: grid; gap: 10px; }
-.box .hint { margin: 0; }
+.box .hint { margin: 0; color: var(--chilli); }
 .field { display: grid; gap: 4px; font-size: 14px; font-weight: 560; color: var(--ink-2); }
 .field input { height: 52px; padding: 0 14px; border: 1.5px solid var(--field); border-radius: 12px; background: var(--slip); font-size: 18px; font-weight: 600; color: var(--ink); }
 .field input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.box .req { padding: 12px 14px; border-radius: 12px; background: var(--leaf-wash); color: var(--leaf-deep); }
+.box .req .code { display: block; margin: 2px 0 4px; font-size: 26px; font-weight: 750; letter-spacing: .12em; color: var(--ink); }
+.box .fee { font-weight: 650; color: var(--leaf-deep); }
+.box .small { font-size: 14px; }
+.box a { color: var(--leaf-deep); font-weight: 600; }
 #syncState { font-weight: 620; color: var(--leaf-deep); }
 #syncState[data-state="wait"] { color: var(--brass-ink); }
 
@@ -595,12 +600,28 @@ button:disabled { cursor: default; }
     <section class="box" id="signedOut">
       <h3>കടയുടെ അക്കൗണ്ട്</h3>
       <p>ലോഗിൻ ചെയ്താൽ കടയുടെ സാധനങ്ങളും വിലയും ഫോട്ടോയും സെർവറിൽ സൂക്ഷിക്കും; കടയിലെ എല്ലാ ഫോണിലും ഒരുപോലെ കിട്ടും.</p>
+      <p class="req" id="reqNote" role="status" hidden></p>
       <form id="loginForm" novalidate>
         <label class="field">കടയുടെ കോഡ്<input id="shopCode" autocomplete="username" autocapitalize="characters" spellcheck="false" maxlength="20" enterkeyhint="next"></label>
         <label class="field">പിൻ<input id="shopPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="8" enterkeyhint="go"></label>
         <p class="hint" id="loginMsg" role="alert" hidden></p>
         <button class="btn primary" id="loginBtn" type="submit">ലോഗിൻ</button>
       </form>
+      <button class="btn ghost" id="signupOpen" type="button">പുതിയ കട രജിസ്റ്റർ ചെയ്യുക</button>
+    </section>
+    <section class="box" id="signupBox" hidden>
+      <h3>പുതിയ കട</h3>
+      <p>അപേക്ഷ അയച്ചാൽ കടയുടെ കോഡ് കിട്ടും. അംഗീകരിച്ചു കഴിഞ്ഞാൽ ആ കോഡും പിനും കൊണ്ട് ലോഗിൻ ചെയ്യാം.</p>
+      <p class="fee" id="feeLine"></p>
+      <form id="signupForm" novalidate>
+        <label class="field">കടയുടെ പേര്<input id="suName" autocomplete="organization" maxlength="60" enterkeyhint="next"></label>
+        <label class="field">ഉടമയുടെ മൊബൈൽ നമ്പർ<input id="suMobile" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="15" enterkeyhint="next"></label>
+        <label class="field">പിൻ (4–8 അക്കം)<input id="suPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8" enterkeyhint="next"></label>
+        <label class="field">പിൻ ഒരിക്കൽ കൂടി<input id="suPin2" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8" enterkeyhint="go"></label>
+        <p class="hint" id="signupMsg" role="alert" hidden></p>
+        <div class="two"><button class="btn quiet" id="signupBack" type="button">തിരികെ</button><button class="btn primary" id="signupBtn" type="submit">അപേക്ഷ അയയ്ക്കുക</button></div>
+      </form>
+      <p class="small">മൊബൈൽ നമ്പർ ഉടമയെ തിരിച്ചറിയാൻ മാത്രം · <a href="./privacy.html" target="_blank" rel="noopener">സ്വകാര്യതാ നയം</a></p>
     </section>
     <section class="box" id="signedIn" hidden>
       <h3 id="acctName"></h3>
@@ -629,6 +650,10 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 // Every key and cache on this origin is shared with the other tinkerhouse apps: prefix everything.
 const BILL_KEY = 'thraasu_bill', SHOP_KEY = 'thraasu_shop', PRICES_KEY = 'thraasu_prices';
 const SESSION_KEY = 'thraasu_session', OUTBOX_KEY = 'thraasu_outbox', SYNCED_KEY = 'thraasu_synced', CATALOG_KEY = 'thraasu_catalog';
+const SIGNUP_KEY = 'thraasu_signup';   // { code, name } of a shop asked for on this phone, until it logs in
+// The monthly fee shown at sign-up, in rupees.
+// ponytail: a label only. Charging needs a payment step (manual UPI or Razorpay), built when this goes above 0.
+const MONTHLY_FEE = 0;
 const wide = matchMedia('(min-width: 900px)');
 const sheetEl = $('sheet'), pricesEl = $('prices'), shopEl = $('shopSheet');
 
@@ -807,6 +832,7 @@ const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)); } catc
 const writeJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {} });
 let account = readJSON(SESSION_KEY);                 // { token, code, name } once logged in
+let signingUp = false;                               // the sign-up form is showing in the shop sheet
 let outbox = { ...freshOutbox(), ...readJSON(OUTBOX_KEY) };
 let synced = readJSON(SYNCED_KEY) || { at: 0, photos: {} };   // when, and the server time of each photo we hold
 let syncing = null, syncError = '', syncTimer = 0;
@@ -927,16 +953,36 @@ async function login(code, pin) {
   let r;
   try { r = await api('login', { method: 'POST', body: JSON.stringify({ code, pin }) }); } catch { return 'ഇന്റർനെറ്റ് കിട്ടിയില്ല, വീണ്ടും ശ്രമിക്കൂ'; }
   if (r.status === 429) return 'പലതവണ തെറ്റി: 15 മിനിറ്റ് കഴിഞ്ഞ് ശ്രമിക്കൂ';
+  if (r.status === 403) return 'അംഗീകാരം ഇനിയും കിട്ടിയിട്ടില്ല: അംഗീകരിച്ചാൽ ലോഗിൻ ചെയ്യാം';
   if (!r.ok) return r.status === 401 ? 'കോഡ് അല്ലെങ്കിൽ പിൻ തെറ്റാണ്' : 'സെർവർ കിട്ടിയില്ല, വീണ്ടും ശ്രമിക്കൂ';
   const { token, shop } = await r.json();
   account = { token, code: shop.code, name: shop.name };
-  writeJSON(SESSION_KEY, account);
+  writeJSON(SESSION_KEY, account); writeJSON(SIGNUP_KEY, null);
   synced = { at: 0, photos: {} }; writeJSON(SYNCED_KEY, synced);
   // What this phone had before logging in goes up to the shop, not lost.
   for (const [id, v] of Object.entries(mine)) queue('price', id, v);
   for (const id of photos.keys()) queue('photo', id);
   await loadCatalog();
   await sync();
+  return '';
+}
+// A request for a new shop: the server answers with its code, and it can log in once approved.
+// The checks match the server's, so a mistake is caught before the network.
+async function requestShop(name, mobile, pin, pin2) {
+  name = name.trim().replace(/\s+/g, ' ');
+  mobile = mobile.replace(/[\s-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, '');
+  if (!name) return 'കടയുടെ പേര് നൽകുക';
+  if (!/^[6-9]\d{9}$/.test(mobile)) return 'ശരിയായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക';
+  if (!/^\d{4,8}$/.test(pin)) return 'പിൻ 4 മുതൽ 8 വരെ അക്കം വേണം';
+  if (pin !== pin2) return 'രണ്ടു പിനും ഒന്നല്ല';
+  let r;
+  try { r = await api('signup', { method: 'POST', body: JSON.stringify({ name, mobile, pin }) }); } catch { return 'ഇന്റർനെറ്റ് കിട്ടിയില്ല, വീണ്ടും ശ്രമിക്കൂ'; }
+  if (r.status === 409) return 'ഈ നമ്പറിൽ ഒരു അപേക്ഷ ഇപ്പോൾത്തന്നെ ഉണ്ട്';
+  if (r.status === 429) return 'ഇപ്പോൾ പുതിയ അപേക്ഷ എടുക്കുന്നില്ല, പിന്നീട് ശ്രമിക്കൂ';
+  if (!r.ok) return 'സെർവർ കിട്ടിയില്ല, വീണ്ടും ശ്രമിക്കൂ';
+  const { code } = await r.json();
+  writeJSON(SIGNUP_KEY, { code, name });
+  $('shopCode').value = code;
   return '';
 }
 // Logging out leaves nothing of the shop on the phone, so it waits until nothing is unsent.
@@ -960,7 +1006,10 @@ function renderSync() {
   const n = pending();
   const state = !account ? 'out' : syncing ? 'busy' : syncError || n ? 'wait' : 'ok';
   $('acctBtn').dataset.state = state;
-  $('signedOut').hidden = !!account; $('signedIn').hidden = !account;
+  $('signedOut').hidden = !!account || signingUp; $('signedIn').hidden = !account; $('signupBox').hidden = !!account || !signingUp;
+  const req = !account && readJSON(SIGNUP_KEY);
+  $('reqNote').hidden = !req;
+  if (req) $('reqNote').innerHTML = `അപേക്ഷ അയച്ചു: <b>${esc(req.name)}</b><span class="code">${esc(req.code)}</span>അംഗീകരിച്ചു കഴിഞ്ഞാൽ ഈ കോഡും പിനും കൊണ്ട് ലോഗിൻ ചെയ്യാം.`;
   $('shopSub').textContent = account ? 'സെർവറിൽ സൂക്ഷിക്കുന്നു · ഫോണിലും' : 'ഇപ്പോൾ ഈ ഫോണിൽ മാത്രം';
   if (!account) return;
   $('acctName').textContent = `${account.name} · ${account.code}`;
@@ -1333,7 +1382,23 @@ $('removeBtn').addEventListener('click', () => {
 });
 sheetEl.addEventListener('click', e => { if (e.target === sheetEl) sheetEl.close(); });   // backdrop tap
 $('samplePill').addEventListener('click', openPrices);
-$('acctBtn').addEventListener('click', () => { renderSync(); $('loginMsg').hidden = $('logoutMsg').hidden = true; shopEl.showModal(); if (account) sync(); });
+$('acctBtn').addEventListener('click', () => {
+  signingUp = false; renderSync(); $('loginMsg').hidden = $('logoutMsg').hidden = true;
+  const req = readJSON(SIGNUP_KEY);
+  if (req && !$('shopCode').value) $('shopCode').value = req.code;
+  shopEl.showModal(); if (account) sync();
+});
+$('feeLine').textContent = MONTHLY_FEE ? `മാസവരി ₹${MONTHLY_FEE}` : 'മാസവരി ₹0 · ഇപ്പോൾ സൗജന്യം';
+$('signupOpen').addEventListener('click', () => { signingUp = true; $('signupMsg').hidden = true; renderSync(); $('suName').focus(); });
+$('signupBack').addEventListener('click', () => { signingUp = false; renderSync(); $('signupOpen').focus(); });
+$('signupForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('signupBtn').disabled = true; $('signupMsg').hidden = true;
+  const err = await requestShop($('suName').value, $('suMobile').value, $('suPin').value, $('suPin2').value);
+  $('signupBtn').disabled = false;
+  if (err) { $('signupMsg').textContent = err; $('signupMsg').hidden = false; return; }
+  $('signupForm').reset(); signingUp = false; renderSync(); $('shopPin').focus();
+});
 $('shopClose').addEventListener('click', () => shopEl.close());
 shopEl.addEventListener('click', e => { if (e.target === shopEl) shopEl.close(); });
 $('loginForm').addEventListener('submit', async e => {

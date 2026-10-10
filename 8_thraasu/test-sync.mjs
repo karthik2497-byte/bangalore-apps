@@ -17,7 +17,7 @@ const db = {
       bind: (...a) => bound(a),
       first: async col => { db.queries++; const r = st.get(...args); return r === undefined ? null : col ? r[col] : { ...r }; },
       all: async () => (db.queries++, { results: st.all(...args).map(r => ({ ...r })) }),
-      run: async () => (db.queries++, st.run(...args)),
+      run: async () => { db.queries++; return { meta: { changes: Number(st.run(...args).changes) } }; },
     });
     return bound();
   },
@@ -38,7 +38,7 @@ const t = async (name, fn) => { await fn(); n++; };
 const salt = 'salt-1';
 raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created) VALUES (?, ?, ?, ?, ?)').run('NANMA', 'Nanma Store', salt, await pinHash('482913', salt), Date.now());
 
-let token;
+let token, signupCode;
 await t('login: wrong PIN and unknown code answer alike; the right PIN gets a token', async () => {
   assert.equal((await call('POST', 'login', { body: { code: 'nanma', pin: '000000' } })).status, 401);
   assert.equal((await call('POST', 'login', { body: { code: 'NOPE', pin: '482913' } })).status, 401);
@@ -151,6 +151,57 @@ await t('five wrong PINs lock the code for a while, even for the right PIN', asy
 await t('logout ends the session', async () => {
   assert.equal((await call('POST', 'logout', { token })).status, 200);
   assert.equal((await call('GET', 'state', { token })).status, 401);
+});
+
+await t('sign-up: checked, pending with a readable code, one request per mobile', async () => {
+  const su = body => call('POST', 'signup', { body });
+  for (const bad of [{ name: ' ', mobile: '9847012345', pin: '1234' }, { name: 'A', mobile: '12345', pin: '1234' },
+    { name: 'A', mobile: '5847012345', pin: '1234' }, { name: 'A', mobile: '9847012345', pin: '123' }, { name: 'A', mobile: '9847012345', pin: 'abcd' }, 'junk'])
+    assert.equal((await su(bad)).status, 400, JSON.stringify(bad));
+  const r = await su({ name: '  Raju   Stores ', mobile: '+91 98470-12345', pin: '2468' });
+  assert.equal(r.status, 200);
+  assert.match(r.data.code, /^[A-HJ-NP-Z2-9]{6}$/);
+  const row = raw.prepare('SELECT name, mobile, status FROM shops WHERE code = ?').get(r.data.code);
+  assert.deepEqual({ ...row }, { name: 'Raju Stores', mobile: '9847012345', status: 'pending' });
+  assert.equal((await su({ name: 'Again', mobile: '09847012345', pin: '1357' })).status, 409);
+  signupCode = r.data.code;
+});
+
+await t('a pending shop cannot log in: wrong PIN as ever, right PIN says pending; approved, it can', async () => {
+  assert.equal((await call('POST', 'login', { body: { code: signupCode, pin: '1111' } })).status, 401);
+  const p = await call('POST', 'login', { body: { code: signupCode, pin: '2468' } });
+  assert.deepEqual([p.status, p.data], [403, { error: 'pending' }]);
+  assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM sessions WHERE shop = ?').get(signupCode).n, 0);
+  raw.prepare("UPDATE shops SET status = 'active' WHERE code = ?").run(signupCode);
+  assert.equal((await call('POST', 'login', { body: { code: signupCode, pin: '2468' } })).status, 200);
+  assert.equal((await call('POST', 'signup', { body: { name: 'Second shop', mobile: '9847012345', pin: '1357' } })).status, 200, 'approved: the same owner may ask again');
+});
+
+await t('at most 20 requests wait at once', async () => {
+  const waiting = raw.prepare("SELECT COUNT(*) AS n FROM shops WHERE status = 'pending'").get().n;
+  for (let i = waiting; i < 20; i++) raw.prepare("INSERT INTO shops (code, name, salt, pin_hash, created, status, mobile) VALUES (?, 'x', 's', 'h', 0, 'pending', ?)").run('W' + i, String(9000000000 + i));
+  assert.equal((await call('POST', 'signup', { body: { name: 'Late', mobile: '9123456789', pin: '1234' } })).status, 429);
+});
+
+await t("photos: 25 MB a shop; replacing one fits in its own room", async () => {
+  const fresh = (await call('POST', 'login', { body: { code: 'NANMA', pin: '482913' } })).data.token;
+  raw.prepare("DELETE FROM photos WHERE shop = 'NANMA'").run();
+  const big = 'data:image/jpeg;base64,' + 'A'.repeat(299000);
+  let ok = 0;
+  for (let i = 0; i < 90; i++) if ((await call('PUT', 'photo', { token: fresh, body: { id: 'B' + i, data: big } })).status === 200) ok++; else break;
+  assert.equal(ok, Math.floor(25e6 / big.length));
+  assert.equal((await call('PUT', 'photo', { token: fresh, body: { id: 'B0', data: big } })).status, 200);
+  raw.prepare("DELETE FROM photos WHERE shop = 'NANMA'").run();
+});
+
+await t('sold bills older than 60 days are dropped; stock is not touched', async () => {
+  const fresh = (await call('POST', 'login', { body: { code: 'NANMA', pin: '482913' } })).data.token;
+  raw.prepare("INSERT INTO sales (shop, bill, items, at) VALUES ('NANMA', 'old', '{\"P1\":5}', ?), ('OTHER', 'old', '{}', 0)").run(Date.now() - 61 * 864e5);
+  const before = raw.prepare("SELECT qty FROM stock WHERE shop = 'NANMA' AND id = 'P1'").get().qty;
+  await call('POST', 'sales', { token: fresh, body: { sales: { fresh1: { P1: 1 } } } });
+  assert.equal(raw.prepare("SELECT COUNT(*) AS n FROM sales WHERE shop = 'NANMA' AND bill = 'old'").get().n, 0);
+  assert.equal(raw.prepare("SELECT COUNT(*) AS n FROM sales WHERE shop = 'OTHER'").get().n, 1, "another shop's are its own business");
+  assert.equal(raw.prepare("SELECT qty FROM stock WHERE shop = 'NANMA' AND id = 'P1'").get().qty, before - 1);
 });
 
 await t('unknown routes are a JSON 404', async () => {

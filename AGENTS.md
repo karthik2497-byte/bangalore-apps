@@ -11,7 +11,8 @@ routinely break the other seven.
 Eight standalone PWAs, each a single `index.html` with inline JS plus a service
 worker and manifest. No framework, no bundler, no npm install. One backend, Thraasu's shop sync:
 `functions/api/thraasu/[[path]].js` (a Pages Function on the same origin) over the D1 database
-`thraasu`, bound in `wrangler.toml`; shops are made with `8_thraasu/tools/shop-admin.mjs`.
+`thraasu`, bound in `wrangler.toml`; owners request a shop in the app and it waits until approved with
+`8_thraasu/tools/shop-admin.mjs approve` (which also makes shops directly).
 `node` is used only to run the test files.
 
 ```
@@ -41,7 +42,7 @@ this repo, auto-deploys on every push to `main`. Each app is a path:
 bash scripts/build-site.sh          # build dist/ (also the CI build command)
 bash scripts/verify-deploy.sh       # verify the live origin; exit code is the verdict
 for t in [1-8]_*/test-*.mjs; do node "$t"; done   # 8 suites (test-sync runs the API on node:sqlite)
-bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (244 checks)
+bash scripts/browser-smoke.sh       # headless Chrome, every app/tab + reload, under real _headers (250 checks)
 node --check <file>                 # syntax-check any extracted inline script
 ```
 

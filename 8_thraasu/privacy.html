@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1E6B3A">
+<title>Privacy Policy — Thraasu</title>
+<style>
+  :root { --bg:#FBF8F1; --fg:#1C2620; --muted:#4B584F; --accent:#154F2A; --line:#E1D9C8; --wash:#E2EEE0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 16px 60px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Malayalam', sans-serif;
+    background: var(--bg); color: var(--fg); line-height: 1.65;
+    max-width: 720px; margin-inline: auto; font-size: 1rem;
+  }
+  h1 { font-size: 1.9rem; margin: 0 0 6px; letter-spacing: -0.02em; line-height: 1.2; }
+  h2 { font-size: 1.25rem; margin: 36px 0 8px; }
+  .updated { color: var(--muted); font-size: 0.85rem; margin-bottom: 28px; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); }
+  .box { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 20px 0; background: var(--wash); }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<h1>Thraasu — Privacy Policy</h1>
+<div class="updated">Last updated: 10 October 2026</div>
+
+<div class="box">
+  <strong>Short version:</strong> Without a shop account, everything stays on the phone. A shop
+  account keeps the shop's prices, photos, item list and stock on our server so every phone in the
+  shop sees the same. We never collect anything about the shop's customers.
+  <p lang="ml">ചുരുക്കത്തിൽ: അക്കൗണ്ട് ഇല്ലെങ്കിൽ എല്ലാം ഫോണിൽ മാത്രം. കടയുടെ അക്കൗണ്ട് ഉണ്ടെങ്കിൽ
+  വിലയും ഫോട്ടോയും സാധനങ്ങളും സ്റ്റോക്കും സെർവറിൽ സൂക്ഷിക്കും. കസ്റ്റമറുടെ ഒരു വിവരവും എടുക്കില്ല.</p>
+</div>
+
+<h2>1. On the phone</h2>
+<p>The current bill, the shop name for receipts, the shop's prices and its photos are saved in the
+phone's browser storage. Without an account they never leave the phone; a backup file is made
+only when you tap Backup, and goes wherever you choose to send it.</p>
+
+<h2>2. What a shop account stores</h2>
+<ul>
+  <li><strong>Shop name and the owner's mobile number</strong>, given when asking for a shop. The
+  number is used only to confirm who owns the shop (for example before resetting a forgotten PIN)
+  and to contact the shop about its account and any fee.</li>
+  <li><strong>The PIN</strong>, as a salted one-way hash (PBKDF2): it cannot be read back, by us or
+  anyone.</li>
+  <li><strong>The shop's prices, the product photos it adds, its item list and stock counts.</strong></li>
+  <li><strong>For each sold bill: which items and how much of each</strong>, to lower the stock. These
+  are deleted after 60 days. No customer name, number or payment detail is ever collected.</li>
+  <li>A login record per phone (stored only as a hash), so the phone stays logged in.</li>
+</ul>
+<p>This is stored with Cloudflare (Cloudflare Pages and its D1 database). It is visible to the
+shop through its code and PIN, and to the operator of this service to run and support it. It is
+not sold, shared, or used for advertising.</p>
+
+<h2>3. Network requests</h2>
+<p>The app loads its typeface from Google Fonts (fonts.googleapis.com and fonts.gstatic.com),
+which receives your IP address and browser details under Google's privacy policy. With a shop
+account, the app talks to this same website to sync. Like any web request, the hosting provider
+(Cloudflare) records standard server logs such as IP address and time, used for delivery and abuse
+prevention.</p>
+
+<h2>4. Deleting your data</h2>
+<p>Logging out removes the shop's data from that phone. To delete the shop and everything stored
+for it on the server, contact us below; it is deleted in full.</p>
+
+<h2>5. Fees</h2>
+<p>A shop account is free for now (₹0 a month). Any fee will be shown in the app before it applies.</p>
+
+<h2>6. Changes to this policy</h2>
+<p>If this policy changes, the updated version will be published on this page with a new
+"last updated" date.</p>
+
+<h2>7. Contact</h2>
+<p>Questions or deletion requests: <a href="mailto:REPLACE_WITH_CONTACT_EMAIL">REPLACE_WITH_CONTACT_EMAIL</a></p>
+
+<footer>
+  <a href="./index.html">&larr; Back to Thraasu</a>
+</footer>
+
+</body>
+</html>

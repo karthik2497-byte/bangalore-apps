@@ -308,6 +308,53 @@ export default async (t) => {
   t.check('a rate typed in the sheet can be kept as the shop price', pr.keep0 && pr.keep1 && pr.kept.join() === '5200,5200,false', pr);
   t.check('receipt says sample prices only while a billed line used one', pr.metaMixed === 2 && pr.metaOwn === 1, pr);
 
+  // Sign-up: the form checks before the network; a request shows its code and fills Login;
+  // logging in before approval says so.
+  const su = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    const until = async ok => { for (let i = 0; i < 60 && !ok(); i++) await new Promise(r => setTimeout(r, 50)); };
+    const sent = [], realFetch = window.fetch;
+    window.fetch = async (u, o = {}) => {
+      const url = String(u);
+      if (!url.includes('/api/thraasu/')) return realFetch(u, o);
+      const route = url.split('/api/thraasu/')[1], body = JSON.parse(o.body);
+      const res = (b, status = 200) => new Response(JSON.stringify(b), { status });
+      if (route === 'signup') { sent.push(body); return body.mobile === '9000000000' ? res({ error: 'already' }, 409) : res({ code: 'K7M3QX' }); }
+      if (route === 'login') return body.pin === '2468' ? res({ error: 'pending' }, 403) : res({ error: 'wrong' }, 401);
+      return res({ error: 'nf' }, 404);
+    };
+    const submit = async (name, mobile, pin, pin2) => {
+      $('suName').value = name; $('suMobile').value = mobile; $('suPin').value = pin; $('suPin2').value = pin2;
+      $('signupMsg').hidden = true; $('signupForm').requestSubmit();
+      await until(() => !$('signupMsg').hidden || $('signupBox').hidden);
+      return $('signupMsg').hidden ? '' : $('signupMsg').textContent;
+    };
+    const r = {};
+    $('acctBtn').click();
+    r.closed = [$('signupBox').hidden, $('signedOut').hidden, $('reqNote').hidden, Math.round($('signupOpen').getBoundingClientRect().height)];
+    $('signupOpen').click();
+    r.open = [$('signupBox').hidden, $('signedOut').hidden, document.activeElement.id, $('feeLine').textContent, !!$('signupBox').querySelector('a[href="./privacy.html"]')];
+    r.errs = [await submit(' ', '9847012345', '2468', '2468'), await submit('Raju', '12345', '2468', '2468'),
+      await submit('Raju', '9847012345', '24', '24'), await submit('Raju', '9847012345', '2468', '2469')];
+    r.early = sent.length;
+    r.dup = await submit('Raju', '9000000000', '2468', '2468');
+    r.ok = await submit('Raju Stores', '+91 98470 12345', '2468', '2468');
+    r.after = [sent[sent.length - 1].mobile, $('signupBox').hidden, $('signedOut').hidden, $('reqNote').querySelector('.code')?.textContent,
+      $('shopCode').value, JSON.parse(localStorage.getItem('thraasu_signup')).code, $('suName').value];
+    $('shopPin').value = '2468'; $('loginForm').requestSubmit();
+    await until(() => !$('loginMsg').hidden);
+    r.pending = [$('loginMsg').textContent, account];
+    localStorage.removeItem('thraasu_signup'); $('shopCode').value = $('shopPin').value = ''; $('loginMsg').hidden = true;
+    shopEl.close(); window.fetch = realFetch;
+    return r;
+  });
+  t.check('sign-up opens from the shop sheet: fee ₹0 shown, policy linked, 48 px button', su.closed.join() === 'true,false,true,' + su.closed[3] && su.closed[3] >= 48 &&
+    su.open.join() === 'false,true,suName,മാസവരി ₹0 · ഇപ്പോൾ സൗജന്യം,true', su);
+  t.check('sign-up checks name, mobile and PIN before the network', su.errs.join('|') === 'കടയുടെ പേര് നൽകുക|ശരിയായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക|പിൻ 4 മുതൽ 8 വരെ അക്കം വേണം|രണ്ടു പിനും ഒന്നല്ല' && su.early === 0, su);
+  t.check('a mobile with a request already waiting is told so', su.dup === 'ഈ നമ്പറിൽ ഒരു അപേക്ഷ ഇപ്പോൾത്തന്നെ ഉണ്ട്', su.dup);
+  t.check('a request shows its code, fills Login and clears the form', su.ok === '' && su.after.join() === '9847012345,true,false,K7M3QX,K7M3QX,K7M3QX,', su);
+  t.check('logging in before approval says it is waiting', su.pending[0] === 'അംഗീകാരം ഇനിയും കിട്ടിയിട്ടില്ല: അംഗീകരിച്ചാൽ ലോഗിൻ ചെയ്യാം' && su.pending[1] === null, su.pending);
+
   // The shop account against a fake server in the page: login sends up what the phone had and
   // loads the shop's own list; changes go up, another phone's come down; offline they wait;
   // logout waits for them and then leaves nothing behind; a backup file carries and restores.
@@ -434,7 +481,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v7', sw === 'thraasu-v7', sw);
+  t.check('service worker precached thraasu-v8', sw === 'thraasu-v8', sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a

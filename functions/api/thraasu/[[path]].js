@@ -1,7 +1,7 @@
 // Thraasu shop sync. One Pages Function on the app's own origin (so the app's CSP
 // `connect-src 'self'` covers it) over one D1 database bound as THRAASU_DB; schema in
-// 8_thraasu/tools/schema.sql. Shops are created by hand with 8_thraasu/tools/shop-admin.mjs:
-// there is no sign-up route. A shop's list, its prices and its photos are kept per shop; the
+// 8_thraasu/tools/schema.sql. A shop is requested from the app (POST signup) and starts pending;
+// 8_thraasu/tools/shop-admin.mjs approves it (or makes one directly). A shop's list, its prices and its photos are kept per shop; the
 // app works offline and pushes when it can. Last write wins per item. Bills lower the shop's
 // stock (POST sales). On the Free plan an invocation gets 50 D1 queries, so no route's query
 // count grows with its input: lists go in as one JSON parameter through json_each.
@@ -10,6 +10,10 @@
 const PBKDF2_ITER = 20000;   // ponytail: a 4-8 digit PIN falls to offline guessing at any cost; the lockout is the guard
 const LOCK_AFTER = 5, LOCK_MS = 15 * 60e3, SESSION_MS = 365 * 864e5;
 const MAX_PHOTO = 300000, MAX_PHOTOS = 3000, MAX_PRICES = 5000, IDS_PER_GET = 30, BILLS_PER_POST = 100;
+// D1 Free holds 500 MB per database: a shop's photos are capped in bytes, and sold bills are kept
+// only as long as a phone might send one again.
+const PHOTO_BYTES = 25e6, SALES_KEEP_MS = 60 * 864e5, PENDING_MAX = 20;
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32: no 0/O or 1/I to misread over the phone
 const ID = /^[\w-]{1,40}$/, PHOTO = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
@@ -47,6 +51,7 @@ async function login(request, db) {
     }
     return json({ error: 'wrong' }, 401);        // unknown code and wrong PIN look the same
   }
+  if (shop.status === 'pending') return json({ error: 'pending' }, 403);   // only once the PIN is right
   const token = hex(crypto.getRandomValues(new Uint8Array(32)));
   await db.batch([
     db.prepare('UPDATE shops SET failed = 0, locked_until = 0 WHERE code = ?').bind(code),
@@ -55,8 +60,29 @@ async function login(request, db) {
   return json({ token, shop: { code, name: shop.name } });
 }
 
+// A request for a new shop. It cannot log in until approved with shop-admin.mjs approve.
+async function signup(request, db) {
+  const b = await readJson(request);
+  const name = String(b?.name ?? '').trim().replace(/\s+/g, ' ').slice(0, 60);
+  const mobile = String(b?.mobile ?? '').replace(/[\s-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, '');
+  const pin = String(b?.pin ?? '');
+  if (!name || !/^[6-9]\d{9}$/.test(mobile) || !/^\d{4,8}$/.test(pin)) return json({ error: 'bad' }, 400);
+  const waiting = await db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(mobile = ?), 0) AS same FROM shops WHERE status = 'pending'").bind(mobile).first();
+  if (waiting.same) return json({ error: 'already' }, 409);
+  if (waiting.n >= PENDING_MAX) return json({ error: 'full' }, 429);
+  const salt = hex(crypto.getRandomValues(new Uint8Array(16))), hash = await pinHash(pin, salt);
+  for (let i = 0; i < 5; i++) {
+    const code = [...crypto.getRandomValues(new Uint8Array(6))].map(x => CODE_CHARS[x % 32]).join('');
+    const r = await db.prepare("INSERT INTO shops (code, name, salt, pin_hash, created, status, mobile) VALUES (?, ?, ?, ?, ?, 'pending', ?) ON CONFLICT (code) DO NOTHING")
+      .bind(code, name, salt, hash, Date.now(), mobile).run();
+    if (r.meta.changes) return json({ code });
+  }
+  return json({ error: 'server' }, 500);
+}
+
 export async function handle(request, db, path) {
   if (request.method === 'POST' && path === 'login') return login(request, db);
+  if (request.method === 'POST' && path === 'signup') return signup(request, db);
   const shop = await sessionShop(request, db);
   if (!shop) return json({ error: 'login' }, 401);
   const count = table => db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE shop = ?`).bind(shop).first('n');
@@ -108,9 +134,11 @@ export async function handle(request, db, path) {
       for (const r of was.results) add(JSON.parse(r.items), -1);
       for (const [, items] of sales) add(items, 1);
       // ponytail: read, then write; safe because a bill id belongs to one phone, which syncs one request at a time
+      const now = Date.now();
       await db.batch([
+        db.prepare('DELETE FROM sales WHERE shop = ? AND at < ?').bind(shop, now - SALES_KEEP_MS),
         db.prepare('INSERT INTO sales (shop, bill, items, at) SELECT ?, key, value, ? FROM json_each(?) WHERE true ON CONFLICT (shop, bill) DO UPDATE SET items = excluded.items, at = excluded.at')
-          .bind(shop, Date.now(), JSON.stringify(Object.fromEntries(sales))),
+          .bind(shop, now, JSON.stringify(Object.fromEntries(sales))),
         db.prepare('UPDATE stock SET qty = qty - d.value FROM json_each(?) AS d WHERE stock.shop = ? AND stock.id = d.key')
           .bind(JSON.stringify(delta), shop),
       ]);
@@ -119,7 +147,8 @@ export async function handle(request, db, path) {
     case 'PUT photo': {
       const b = await readJson(request);
       if (!ID.test(b?.id ?? '') || typeof b.data !== 'string' || b.data.length > MAX_PHOTO || !PHOTO.test(b.data)) return json({ error: 'bad photo' }, 400);
-      if (await count('photos') >= MAX_PHOTOS) return json({ error: 'too many' }, 413);
+      const held = await db.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(length(data)), 0) AS bytes FROM photos WHERE shop = ? AND id != ?').bind(shop, b.id).first();
+      if (held.n >= MAX_PHOTOS || held.bytes + b.data.length > PHOTO_BYTES) return json({ error: 'too many' }, 413);
       const at = Date.now();
       await db.prepare('INSERT INTO photos (shop, id, data, at) VALUES (?, ?, ?, ?) ON CONFLICT (shop, id) DO UPDATE SET data = excluded.data, at = excluded.at').bind(shop, b.id, b.data, at).run();
       return json({ ok: true, at });
