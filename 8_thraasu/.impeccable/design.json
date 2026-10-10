@@ -1,0 +1,726 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-10T07:24:37.806Z",
+  "title": "Design System: Thraasu",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Bill-pad Paper",
+        "canonical": "#F6F2E9",
+        "tonalRamp": [
+          "oklch(15.0% 0.013 86.8)",
+          "oklch(26.0% 0.013 86.8)",
+          "oklch(37.0% 0.013 86.8)",
+          "oklch(48.0% 0.013 86.8)",
+          "oklch(59.0% 0.013 86.8)",
+          "oklch(70.0% 0.013 86.8)",
+          "oklch(82.0% 0.013 86.8)",
+          "oklch(95.0% 0.013 86.8)"
+        ]
+      },
+      "paper-2": {
+        "role": "neutral",
+        "displayName": "Paper Shade",
+        "canonical": "#EEE7D8",
+        "tonalRamp": [
+          "oklch(15.0% 0.021 85.9)",
+          "oklch(26.0% 0.021 85.9)",
+          "oklch(37.0% 0.021 85.9)",
+          "oklch(48.0% 0.021 85.9)",
+          "oklch(59.0% 0.021 85.9)",
+          "oklch(70.0% 0.021 85.9)",
+          "oklch(82.0% 0.021 85.9)",
+          "oklch(95.0% 0.021 85.9)"
+        ]
+      },
+      "slip": {
+        "role": "neutral",
+        "displayName": "Slip White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.0% 0.000 89.9)",
+          "oklch(37.0% 0.000 89.9)",
+          "oklch(48.0% 0.000 89.9)",
+          "oklch(59.0% 0.000 89.9)",
+          "oklch(70.0% 0.000 89.9)",
+          "oklch(82.0% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1C2620",
+        "tonalRamp": [
+          "oklch(15.0% 0.018 158.5)",
+          "oklch(26.0% 0.018 158.5)",
+          "oklch(37.0% 0.018 158.5)",
+          "oklch(48.0% 0.018 158.5)",
+          "oklch(59.0% 0.018 158.5)",
+          "oklch(70.0% 0.018 158.5)",
+          "oklch(82.0% 0.018 158.5)",
+          "oklch(95.0% 0.018 158.5)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#4B584F",
+        "tonalRamp": [
+          "oklch(15.0% 0.022 155.2)",
+          "oklch(26.0% 0.022 155.2)",
+          "oklch(37.0% 0.022 155.2)",
+          "oklch(48.0% 0.022 155.2)",
+          "oklch(59.0% 0.022 155.2)",
+          "oklch(70.0% 0.022 155.2)",
+          "oklch(82.0% 0.022 155.2)",
+          "oklch(95.0% 0.022 155.2)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Divider",
+        "canonical": "#E1D9C8",
+        "tonalRamp": [
+          "oklch(15.0% 0.024 85.8)",
+          "oklch(26.0% 0.024 85.8)",
+          "oklch(37.0% 0.024 85.8)",
+          "oklch(48.0% 0.024 85.8)",
+          "oklch(59.0% 0.024 85.8)",
+          "oklch(70.0% 0.024 85.8)",
+          "oklch(82.0% 0.024 85.8)",
+          "oklch(95.0% 0.024 85.8)"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Field Edge",
+        "canonical": "#8F836B",
+        "tonalRamp": [
+          "oklch(15.0% 0.038 84.5)",
+          "oklch(26.0% 0.038 84.5)",
+          "oklch(37.0% 0.038 84.5)",
+          "oklch(48.0% 0.038 84.5)",
+          "oklch(59.0% 0.038 84.5)",
+          "oklch(70.0% 0.038 84.5)",
+          "oklch(82.0% 0.038 84.5)",
+          "oklch(95.0% 0.038 84.5)"
+        ]
+      },
+      "leaf": {
+        "role": "primary",
+        "displayName": "Banana Leaf",
+        "canonical": "#1E6B3A",
+        "tonalRamp": [
+          "oklch(15.0% 0.108 151.5)",
+          "oklch(26.0% 0.108 151.5)",
+          "oklch(37.0% 0.108 151.5)",
+          "oklch(48.0% 0.108 151.5)",
+          "oklch(59.0% 0.108 151.5)",
+          "oklch(70.0% 0.108 151.5)",
+          "oklch(82.0% 0.108 151.5)",
+          "oklch(95.0% 0.108 151.5)"
+        ]
+      },
+      "leaf-deep": {
+        "role": "primary",
+        "displayName": "Leaf Deep",
+        "canonical": "#154F2A",
+        "tonalRamp": [
+          "oklch(15.0% 0.086 151.7)",
+          "oklch(26.0% 0.086 151.7)",
+          "oklch(37.0% 0.086 151.7)",
+          "oklch(48.0% 0.086 151.7)",
+          "oklch(59.0% 0.086 151.7)",
+          "oklch(70.0% 0.086 151.7)",
+          "oklch(82.0% 0.086 151.7)",
+          "oklch(95.0% 0.086 151.7)"
+        ]
+      },
+      "leaf-wash": {
+        "role": "primary",
+        "displayName": "Leaf Wash",
+        "canonical": "#E2EEE0",
+        "tonalRamp": [
+          "oklch(15.0% 0.023 141.2)",
+          "oklch(26.0% 0.023 141.2)",
+          "oklch(37.0% 0.023 141.2)",
+          "oklch(48.0% 0.023 141.2)",
+          "oklch(59.0% 0.023 141.2)",
+          "oklch(70.0% 0.023 141.2)",
+          "oklch(82.0% 0.023 141.2)",
+          "oklch(95.0% 0.023 141.2)"
+        ]
+      },
+      "brass": {
+        "role": "secondary",
+        "displayName": "Thraasu Brass",
+        "canonical": "#B8862B",
+        "tonalRamp": [
+          "oklch(15.0% 0.120 78.1)",
+          "oklch(26.0% 0.120 78.1)",
+          "oklch(37.0% 0.120 78.1)",
+          "oklch(48.0% 0.120 78.1)",
+          "oklch(59.0% 0.120 78.1)",
+          "oklch(70.0% 0.120 78.1)",
+          "oklch(82.0% 0.120 78.1)",
+          "oklch(95.0% 0.120 78.1)"
+        ]
+      },
+      "brass-ink": {
+        "role": "secondary",
+        "displayName": "Brass Ink",
+        "canonical": "#7A5610",
+        "tonalRamp": [
+          "oklch(15.0% 0.093 78.2)",
+          "oklch(26.0% 0.093 78.2)",
+          "oklch(37.0% 0.093 78.2)",
+          "oklch(48.0% 0.093 78.2)",
+          "oklch(59.0% 0.093 78.2)",
+          "oklch(70.0% 0.093 78.2)",
+          "oklch(82.0% 0.093 78.2)",
+          "oklch(95.0% 0.093 78.2)"
+        ]
+      },
+      "brass-wash": {
+        "role": "secondary",
+        "displayName": "Brass Wash",
+        "canonical": "#F4E8C9",
+        "tonalRamp": [
+          "oklch(15.0% 0.043 89.4)",
+          "oklch(26.0% 0.043 89.4)",
+          "oklch(37.0% 0.043 89.4)",
+          "oklch(48.0% 0.043 89.4)",
+          "oklch(59.0% 0.043 89.4)",
+          "oklch(70.0% 0.043 89.4)",
+          "oklch(82.0% 0.043 89.4)",
+          "oklch(95.0% 0.043 89.4)"
+        ]
+      },
+      "chilli": {
+        "role": "tertiary",
+        "displayName": "Chilli",
+        "canonical": "#B3301F",
+        "tonalRamp": [
+          "oklch(15.0% 0.170 30.9)",
+          "oklch(26.0% 0.170 30.9)",
+          "oklch(37.0% 0.170 30.9)",
+          "oklch(48.0% 0.170 30.9)",
+          "oklch(59.0% 0.170 30.9)",
+          "oklch(70.0% 0.170 30.9)",
+          "oklch(82.0% 0.170 30.9)",
+          "oklch(95.0% 0.170 30.9)"
+        ]
+      },
+      "chilli-wash": {
+        "role": "tertiary",
+        "displayName": "Chilli Wash",
+        "canonical": "#F8E0DA",
+        "tonalRamp": [
+          "oklch(15.0% 0.028 34.3)",
+          "oklch(26.0% 0.028 34.3)",
+          "oklch(37.0% 0.028 34.3)",
+          "oklch(48.0% 0.028 34.3)",
+          "oklch(59.0% 0.028 34.3)",
+          "oklch(70.0% 0.028 34.3)",
+          "oklch(82.0% 0.028 34.3)",
+          "oklch(95.0% 0.028 34.3)"
+        ]
+      },
+      "sack-veg": {
+        "role": "category",
+        "displayName": "Sack veg",
+        "canonical": "#E2EED9",
+        "tonalRamp": [
+          "oklch(15.0% 0.031 131.6)",
+          "oklch(26.0% 0.031 131.6)",
+          "oklch(37.0% 0.031 131.6)",
+          "oklch(48.0% 0.031 131.6)",
+          "oklch(59.0% 0.031 131.6)",
+          "oklch(70.0% 0.031 131.6)",
+          "oklch(82.0% 0.031 131.6)",
+          "oklch(95.0% 0.031 131.6)"
+        ]
+      },
+      "sack-veg-ink": {
+        "role": "category",
+        "displayName": "Sack veg ink",
+        "canonical": "#2E5E22",
+        "tonalRamp": [
+          "oklch(15.0% 0.105 139.7)",
+          "oklch(26.0% 0.105 139.7)",
+          "oklch(37.0% 0.105 139.7)",
+          "oklch(48.0% 0.105 139.7)",
+          "oklch(59.0% 0.105 139.7)",
+          "oklch(70.0% 0.105 139.7)",
+          "oklch(82.0% 0.105 139.7)",
+          "oklch(95.0% 0.105 139.7)"
+        ]
+      },
+      "sack-fruit": {
+        "role": "category",
+        "displayName": "Sack fruit",
+        "canonical": "#FAEDBF",
+        "tonalRamp": [
+          "oklch(15.0% 0.061 94.1)",
+          "oklch(26.0% 0.061 94.1)",
+          "oklch(37.0% 0.061 94.1)",
+          "oklch(48.0% 0.061 94.1)",
+          "oklch(59.0% 0.061 94.1)",
+          "oklch(70.0% 0.061 94.1)",
+          "oklch(82.0% 0.061 94.1)",
+          "oklch(95.0% 0.061 94.1)"
+        ]
+      },
+      "sack-fruit-ink": {
+        "role": "category",
+        "displayName": "Sack fruit ink",
+        "canonical": "#6A4F00",
+        "tonalRamp": [
+          "oklch(15.0% 0.091 85.8)",
+          "oklch(26.0% 0.091 85.8)",
+          "oklch(37.0% 0.091 85.8)",
+          "oklch(48.0% 0.091 85.8)",
+          "oklch(59.0% 0.091 85.8)",
+          "oklch(70.0% 0.091 85.8)",
+          "oklch(82.0% 0.091 85.8)",
+          "oklch(95.0% 0.091 85.8)"
+        ]
+      },
+      "sack-rice": {
+        "role": "category",
+        "displayName": "Sack rice",
+        "canonical": "#EFE6D6",
+        "tonalRamp": [
+          "oklch(15.0% 0.023 82.1)",
+          "oklch(26.0% 0.023 82.1)",
+          "oklch(37.0% 0.023 82.1)",
+          "oklch(48.0% 0.023 82.1)",
+          "oklch(59.0% 0.023 82.1)",
+          "oklch(70.0% 0.023 82.1)",
+          "oklch(82.0% 0.023 82.1)",
+          "oklch(95.0% 0.023 82.1)"
+        ]
+      },
+      "sack-rice-ink": {
+        "role": "category",
+        "displayName": "Sack rice ink",
+        "canonical": "#5F4A2E",
+        "tonalRamp": [
+          "oklch(15.0% 0.051 73.7)",
+          "oklch(26.0% 0.051 73.7)",
+          "oklch(37.0% 0.051 73.7)",
+          "oklch(48.0% 0.051 73.7)",
+          "oklch(59.0% 0.051 73.7)",
+          "oklch(70.0% 0.051 73.7)",
+          "oklch(82.0% 0.051 73.7)",
+          "oklch(95.0% 0.051 73.7)"
+        ]
+      },
+      "sack-pulses": {
+        "role": "category",
+        "displayName": "Sack pulses",
+        "canonical": "#F8DFC6",
+        "tonalRamp": [
+          "oklch(15.0% 0.043 67.2)",
+          "oklch(26.0% 0.043 67.2)",
+          "oklch(37.0% 0.043 67.2)",
+          "oklch(48.0% 0.043 67.2)",
+          "oklch(59.0% 0.043 67.2)",
+          "oklch(70.0% 0.043 67.2)",
+          "oklch(82.0% 0.043 67.2)",
+          "oklch(95.0% 0.043 67.2)"
+        ]
+      },
+      "sack-pulses-ink": {
+        "role": "category",
+        "displayName": "Sack pulses ink",
+        "canonical": "#7C4112",
+        "tonalRamp": [
+          "oklch(15.0% 0.100 54.0)",
+          "oklch(26.0% 0.100 54.0)",
+          "oklch(37.0% 0.100 54.0)",
+          "oklch(48.0% 0.100 54.0)",
+          "oklch(59.0% 0.100 54.0)",
+          "oklch(70.0% 0.100 54.0)",
+          "oklch(82.0% 0.100 54.0)",
+          "oklch(95.0% 0.100 54.0)"
+        ]
+      },
+      "sack-oil": {
+        "role": "category",
+        "displayName": "Sack oil",
+        "canonical": "#EEEAC4",
+        "tonalRamp": [
+          "oklch(15.0% 0.050 102.4)",
+          "oklch(26.0% 0.050 102.4)",
+          "oklch(37.0% 0.050 102.4)",
+          "oklch(48.0% 0.050 102.4)",
+          "oklch(59.0% 0.050 102.4)",
+          "oklch(70.0% 0.050 102.4)",
+          "oklch(82.0% 0.050 102.4)",
+          "oklch(95.0% 0.050 102.4)"
+        ]
+      },
+      "sack-oil-ink": {
+        "role": "category",
+        "displayName": "Sack oil ink",
+        "canonical": "#545015",
+        "tonalRamp": [
+          "oklch(15.0% 0.078 105.4)",
+          "oklch(26.0% 0.078 105.4)",
+          "oklch(37.0% 0.078 105.4)",
+          "oklch(48.0% 0.078 105.4)",
+          "oklch(59.0% 0.078 105.4)",
+          "oklch(70.0% 0.078 105.4)",
+          "oklch(82.0% 0.078 105.4)",
+          "oklch(95.0% 0.078 105.4)"
+        ]
+      },
+      "sack-dairy": {
+        "role": "category",
+        "displayName": "Sack dairy",
+        "canonical": "#DCE9F3",
+        "tonalRamp": [
+          "oklch(15.0% 0.019 240.7)",
+          "oklch(26.0% 0.019 240.7)",
+          "oklch(37.0% 0.019 240.7)",
+          "oklch(48.0% 0.019 240.7)",
+          "oklch(59.0% 0.019 240.7)",
+          "oklch(70.0% 0.019 240.7)",
+          "oklch(82.0% 0.019 240.7)",
+          "oklch(95.0% 0.019 240.7)"
+        ]
+      },
+      "sack-dairy-ink": {
+        "role": "category",
+        "displayName": "Sack dairy ink",
+        "canonical": "#1F4C73",
+        "tonalRamp": [
+          "oklch(15.0% 0.082 247.7)",
+          "oklch(26.0% 0.082 247.7)",
+          "oklch(37.0% 0.082 247.7)",
+          "oklch(48.0% 0.082 247.7)",
+          "oklch(59.0% 0.082 247.7)",
+          "oklch(70.0% 0.082 247.7)",
+          "oklch(82.0% 0.082 247.7)",
+          "oklch(95.0% 0.082 247.7)"
+        ]
+      },
+      "sack-spice": {
+        "role": "category",
+        "displayName": "Sack spice",
+        "canonical": "#F6D9D2",
+        "tonalRamp": [
+          "oklch(15.0% 0.034 33.8)",
+          "oklch(26.0% 0.034 33.8)",
+          "oklch(37.0% 0.034 33.8)",
+          "oklch(48.0% 0.034 33.8)",
+          "oklch(59.0% 0.034 33.8)",
+          "oklch(70.0% 0.034 33.8)",
+          "oklch(82.0% 0.034 33.8)",
+          "oklch(95.0% 0.034 33.8)"
+        ]
+      },
+      "sack-spice-ink": {
+        "role": "category",
+        "displayName": "Sack spice ink",
+        "canonical": "#8A2B1D",
+        "tonalRamp": [
+          "oklch(15.0% 0.132 31.2)",
+          "oklch(26.0% 0.132 31.2)",
+          "oklch(37.0% 0.132 31.2)",
+          "oklch(48.0% 0.132 31.2)",
+          "oklch(59.0% 0.132 31.2)",
+          "oklch(70.0% 0.132 31.2)",
+          "oklch(82.0% 0.132 31.2)",
+          "oklch(95.0% 0.132 31.2)"
+        ]
+      },
+      "sack-stat": {
+        "role": "category",
+        "displayName": "Sack stat",
+        "canonical": "#E1E1F2",
+        "tonalRamp": [
+          "oklch(15.0% 0.023 285.9)",
+          "oklch(26.0% 0.023 285.9)",
+          "oklch(37.0% 0.023 285.9)",
+          "oklch(48.0% 0.023 285.9)",
+          "oklch(59.0% 0.023 285.9)",
+          "oklch(70.0% 0.023 285.9)",
+          "oklch(82.0% 0.023 285.9)",
+          "oklch(95.0% 0.023 285.9)"
+        ]
+      },
+      "sack-stat-ink": {
+        "role": "category",
+        "displayName": "Sack stat ink",
+        "canonical": "#34367A",
+        "tonalRamp": [
+          "oklch(15.0% 0.113 278.1)",
+          "oklch(26.0% 0.113 278.1)",
+          "oklch(37.0% 0.113 278.1)",
+          "oklch(48.0% 0.113 278.1)",
+          "oklch(59.0% 0.113 278.1)",
+          "oklch(70.0% 0.113 278.1)",
+          "oklch(82.0% 0.113 278.1)",
+          "oklch(95.0% 0.113 278.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Grand total and sheet amount; leaf-deep, tabular."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Product name in the quantity sheet."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Category crumb heading, bill heading."
+      },
+      "tile": {
+        "displayName": "Tile",
+        "purpose": "Category tile names, condensed to 92% width."
+      },
+      "item": {
+        "displayName": "Item",
+        "purpose": "Product card names, condensed to 90% width."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Base text; tabular numerals globally."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "English gloss, counts, meta."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 1px 2px rgba(60, 45, 15, .06), 0 3px 10px rgba(60, 45, 15, .06)",
+        "purpose": "Product cards, results list, disabled bill bar."
+      },
+      {
+        "name": "slip-drop",
+        "value": "drop-shadow(0 2px 6px rgba(60, 45, 15, .1))",
+        "purpose": "Receipt slip, as a filter so the torn edge casts."
+      },
+      {
+        "name": "bill-bar",
+        "value": "0 6px 20px rgba(21, 79, 42, .3)",
+        "purpose": "Floating leaf bill bar."
+      },
+      {
+        "name": "sheet",
+        "value": "0 -8px 40px rgba(30, 25, 10, .2)",
+        "purpose": "Quantity sheet over a rgba(28, 38, 32, .5) backdrop."
+      },
+      {
+        "name": "toast",
+        "value": "0 8px 24px rgba(0, 0, 0, .2)",
+        "purpose": "Undo toast."
+      },
+      {
+        "name": "pan-rim",
+        "value": "inset 0 0 0 2px rgba(184, 134, 43, .3)",
+        "purpose": "Brass rim of a scale pan; material, not elevation."
+      },
+      {
+        "name": "focus-halo",
+        "value": "0 0 0 3px #E2EEE0",
+        "purpose": "Input focus, with a leaf border."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.2, .8, .2, 1)",
+        "purpose": "Shared easing for every transition and animation."
+      },
+      {
+        "name": "settle",
+        "value": "760ms; rotate -7deg -> 3.2deg -> -1.2deg -> 0",
+        "purpose": "The single authored moment: the scale beam settles when the quantity changes."
+      },
+      {
+        "name": "press",
+        "value": "scale(.97), 160ms",
+        "purpose": "Tiles, cards, search rows on press. Buttons nudge translateY(1px), 120ms."
+      },
+      {
+        "name": "bump",
+        "value": "scale(1.035) at 40%, 280ms",
+        "purpose": "Bill bar after an item is added."
+      },
+      {
+        "name": "rise",
+        "value": "translateY(40px), opacity .4 -> 1, 260ms",
+        "purpose": "Quantity sheet open."
+      },
+      {
+        "name": "bill-slide",
+        "value": "translateY(100%) -> 0, 280ms",
+        "purpose": "Bill panel on narrow screens."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "durations .01ms",
+        "purpose": "All motion collapses under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sheet-dialog",
+        "value": "600px"
+      },
+      {
+        "name": "bill-column",
+        "value": "900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Leaf commit action; one per surface (add to bill, print / PDF).",
+      "html": "<button class=\"ds-btn ds-primary\">ബില്ലിൽ ചേർക്കുക</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 16px;border:1.5px solid transparent;border-radius:var(--r,14px);font:650 16px/1.45 'Anek Malayalam','Noto Sans Malayalam',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms,transform 120ms} .ds-btn:active{transform:translateY(1px)} .ds-btn:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-primary{background:#1E6B3A;color:#fff} .ds-primary:hover{background:#154F2A}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action on slip white with a divider edge.",
+      "html": "<button class=\"ds-btn ds-ghost\">ചേർക്കുക</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 16px;border:1.5px solid transparent;border-radius:14px;font:650 16px/1.45 'Anek Malayalam',system-ui,sans-serif;color:#1C2620;cursor:pointer;transition:border-color 150ms} .ds-btn:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-ghost{background:#fff;border-color:#E1D9C8} .ds-ghost:hover{border-color:#4B584F}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Removes a line from the bill; chilli text on slip white.",
+      "html": "<button class=\"ds-btn ds-danger\">നീക്കം ചെയ്യുക</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 16px;border:1.5px solid #E3B4A9;border-radius:14px;font:650 16px/1.45 'Anek Malayalam',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms} .ds-btn:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-danger{background:#fff;color:#B3301F} .ds-danger:hover{background:#F8E0DA}"
+    },
+    {
+      "name": "Quantity Preset Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Field-edged preset; selected fills leaf.",
+      "html": "<div class=\"ds-presets\"><button class=\"ds-chip\">250 g</button><button class=\"ds-chip\" aria-pressed=\"true\">500 g</button><button class=\"ds-chip\">1 kg</button></div>",
+      "css": ".ds-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:320px} .ds-chip{min-height:54px;padding:0 4px;border:1.5px solid #8F836B;border-radius:12px;background:#fff;color:#1C2620;font:650 15.5px 'Anek Malayalam',system-ui,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color 140ms,border-color 140ms} .ds-chip:hover{border-color:#1E6B3A} .ds-chip:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-chip[aria-pressed=\"true\"]{background:#1E6B3A;border-color:#1E6B3A;color:#fff}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Field-edged search; focus turns leaf with a leaf-wash halo.",
+      "html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg><input type=\"search\" placeholder=\"തക്കാളി / thakkali\"></label>",
+      "css": ".ds-search{position:relative;display:block;max-width:360px} .ds-search svg{position:absolute;left:15px;top:50%;width:20px;height:20px;transform:translateY(-50%);stroke:#4B584F;fill:none;stroke-width:2;pointer-events:none} .ds-search input{width:100%;box-sizing:border-box;height:54px;padding:0 16px 0 46px;border:1.5px solid #8F836B;border-radius:14px;background:#fff;color:#1C2620;font:400 17px 'Anek Malayalam',system-ui,sans-serif} .ds-search input::placeholder{color:#6A746C} .ds-search input:focus{outline:none;border-color:#1E6B3A;box-shadow:0 0 0 3px #E2EEE0}"
+    },
+    {
+      "name": "Category Tile",
+      "kind": "card",
+      "refersTo": "category-tile",
+      "description": "Full produce-sack tint, keyed by category.",
+      "html": "<button class=\"ds-cat\"><span class=\"ds-emo\">🥬</span><b>പച്ചക്കറി</b><small>Vegetables · 14</small></button>",
+      "css": ".ds-cat{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:170px;min-height:116px;padding:14px 14px 12px;border:0;border-radius:14px;background:#E2EED9;color:#2E5E22;text-align:left;font-family:'Anek Malayalam',system-ui,sans-serif;cursor:pointer;transition:transform 160ms cubic-bezier(.2,.8,.2,1)} .ds-cat:active{transform:scale(.97)} .ds-cat:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-emo{font-family:'Noto Color Emoji','Apple Color Emoji',sans-serif;font-size:34px;line-height:1;margin-bottom:auto;padding-bottom:10px} .ds-cat b{font-size:19px;font-weight:680;line-height:1.25;font-stretch:92%} .ds-cat small{font-size:13.5px;font-weight:500}"
+    },
+    {
+      "name": "Product Card with Pan",
+      "kind": "custom",
+      "refersTo": "product-card",
+      "description": "Slip-white card; brass-rimmed pan; leaf edge and badge once on the bill.",
+      "html": "<button class=\"ds-prod ds-in\"><span class=\"ds-pan\">🍅</span><span class=\"ds-names\"><b>തക്കാളി</b><small>Tomato</small></span><span class=\"ds-rate\">₹40 / kg</span><span class=\"ds-badge\">500 g</span></button>",
+      "css": ".ds-prod{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:170px;min-height:152px;padding:12px;border:1px solid #E1D9C8;border-radius:14px;background:#fff;color:#1C2620;text-align:left;font-family:'Anek Malayalam',system-ui,sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(60,45,15,.06),0 3px 10px rgba(60,45,15,.06);cursor:pointer;transition:transform 160ms cubic-bezier(.2,.8,.2,1)} .ds-prod:active{transform:scale(.97)} .ds-prod:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-in{border-color:#1E6B3A;box-shadow:inset 0 0 0 1px #1E6B3A,0 1px 2px rgba(60,45,15,.06),0 3px 10px rgba(60,45,15,.06)} .ds-pan{display:grid;place-items:center;width:50px;height:50px;border-radius:50%;background:#E2EED9;font:27px/1 'Noto Color Emoji','Apple Color Emoji',sans-serif;box-shadow:inset 0 0 0 2px rgba(184,134,43,.3)} .ds-names{display:flex;flex-direction:column} .ds-names b{font-size:17.5px;font-weight:640;line-height:1.3;font-stretch:90%} .ds-names small{font-size:13px;color:#4B584F} .ds-rate{margin-top:auto;font-size:15px;font-weight:640;color:#154F2A} .ds-badge{position:absolute;top:12px;right:10px;padding:2px 9px;border-radius:999px;background:#1E6B3A;color:#fff;font-size:13px;font-weight:650}"
+    },
+    {
+      "name": "Bill Bar",
+      "kind": "nav",
+      "refersTo": "bill-bar",
+      "description": "Pinned leaf bar with live total; opens the bill on narrow screens.",
+      "html": "<button class=\"ds-bar\"><span class=\"ds-sum\"><span>3 സാധനം</span><b>₹ 186.00</b></span><span class=\"ds-go\">ബിൽ കാണുക ›</span></button>",
+      "css": ".ds-bar{display:flex;align-items:center;gap:12px;width:360px;min-height:64px;padding:8px 8px 8px 18px;border:0;border-radius:18px;background:#1E6B3A;color:#fff;text-align:left;font-family:'Anek Malayalam',system-ui,sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 6px 20px rgba(21,79,42,.3);cursor:pointer} .ds-bar:focus-visible{outline:3px solid #7A5610;outline-offset:2px} .ds-sum{display:flex;flex-direction:column;line-height:1.2} .ds-sum span{font-size:14px;font-weight:500} .ds-sum b{font-size:23px;font-weight:750} .ds-go{margin-left:auto;padding:11px 10px 11px 16px;border-radius:12px;background:rgba(255,255,255,.16);font-weight:650}"
+    },
+    {
+      "name": "Receipt Slip",
+      "kind": "card",
+      "refersTo": "",
+      "description": "White slip with a torn zigzag bottom edge on a paper-shade ground.",
+      "html": "<div class=\"ds-ground\"><div class=\"ds-slip\"><div class=\"ds-line\"><span>തക്കാളി · 500 g</span><b>₹20.00</b></div><div class=\"ds-grand\"><span>ആകെ</span><b>₹186</b></div></div></div>",
+      "css": ".ds-ground{background:#EEE7D8;padding:16px 16px 24px;font-family:'Anek Malayalam',system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#1C2620} .ds-slip{position:relative;max-width:320px;padding:14px 16px 18px;border-radius:14px 14px 0 0;background:#fff;filter:drop-shadow(0 2px 6px rgba(60,45,15,.1))} .ds-slip::after{content:'';position:absolute;left:0;right:0;bottom:-8px;height:8px;background:#fff;-webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/16px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/16px 100%} .ds-line{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px dashed #E1D9C8;font-size:16.5px} .ds-line b{font-weight:650} .ds-grand{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;padding-top:10px;border-top:2px solid #1C2620} .ds-grand span{font-size:19px;font-weight:720} .ds-grand b{font-size:32px;font-weight:760;line-height:1.1;color:#154F2A}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Brass Thraasu on the Bill Pad",
+    "overview": "Thraasu is an operate-mode counter tool: one shelf screen, a quantity bottom sheet, and a receipt slip. Its world is the Kerala shop counter: a warm bill-pad paper ground, a white receipt slip with a torn zigzag edge, banana-leaf green for the action that commits, the brass of the weighing balance for the brand and the scale, and chilli red for taking things off the bill. Products sit on round \"pans\" (scale pans) in produce-sack tints, one tint per category.\n\nDensity is phone-counter density: large tiles in the thumb zone, a pinned live total, every control at least 48 px. Type is a single family, Anek Malayalam, using its width axis to condense names on tiles and its weight range for money. All numbers are tabular. The system is light-only (a brand commitment in PRODUCT.md).\n\nIt rejects the POS-dashboard look: no sidebars, no KPI tiles, no on-screen data tables.",
+    "keyCharacteristics": [
+      "Warm paper ground, white slip surfaces, one green for commit and money.",
+      "Brass is the instrument: scale drawing, brand mark, pan rims, focus ring.",
+      "Eight produce-sack tint pairs keyed by category, with a brass fallback.",
+      "One family (Anek Malayalam), condensed on tiles, heavy and tabular for totals.",
+      "48 px touch floor; a single authored motion (the beam settling)."
+    ],
+    "rules": [
+      {
+        "name": "The Edge Is Not A Divider Rule",
+        "body": "Controls a user types into or toggles (inputs, preset chips, the unit segmented toggle) take a 1.5 px field edge. The line colour is for dividers and for buttons whose label already identifies them; it never outlines an input.",
+        "section": "colors"
+      },
+      {
+        "name": "The Brass Carries No Text Rule",
+        "body": "Brass (#B8862B) is for drawn metal. Any brass-coloured text, ring or outline uses brass-ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Chilli Removes Rule",
+        "body": "Chilli appears only where something is taken off the bill or an entry is wrong. The spice category's red ink is a sack tint, not chilli.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Money Rule",
+        "body": "`font-variant-numeric: tabular-nums` is set on body; every price, quantity and total inherits it so columns of figures align.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Languages Rule",
+        "body": "Malayalam leads; the English gloss sits underneath at label size in ink-2, marked `lang=\"en\"`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Warm Shadow Rule",
+        "body": "Shadows are tinted with the paper's brown (rgb 60,45,15) or the leaf, never neutral grey, except the toast, which floats over everything.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Settle Rule",
+        "body": "The beam settle (760ms: dip to -7deg, swing past level to 3.2deg, rest) is the single authored motion moment, replayed each time the valid quantity changes. Everything else is functional feedback: press scale, bar bump, sheet rise (260ms), bill slide (280ms), toast. All share `--ease` and collapse under `prefers-reduced-motion`.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do keep every control at or above 48px; primary buttons are 52px and chips 54px.",
+      "Do edge inputs, chips and toggles with field (#8F836B); keep line (#E1D9C8) for dividers.",
+      "Do show money in leaf-deep, tabular, at display weight when it is the figure being read out.",
+      "Do give every new category a tint / tint-ink pair; the brass fallback is a safety net, not a style.",
+      "Do put product imagery inside a pan, over the emoji, never in place of it.",
+      "Do keep the receipt print-only, black on white, within 72mm."
+    ],
+    "donts": [
+      "Don't use brass (#B8862B) for text or rings; use brass-ink.",
+      "Don't use chilli for anything but removal and invalid input.",
+      "Don't add a second primary (leaf) button to a surface.",
+      "Don't add a dark theme.",
+      "Don't introduce dashboard furniture: sidebars, KPI tiles, on-screen data tables.",
+      "Don't add a drag grip or a second decorative animation to the sheet; the beam settle is the one."
+    ]
+  }
+}

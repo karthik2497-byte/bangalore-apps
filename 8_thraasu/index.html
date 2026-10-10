@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#F6F2E9">
+<meta name="description" content="ത്രാസ് — കടയിലെ ബില്ലിംഗ്. സാധനം തിരഞ്ഞെടുക്കൂ, അളവ് നൽകൂ, ബിൽ പ്രിന്റ് ചെയ്യൂ.">
+<title>ത്രാസ് · Thraasu</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" crossorigin href="https://fonts.googleapis.com/css2?family=Anek+Malayalam:wdth,wght@75..125,400..800&display=swap">
+<!-- Emoji subset: only the price list's icons (~35 KB), so a 2019 Android phone draws 🫘 🫚 🫛 too. test-bill.mjs fails if an icon is missing here. -->
+<link rel="stylesheet" crossorigin href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap&text=%F0%9F%A5%AC%F0%9F%8D%8C%F0%9F%8D%9A%F0%9F%AB%98%F0%9F%AB%97%F0%9F%A5%9B%F0%9F%8C%B6%EF%B8%8F%E2%9C%8F%F0%9F%8D%85%F0%9F%A7%85%F0%9F%A5%94%F0%9F%A5%95%F0%9F%AB%9B%F0%9F%AB%9A%F0%9F%A7%84%F0%9F%8D%A0%F0%9F%A5%92%F0%9F%8D%86%F0%9F%A5%A5%F0%9F%8C%BF%F0%9F%8D%8B%F0%9F%8D%8E%F0%9F%8D%8A%F0%9F%8D%8D%F0%9F%8D%87%F0%9F%A5%AD%F0%9F%8D%89%F0%9F%8C%BE%F0%9F%8C%BB%F0%9F%A7%88%F0%9F%A5%A3%F0%9F%A5%9A%F0%9F%A7%80%F0%9F%A7%82%F0%9F%8D%AC%F0%9F%8D%AF%F0%9F%8D%B5%E2%98%95%F0%9F%A5%84%F0%9F%AB%99%E2%9A%AB%F0%9F%94%A5%F0%9F%A7%BC%F0%9F%93%92%F0%9F%96%8A%E2%AC%9C%F0%9F%93%8F%F0%9F%93%84%F0%9F%A7%B4%E2%9C%89">
+<!--
+THESIS: The counter's brass thraasu, digitised: find → weigh → bill in three taps. Refuses the POS-dashboard look (sidebars, KPI tiles, data tables).
+OWN-WORLD: Bill-pad paper ground; a white receipt slip with a torn zigzag edge; banana-leaf green for the one primary action; thraasu brass for the scale, the brand and weights; chilli red only for removal; eight produce-sack tints, one per category. Anek Malayalam, condensed on tiles.
+STORY: The shopkeeper finds the item in Malayalam, Manglish or by tile, sets a quantity and watches the scale settle, reads the amount, prints the slip.
+FIRST VIEWPORT: Brand and search pinned on top; two-column category tiles fill the thumb zone; the green bill bar is pinned at the bottom with the live total.
+FORM: Operate-mode counter tool; the user-approved direction (pinned 2026-10-10, no roll). Staging: one shelf screen, a quantity bottom sheet, a receipt slip (side column ≥900 px).
+-->
+<style>
+:root {
+  --paper: #F6F2E9; --paper-2: #EEE7D8; --slip: #FFFFFF;
+  --ink: #1C2620; --ink-2: #4B584F; --line: #E1D9C8;
+  --field: #8F836B; /* input, chip and toggle edges: ≥3:1 on white and paper (WCAG 1.4.11); --line is for dividers */
+  --leaf: #1E6B3A; --leaf-deep: #154F2A; --leaf-wash: #E2EEE0;
+  --brass: #B8862B; --brass-ink: #7A5610; --brass-wash: #F4E8C9;
+  --chilli: #B3301F; --chilli-wash: #F8E0DA;
+  --tint: var(--brass-wash); --tint-ink: var(--brass-ink);
+  --r: 14px; --gutter: 16px;
+  --font: 'Anek Malayalam', 'Noto Sans Malayalam', system-ui, sans-serif;
+  --emoji: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  --lift: 0 1px 2px rgba(60, 45, 15, .06), 0 3px 10px rgba(60, 45, 15, .06);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}
+/* Produce-sack tints. A category added to products.json without one falls back to brass. */
+[data-cat="veg"]    { --tint: #E2EED9; --tint-ink: #2E5E22; }
+[data-cat="fruit"]  { --tint: #FAEDBF; --tint-ink: #6A4F00; }
+[data-cat="rice"]   { --tint: #EFE6D6; --tint-ink: #5F4A2E; }
+[data-cat="pulses"] { --tint: #F8DFC6; --tint-ink: #7C4112; }
+[data-cat="oil"]    { --tint: #EEEAC4; --tint-ink: #545015; }
+[data-cat="dairy"]  { --tint: #DCE9F3; --tint-ink: #1F4C73; }
+[data-cat="spice"]  { --tint: #F6D9D2; --tint-ink: #8A2B1D; }
+[data-cat="stat"]   { --tint: #E1E1F2; --tint-ink: #34367A; }
+
+* { box-sizing: border-box; margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font: 400 16px/1.45 var(--font); color: var(--ink); background: var(--paper);
+  font-variant-numeric: tabular-nums; -webkit-tap-highlight-color: transparent;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--brass-ink); outline-offset: 2px; }
+.emo { font-family: var(--emoji); font-weight: 400; line-height: 1; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.metal { fill: var(--brass); }
+.string { stroke: var(--brass); stroke-width: 1.6; fill: none; }
+.pivot { fill: var(--brass-ink); }
+
+/* ---------- counter: header, search, shelf ---------- */
+#counter { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+.top {
+  position: sticky; top: 0; z-index: 5; background: var(--paper);
+  padding: calc(10px + env(safe-area-inset-top)) var(--gutter) 12px;
+}
+.top-row { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.brand { display: flex; align-items: center; gap: 8px; color: var(--leaf-deep); font-size: 24px; font-weight: 750; letter-spacing: -.01em; }
+.brand svg { width: 34px; height: 26px; }
+.brand h1 { font: inherit; }
+.sample {
+  margin-left: auto; padding: 4px 11px; border-radius: 999px;
+  background: var(--brass-wash); color: var(--brass-ink); font-size: 13px; font-weight: 600;
+}
+.search { position: relative; margin-top: 8px; }
+.search svg { position: absolute; left: 15px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); stroke: var(--ink-2); fill: none; stroke-width: 2; pointer-events: none; }
+.search input {
+  width: 100%; height: 54px; padding: 0 52px 0 46px; border: 1.5px solid var(--field); border-radius: var(--r);
+  background: var(--slip); font-size: 17px; appearance: none;
+}
+.search input::placeholder { color: #6A746C; }
+.search input::-webkit-search-cancel-button { display: none; }
+.search input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
+.clear {
+  position: absolute; right: 3px; top: 3px; width: 48px; height: 48px; border: 0; border-radius: 10px;
+  background: none; color: var(--ink-2); font-size: 18px;
+}
+.clear:hover { background: var(--paper); }
+
+.shelf { padding: 2px var(--gutter) 24px; }
+.shelf-head { display: flex; align-items: baseline; justify-content: space-between; margin: 10px 0 10px; }
+.shelf-head h2 { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 10px; }
+
+.cat {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-height: 116px; padding: 14px 14px 12px;
+  border: 0; border-radius: var(--r); background: var(--tint); color: var(--tint-ink); text-align: left;
+  transition: transform 160ms var(--ease);
+}
+.cat .emo { font-size: 34px; margin-bottom: auto; padding-bottom: 10px; }
+.cat b { font-size: 19px; font-weight: 680; line-height: 1.25; font-stretch: 92%; }
+.cat small { font-size: 13.5px; font-weight: 500; }
+.cat:active, .prod:active, .row:active { transform: scale(.97); }
+
+.crumb { display: flex; align-items: center; gap: 12px; margin: 10px 0 12px; }
+.back {
+  display: inline-flex; align-items: center; gap: 4px; flex: none; height: 48px; padding: 0 14px 0 8px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--slip); font-size: 15px; font-weight: 560;
+}
+.back svg, .bb-go svg, .bill-close svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.crumb h2 { font-size: 21px; font-weight: 720; line-height: 1.2; color: var(--tint-ink); }
+.crumb h2 small { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+
+.pan {
+  display: grid; place-items: center; flex: none; width: 50px; height: 50px; border-radius: 50%;
+  position: relative; overflow: hidden; background: var(--tint); font-size: 27px;
+  box-shadow: inset 0 0 0 2px rgba(184, 134, 43, .3);   /* the brass rim of a scale pan */
+}
+.pan img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.prod {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 152px; padding: 12px;
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--slip); text-align: left; box-shadow: var(--lift);
+  transition: transform 160ms var(--ease), border-color 160ms;
+}
+.names { display: flex; flex-direction: column; min-width: 0; }
+.names b { font-size: 17.5px; font-weight: 640; line-height: 1.3; font-stretch: 90%; overflow-wrap: anywhere; }
+.names small { font-size: 13px; color: var(--ink-2); }
+.rate { margin-top: auto; font-size: 15px; font-weight: 640; color: var(--leaf-deep); }
+.prod.in { border-color: var(--leaf); box-shadow: inset 0 0 0 1px var(--leaf), var(--lift); }
+.badge {
+  padding: 2px 9px; border-radius: 999px; background: var(--leaf); color: #fff;
+  font-size: 13px; font-weight: 650; white-space: nowrap;
+}
+.prod .badge { position: absolute; top: 12px; right: 10px; }
+
+.results { overflow: hidden; border: 1px solid var(--line); border-radius: var(--r); background: var(--slip); box-shadow: var(--lift); }
+.row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 68px; padding: 9px 14px;
+  border: 0; background: none; text-align: left; transition: transform 160ms var(--ease);
+}
+.row + .row { border-top: 1px solid var(--line); }
+.row .pan { width: 44px; height: 44px; font-size: 23px; }
+.row .names { flex: 1; }
+.row .rate { margin: 0; text-align: right; }
+.row .rate .badge { display: block; margin-top: 3px; }
+
+.state { padding: 36px 8px; text-align: center; color: var(--ink-2); }
+.state b { display: block; margin-bottom: 4px; font-size: 18px; color: var(--ink); }
+.state .btn { margin-top: 16px; }
+.sk { min-height: 116px; border-radius: var(--r); background: linear-gradient(90deg, var(--paper-2) 30%, #F3EEE3 50%, var(--paper-2) 70%) 0 0 / 300% 100%; animation: shimmer 1.3s linear infinite; }
+@keyframes shimmer { to { background-position: -150% 0; } }
+
+/* ---------- bill bar (narrow screens) ---------- */
+.bill-bar {
+  position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 6;
+  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 8px 8px 18px;
+  border: 0; border-radius: 18px; background: var(--leaf); color: #fff; text-align: left;
+  box-shadow: 0 6px 20px rgba(21, 79, 42, .3);
+}
+.bb-sum { display: flex; flex-direction: column; line-height: 1.2; }
+.bb-count { font-size: 14px; font-weight: 500; }
+.bb-total { font-size: 23px; font-weight: 750; }
+.bb-go {
+  display: inline-flex; align-items: center; gap: 2px; margin-left: auto; padding: 11px 10px 11px 16px;
+  border-radius: 12px; background: rgba(255, 255, 255, .16); font-weight: 650;
+}
+.bill-bar:disabled { background: var(--slip); color: var(--ink-2); border: 1px solid var(--line); box-shadow: var(--lift); }
+.bill-bar:disabled .bb-go, .bill-bar:disabled .bb-total { display: none; }
+.bill-bar.bump { animation: bump 280ms var(--ease); }
+@keyframes bump { 40% { transform: scale(1.035); } }
+
+/* ---------- bill: overlay on phones, side column on wide screens ---------- */
+.bill {
+  position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+  overflow-y: auto; overscroll-behavior: contain; background: var(--paper-2);
+  transform: translateY(100%); visibility: hidden;
+  transition: transform 280ms var(--ease), visibility 0s linear 280ms;
+}
+.bill.open { transform: none; visibility: visible; transition: transform 280ms var(--ease); }
+.bill-head {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px;
+  padding: calc(10px + env(safe-area-inset-top)) var(--gutter) 10px; background: var(--paper-2);
+}
+.bill-close { display: grid; place-items: center; width: 48px; height: 48px; margin-left: -8px; border: 0; border-radius: 12px; background: none; }
+.bill-head h2 { font-size: 21px; font-weight: 720; outline-offset: 4px; }
+.bill-meta { margin-left: auto; text-align: right; font-size: 13px; line-height: 1.35; color: var(--ink-2); }
+.bill-meta b { display: block; font-size: 14px; color: var(--ink); font-weight: 650; }
+
+.slip {
+  position: relative; margin: 2px var(--gutter) 0; padding: 14px 16px 18px;
+  border-radius: var(--r) var(--r) 0 0; background: var(--slip);
+  filter: drop-shadow(0 2px 6px rgba(60, 45, 15, .1));
+}
+/* The torn edge of a bill-pad slip. */
+.slip::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -8px; height: 8px; background: var(--slip);
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 16px 100%;
+          mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 16px 100%;
+}
+.shop input {
+  width: 100%; height: 44px; padding: 0 2px; border: 0; border-bottom: 1.5px dashed var(--field);
+  background: none; font-size: 18px; font-weight: 680; text-align: center;
+}
+.shop input::placeholder { color: #6A746C; font-weight: 500; }
+.shop input:focus { outline: none; border-bottom-color: var(--leaf); }
+
+.lines { list-style: none; padding: 4px 0 0; }
+.line { display: flex; align-items: stretch; border-bottom: 1px dashed var(--line); }
+.line-main { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 62px; padding: 8px 0; border: 0; background: none; text-align: left; }
+.line .pan { width: 38px; height: 38px; font-size: 20px; }
+.line-name { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.line-name b { font-size: 16.5px; font-weight: 640; }
+.line-name small { font-size: 13.5px; color: var(--ink-2); }
+.line-amt { font-size: 16.5px; font-weight: 650; white-space: nowrap; }
+.line-x { flex: none; width: 48px; margin-right: -10px; border: 0; border-radius: 10px; background: none; color: var(--chilli); font-size: 17px; }
+.line-x:hover { background: var(--chilli-wash); }
+
+.empty { padding: 30px 8px 18px; text-align: center; color: var(--ink-2); }
+.empty svg { width: 96px; height: 74px; margin-bottom: 10px; opacity: .55; }
+.empty b { display: block; font-size: 17px; color: var(--ink); }
+
+.sums { display: grid; gap: 4px; margin-top: 12px; }
+.sums > div { display: flex; align-items: center; justify-content: space-between; min-height: 30px; font-size: 15.5px; }
+.sums dt { color: var(--ink-2); }
+.sums dd { font-weight: 600; }
+.disc dd { display: flex; align-items: center; gap: 4px; color: var(--ink-2); }
+.disc input {
+  width: 92px; height: 48px; padding: 0 10px; border: 1.5px solid var(--field); border-radius: 10px;
+  background: var(--slip); text-align: right; font-weight: 650; color: var(--ink);
+}
+.disc input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
+.grand { margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--ink); }
+.grand dt { font-size: 19px; font-weight: 720; color: var(--ink); }
+.grand dd { font-size: 32px; font-weight: 760; line-height: 1.1; color: var(--leaf-deep); }
+
+.bill-actions {
+  position: sticky; bottom: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto;
+  padding: 22px var(--gutter) calc(14px + env(safe-area-inset-bottom)); background: var(--paper-2);
+}
+.bill-actions .quiet { grid-column: 1 / -1; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 16px;
+  border: 1.5px solid transparent; border-radius: var(--r); font-size: 16px; font-weight: 650;
+  transition: background-color 150ms, transform 120ms;
+}
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.primary { background: var(--leaf); color: #fff; }
+.primary:hover:not(:disabled) { background: var(--leaf-deep); }
+.primary:disabled { background: #A9BBAD; }
+.ghost { background: var(--slip); border-color: var(--line); }
+.ghost:hover:not(:disabled) { border-color: var(--ink-2); }
+.quiet { min-height: 48px; background: none; color: var(--brass-ink); }
+.quiet:hover:not(:disabled) { background: var(--brass-wash); }
+.danger { background: var(--slip); border-color: #E3B4A9; color: var(--chilli); }
+.danger:hover { background: var(--chilli-wash); }
+.btn:disabled:not(.primary) { opacity: .45; }
+
+/* ---------- quantity sheet ---------- */
+.sheet {
+  width: 100%; max-width: 560px; max-height: 92dvh; margin: auto auto 0; padding: 0;
+  border: 0; border-radius: 22px 22px 0 0; background: var(--slip); color: var(--ink);
+  box-shadow: 0 -8px 40px rgba(30, 25, 10, .2);
+}
+.sheet::backdrop { background: rgba(28, 38, 32, .5); }
+.sheet[open] { animation: rise 260ms var(--ease); }
+@keyframes rise { from { transform: translateY(40px); opacity: .4; } }
+.sheet form { display: flex; flex-direction: column; max-height: 92dvh; }
+.sheet-body { overflow-y: auto; padding-bottom: 6px; }
+.sheet-head { display: flex; align-items: flex-start; gap: 14px; padding: 14px 12px 14px 16px; }
+.scale { flex: none; width: 108px; height: 84px; margin-top: 4px; overflow: visible; }
+.beam { transform-box: view-box; transform-origin: 60px 19px; }
+.beam.settle { animation: settle 760ms var(--ease); }
+/* A loaded pan dips, the beam swings back past level, then rests. */
+@keyframes settle { 0% { transform: rotate(-7deg); } 38% { transform: rotate(3.2deg); } 68% { transform: rotate(-1.2deg); } 100% { transform: rotate(0); } }
+.sheet-title { flex: 1; min-width: 0; padding-top: 2px; }
+.sheet-title h2 { font-size: 25px; font-weight: 720; line-height: 1.2; }
+.sheet-title p { font-size: 14px; color: var(--ink-2); }
+.rate-field { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 15px; color: var(--ink-2); }
+.rate-field input {
+  width: 76px; height: 48px; padding: 0 8px; border: 1.5px solid var(--field); border-radius: 10px;
+  text-align: right; font-weight: 680; color: var(--ink);
+}
+.rate-field input:focus, .qty-row input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
+.icon-btn { display: grid; place-items: center; flex: none; width: 48px; height: 48px; border: 0; border-radius: 12px; background: none; color: var(--ink-2); font-size: 18px; }
+.icon-btn:hover { background: var(--paper); }
+
+.presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 0 16px; }
+.chip {
+  min-height: 54px; padding: 0 4px; border: 1.5px solid var(--field); border-radius: 12px; background: var(--slip);
+  font-size: 15.5px; font-weight: 650; white-space: nowrap; transition: background-color 140ms, border-color 140ms;
+}
+.chip:hover { border-color: var(--leaf); }
+.chip[aria-pressed="true"] { background: var(--leaf); border-color: var(--leaf); color: #fff; }
+.custom { padding: 16px 16px 0; }
+.custom label { font-size: 14px; font-weight: 560; color: var(--ink-2); }
+.qty-row { display: flex; gap: 8px; margin-top: 6px; }
+.qty-row input {
+  flex: 1; min-width: 0; height: 58px; padding: 0 14px; border: 1.5px solid var(--field); border-radius: var(--r);
+  font-size: 23px; font-weight: 680;
+}
+.seg { display: flex; flex: none; overflow: hidden; border: 1.5px solid var(--field); border-radius: var(--r); }
+.seg button { width: 62px; border: 0; background: var(--slip); font-size: 16px; font-weight: 650; }
+.seg button + button { border-left: 1.5px solid var(--field); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.pc-suffix { align-self: center; padding: 0 6px; font-weight: 600; color: var(--ink-2); }
+.hint { margin-top: 6px; font-size: 14px; font-weight: 560; color: var(--chilli); }
+
+.sheet-foot { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--paper); }
+.calc { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.calc span { font-size: 15px; color: var(--ink-2); }
+.calc strong { font-size: 32px; font-weight: 760; line-height: 1.1; color: var(--leaf-deep); }
+.sheet-btns { display: flex; gap: 10px; margin-top: 12px; }
+.sheet-btns .primary { flex: 1; font-size: 17px; }
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); z-index: 30;
+  display: flex; align-items: center; gap: 8px; max-width: calc(100% - 32px); padding: 6px 6px 6px 16px;
+  border-radius: var(--r); background: var(--ink); color: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+  opacity: 0; pointer-events: none; transform: translate(-50%, 16px);
+  transition: opacity 200ms, transform 240ms var(--ease);
+}
+.toast.show { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.toast button { min-height: 48px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: #F0CF7E; font-weight: 700; }
+.bill-open .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
+
+#receipt { display: none; }
+
+@media (min-width: 600px) {
+  .sheet { margin: auto; border-radius: 22px; }
+  .sheet-foot { border-radius: 0 0 22px 22px; }
+}
+@media (min-width: 900px) {
+  body { display: grid; grid-template-columns: minmax(0, 1fr) 400px; }
+  #counter { padding-bottom: 24px; }
+  .bill {
+    position: sticky; top: 0; height: 100dvh; transform: none; visibility: visible; transition: none;
+    border-left: 1px solid var(--line);
+  }
+  .bill-bar, .only-narrow { display: none !important; }
+  .bill-actions { grid-template-columns: 1fr; }
+  .toast { bottom: 24px; left: calc(50% - 200px); }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(164px, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* ---------- print: only the receipt, sized for an 80 mm roll, fine on A4 ---------- */
+@media print {
+  @page { margin: 5mm; }
+  body { display: block; background: #fff; }
+  body > :not(#receipt) { display: none !important; }
+  #receipt { display: block; max-width: 72mm; margin: 0 auto; color: #000; font: 10.5pt/1.35 var(--font); }
+  #receipt h1 { font-size: 15pt; font-weight: 720; text-align: center; }
+  #receipt .meta { text-align: center; font-size: 9pt; }
+  #receipt hr { margin: 6px 0; border: 0; border-top: 1px dashed #000; }
+  #receipt table { width: 100%; border-collapse: collapse; }
+  #receipt td { padding: 2px 0; vertical-align: top; }
+  #receipt td + td { padding-left: 8px; text-align: right; white-space: nowrap; }
+  #receipt .sub { font-size: 9pt; }
+  #receipt .grand td { padding-top: 5px; font-size: 14pt; font-weight: 760; }
+  #receipt .thanks { margin-top: 6px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div id="counter">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <svg viewBox="0 0 120 92" aria-hidden="true">
+          <rect class="metal" x="58" y="14" width="4" height="68" rx="2"/><path class="metal" d="M38 90q0-8 8-8h28q8 0 8 8z"/><circle class="metal" cx="60" cy="11" r="5"/>
+          <rect class="metal" x="10" y="17" width="100" height="5" rx="2.5"/>
+          <path class="string" d="M16 21 4 50M16 21l12 29M104 21 92 50m12-29 12 29"/>
+          <path class="metal" d="M0 50h32q-16 14-32 0zm88 0h32q-16 14-32 0z"/>
+        </svg>
+        <h1>ത്രാസ്</h1>
+      </div>
+      <span class="sample" id="samplePill" hidden title="products.json-ലെ വിലകൾ മാതൃകയ്ക്കു വേണ്ടി മാത്രം">മാതൃകാ വിലകൾ</span>
+    </div>
+    <div class="search" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label for="q" class="vh">സാധനം തിരയുക</label>
+      <input id="q" type="search" placeholder="തിരയുക… thakkali" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button class="clear" id="clearQ" type="button" aria-label="തിരച്ചിൽ മായ്ക്കുക" hidden>✕</button>
+    </div>
+  </header>
+
+  <main class="shelf" id="shelf"></main>
+
+  <button class="bill-bar" id="billBar" type="button" disabled>
+    <span class="bb-sum"><span class="bb-count" id="bbCount">ബില്ലിൽ ഒന്നുമില്ല</span><span class="bb-total" id="bbTotal"></span></span>
+    <span class="bb-go">ബിൽ കാണുക <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>
+  </button>
+</div>
+
+<aside class="bill" id="bill" aria-labelledby="billTitle">
+  <div class="bill-head">
+    <button class="bill-close only-narrow" id="billClose" type="button" aria-label="തിരികെ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+    <h2 id="billTitle" tabindex="-1">ബിൽ</h2>
+    <p class="bill-meta"><b>നം. <span id="billNo"></span></b><span id="billDate"></span></p>
+  </div>
+  <div class="slip">
+    <label class="shop"><span class="vh">കടയുടെ പേര്</span><input id="shopName" maxlength="60" placeholder="കടയുടെ പേര് ചേർക്കുക" autocomplete="organization"></label>
+    <ol class="lines" id="billLines"></ol>
+    <div class="empty" id="billEmpty">
+      <svg viewBox="0 0 120 92" aria-hidden="true">
+        <rect class="metal" x="58" y="14" width="4" height="68" rx="2"/><path class="metal" d="M38 90q0-8 8-8h28q8 0 8 8z"/><circle class="metal" cx="60" cy="11" r="5"/>
+        <rect class="metal" x="10" y="17" width="100" height="5" rx="2.5"/>
+        <path class="string" d="M16 21 4 50M16 21l12 29M104 21 92 50m12-29 12 29"/>
+        <path class="metal" d="M0 50h32q-16 14-32 0zm88 0h32q-16 14-32 0z"/>
+      </svg>
+      <b>ബിൽ ശൂന്യമാണ്</b>
+      ഒരു സാധനം തിരഞ്ഞെടുത്ത് തുടങ്ങൂ
+    </div>
+    <dl class="sums" id="sums">
+      <div><dt>തുക</dt><dd id="sumSub"></dd></div>
+      <div class="disc"><dt><label for="discount">കിഴിവ്</label></dt><dd>₹<input id="discount" inputmode="decimal" autocomplete="off" placeholder="0"></dd></div>
+      <div><dt>റൗണ്ട് ഓഫ്</dt><dd id="sumRound"></dd></div>
+      <div class="grand"><dt>ആകെ</dt><dd id="sumTotal"></dd></div>
+    </dl>
+  </div>
+  <div class="bill-actions">
+    <button class="btn ghost only-narrow" id="addMore" type="button" aria-label="സാധനം ചേർക്കുക"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>ചേർക്കുക</button>
+    <button class="btn primary" id="printBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>പ്രിന്റ് / PDF</button>
+    <button class="btn quiet" id="newBill" type="button">പുതിയ ബിൽ</button>
+  </div>
+</aside>
+
+<dialog class="sheet" id="sheet" aria-labelledby="sheetName">
+  <form id="sheetForm" novalidate>
+    <div class="sheet-body">
+      <div class="sheet-head">
+        <svg class="scale" viewBox="0 0 120 92" aria-hidden="true">
+          <rect class="metal" x="58" y="14" width="4" height="68" rx="2"/><path class="metal" d="M38 90q0-8 8-8h28q8 0 8 8z"/><circle class="metal" cx="60" cy="11" r="5"/>
+          <g class="beam" id="beam">
+            <rect class="metal" x="10" y="17" width="100" height="5" rx="2.5"/><circle class="pivot" cx="60" cy="19.5" r="3.5"/>
+            <path class="string" d="M16 21 4 50M16 21l12 29M104 21 92 50m12-29 12 29"/>
+            <path class="metal" d="M0 50h32q-16 14-32 0zm88 0h32q-16 14-32 0z"/>
+            <text id="panItem" class="emo" x="16" y="48" font-size="21" text-anchor="middle"></text>
+            <path class="pivot" d="m97 50 2-10h10l2 10z"/><circle class="pivot" cx="104" cy="38" r="2.5"/>
+          </g>
+        </svg>
+        <div class="sheet-title">
+          <h2 id="sheetName"></h2>
+          <p id="sheetEn" lang="en"></p>
+          <label class="rate-field">നിരക്ക് ₹<input id="rateIn" inputmode="decimal" autocomplete="off"><span id="rateUnit"></span></label>
+        </div>
+        <button class="icon-btn" id="sheetClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
+      </div>
+      <div class="presets" id="presets" role="group" aria-label="അളവ്"></div>
+      <div class="custom">
+        <label for="qtyIn">അളവ് ടൈപ്പ് ചെയ്യുക</label>
+        <div class="qty-row">
+          <input id="qtyIn" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-describedby="qtyHint">
+          <div class="seg" id="unitSeg" role="group" aria-label="യൂണിറ്റ്"><button type="button" data-big="1"></button><button type="button" data-big="0"></button></div>
+          <span class="pc-suffix" id="pcSuffix">എണ്ണം</span>
+        </div>
+        <p class="hint" id="qtyHint" role="alert" hidden></p>
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <div class="calc"><span id="calcLine"></span><strong id="calcAmt"></strong></div>
+      <div class="sheet-btns">
+        <button class="btn danger" id="removeBtn" type="button">നീക്കം ചെയ്യുക</button>
+        <button class="btn primary" id="addBtn" type="submit" autofocus>ബില്ലിൽ ചേർക്കുക</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastUndo" type="button">പഴയപടി</button></div>
+
+<section id="receipt" aria-hidden="true"></section>
+
+<script src="./bill-core.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Every key and cache on this origin is shared with the other tinkerhouse apps: prefix everything.
+const BILL_KEY = 'thraasu_bill', SHOP_KEY = 'thraasu_shop';
+const wide = matchMedia('(min-width: 900px)');
+const sheetEl = $('sheet');
+
+let cats = [], products = [], byId = new Map(), catById = new Map();
+let bill = loadBill();
+let cat = null;             // open category, or null for the category grid
+let sheet = null;           // the quantity sheet's working state
+let undoState = null, toastTimer = 0;
+let samplePrices = false;   // products.json says its rates are placeholders
+
+// ---------- small formatters ----------
+const billNo = n => String(n).padStart(4, '0');
+const fmtDate = d => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+const signed = p => (p > 0 ? '+' : p < 0 ? '−' : '') + fmtMoney(Math.abs(p));
+const countLabel = n => `${n} ${n === 1 ? 'ഇനം' : 'ഇനങ്ങൾ'}`;
+const rateLabel = (rate, unit) => unit === 'pc' ? `${fmtMoney(rate, true)} ഒന്നിന്` : `${fmtMoney(rate, true)} / ${UNITS[unit].big}`;
+const lineDesc = (qty, rate, unit) => unit === 'pc' ? `${qty} × ${fmtMoney(rate, true)}` : `${fmtQty(qty, unit)} × ${fmtMoney(rate, true)}/${UNITS[unit].big}`;
+const asItem = p => ({ pid: p.id, cat: p.cat, ml: p.ml, en: p.en || '', icon: p.icon || '', img: safeImg(p.img), unit: p.unit, rate: p.rate });
+// A scale pan: the emoji always, a photo over it when products.json names one (a broken one is removed).
+const pan = x => `<span class="pan emo" aria-hidden="true">${esc(x.icon || '')}${x.img ? `<img src="./${esc(x.img)}" alt="" loading="lazy">` : ''}</span>`;
+const lineOf = pid => bill.lines.find(l => l.pid === pid);
+
+// ---------- persistence ----------
+function freshBill(no) { return { no, started: new Date().toISOString(), lines: [], discount: 0 }; }
+function loadBill() {
+  try {
+    const b = JSON.parse(localStorage.getItem(BILL_KEY));
+    if (b && Number.isInteger(b.no) && b.no > 0 && Array.isArray(b.lines)) {
+      b.lines = b.lines.filter(l => l && typeof l.pid === 'string' && typeof l.ml === 'string' && Object.hasOwn(UNITS, l.unit) &&
+        Number.isInteger(l.qty) && l.qty > 0 && Number.isInteger(l.rate) && l.rate > 0);
+      b.lines.forEach(l => { l.img = safeImg(l.img); });
+      b.discount = Number.isInteger(b.discount) && b.discount > 0 ? b.discount : 0;
+      if (isNaN(new Date(b.started))) b.started = new Date().toISOString();
+      return b;
+    }
+  } catch {}
+  return freshBill(1);
+}
+// A failed write (private mode, full storage) keeps the bill in memory; nothing is lost mid-sale.
+function saveBill() { try { localStorage.setItem(BILL_KEY, JSON.stringify(bill)); } catch {} }
+
+// ---------- price list ----------
+async function loadCatalog() {
+  $('shelf').innerHTML = `<div class="shelf-head"><h2>വിഭാഗങ്ങൾ</h2></div><div class="grid" aria-busy="true">${'<div class="sk"></div>'.repeat(8)}</div>`;
+  try {
+    const res = await fetch('./products.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    cats = (data.categories || []).filter(c => c && typeof c.id === 'string' && typeof c.ml === 'string');
+    products = validProducts(data).map(p => ({ ...p, rate: Math.round(p.rate * 100) }));
+    byId = new Map(products.map(p => [p.id, p]));
+    catById = new Map(cats.map(c => [c.id, c]));
+    samplePrices = data.sample === true;
+    $('samplePill').hidden = !samplePrices;
+    renderShelf();
+  } catch {
+    products = [];
+    $('shelf').innerHTML = `<div class="state"><b>വിലവിവരപ്പട്ടിക ലോഡ് ആയില്ല</b>ഇന്റർനെറ്റ് കണക്ഷൻ നോക്കിയിട്ട് വീണ്ടും ശ്രമിക്കൂ.<br><button class="btn ghost" id="retry" type="button">വീണ്ടും ശ്രമിക്കുക</button></div>`;
+  }
+}
+
+// ---------- shelf: categories, one category, or search results ----------
+function renderShelf() {
+  const q = $('q').value.trim();
+  $('clearQ').hidden = !q;
+  if (!products.length) return;
+  if (q) return renderResults(q);
+  if (cat && catById.has(cat)) return renderCategory(catById.get(cat));
+  $('shelf').innerHTML = `<div class="shelf-head"><h2>വിഭാഗങ്ങൾ</h2></div><div class="grid">${cats.map(c => {
+    const n = products.filter(p => p.cat === c.id).length;
+    return `<button class="cat" type="button" data-cat="${esc(c.id)}"><span class="emo" aria-hidden="true">${esc(c.icon || '')}</span><b>${esc(c.ml)}</b><small><span lang="en">${esc(c.en || '')}</span> · ${n}</small></button>`;
+  }).join('')}</div>`;
+}
+function renderCategory(c) {
+  const items = products.filter(p => p.cat === c.id);
+  $('shelf').innerHTML = `<div class="crumb" data-cat="${esc(c.id)}"><button class="back" id="backBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>വിഭാഗങ്ങൾ</button><h2>${esc(c.ml)}<small lang="en">${esc(c.en || '')}</small></h2></div><div class="grid">${items.map(p => {
+    const l = lineOf(p.id);
+    return `<button class="prod${l ? ' in' : ''}" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${pan({ icon: p.icon, img: safeImg(p.img) })}<span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}</span>${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</button>`;
+  }).join('')}</div>`;
+}
+function renderResults(q) {
+  const hits = search(products, q);
+  if (!hits.length) {
+    $('shelf').innerHTML = `<div class="state"><b>“${esc(q)}” കണ്ടെത്തിയില്ല</b>ഇംഗ്ലീഷിലോ മംഗ്ലീഷിലോ തിരയൂ — <span lang="en">tomato, thakkali</span></div>`;
+    return;
+  }
+  $('shelf').innerHTML = `<div class="shelf-head"><h2>${hits.length} ഫലങ്ങൾ</h2></div><div class="results">${hits.map(p => {
+    const l = lineOf(p.id);
+    return `<button class="row" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${pan({ icon: p.icon, img: safeImg(p.img) })}<span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</span></button>`;
+  }).join('')}</div>`;
+}
+function openCat(id) {
+  cat = id;
+  history.pushState({ cat: id }, '');
+  renderShelf();
+  window.scrollTo(0, 0);
+}
+
+// ---------- quantity sheet ----------
+function openSheet(item, fromSearch = false) {
+  const line = lineOf(item.pid);
+  const u = UNITS[item.unit];
+  sheet = { item, fromSearch, big: false, handSet: false, qty: 0, rate: 0 };
+  sheetEl.dataset.cat = item.cat || '';
+  $('sheetName').textContent = item.ml;
+  $('sheetEn').textContent = item.en || '';
+  $('panItem').textContent = item.icon || '';
+  $('rateIn').value = String((line ? line.rate : item.rate) / 100);
+  $('rateUnit').textContent = item.unit === 'pc' ? 'ഒന്നിന്' : `/ ${u.big}`;
+  $('presets').innerHTML = u.presets.map(v => `<button class="chip" type="button" data-q="${v}">${esc(fmtQty(v, item.unit, true))}</button>`).join('');
+  $('unitSeg').hidden = item.unit === 'pc';
+  $('pcSuffix').hidden = item.unit !== 'pc';
+  $('unitSeg').children[0].textContent = u.big || '';
+  $('unitSeg').children[1].textContent = u.small;
+  setQty(line ? line.qty : u.per);            // new item: 1 kg, 1 L or 1 piece, the unit it is priced in
+  $('addBtn').textContent = line ? 'ബിൽ പുതുക്കുക' : 'ബില്ലിൽ ചേർക്കുക';
+  $('removeBtn').hidden = !line;
+  update();
+  sheetEl.showModal();
+}
+function setQty(qty) {
+  if (sheet.item.unit !== 'pc') sheet.big = qty >= 1000;
+  $('qtyIn').value = String(sheet.big ? qty / 1000 : qty);
+}
+function update() {
+  const { item } = sheet;
+  const typed = $('qtyIn').value.trim();
+  const qty = parseQty(typed, item.unit, sheet.big);
+  const rate = parseMoney($('rateIn').value);
+  const ok = qty > 0 && rate > 0;
+  for (const b of $('unitSeg').children) b.setAttribute('aria-pressed', String((b.dataset.big === '1') === sheet.big));
+  for (const c of $('presets').children) c.setAttribute('aria-pressed', String(Number(c.dataset.q) === qty));
+  const hint = !(rate > 0) ? 'ശരിയായ നിരക്ക് നൽകുക' : typed && !qty ? 'ശരിയായ അളവ് നൽകുക' : '';
+  $('qtyHint').textContent = hint;
+  $('qtyHint').hidden = !hint;
+  $('addBtn').disabled = !ok;
+  $('calcLine').textContent = ok ? lineDesc(qty, rate, item.unit) : '';
+  $('calcAmt').textContent = fmtMoney(ok ? lineAmount(rate, qty, item.unit) : 0);
+  if (ok && qty !== sheet.qty) swing();
+  sheet.qty = ok ? qty : 0;
+  sheet.rate = rate;
+}
+// The signature moment: load the pan, the beam dips and settles.
+function swing() {
+  const b = $('beam');
+  b.classList.remove('settle');
+  void b.getBoundingClientRect();
+  b.classList.add('settle');
+}
+function commit() {
+  update();
+  if ($('addBtn').disabled) return;
+  const { item, qty, rate, fromSearch } = sheet;
+  const line = { pid: item.pid, cat: item.cat, ml: item.ml, en: item.en, icon: item.icon, img: item.img, unit: item.unit, rate, qty };
+  const i = bill.lines.findIndex(l => l.pid === item.pid);
+  if (i >= 0) bill.lines[i] = line; else bill.lines.push(line);
+  undoState = null; hideToast();
+  saveBill();
+  sheetEl.close();
+  renderBill(); renderShelf();
+  try { navigator.vibrate && navigator.vibrate(12); } catch {}
+  bump();
+  if (fromSearch) { $('q').value = ''; renderShelf(); $('q').focus(); }
+  else document.querySelector(`[data-pid="${CSS.escape(item.pid)}"]`)?.focus({ preventScroll: true });
+}
+function bump() {
+  const b = $('billBar');
+  b.classList.remove('bump');
+  void b.offsetWidth;
+  b.classList.add('bump');
+}
+
+// ---------- bill ----------
+function renderBill() {
+  const t = totals(bill.lines, bill.discount);
+  const n = bill.lines.length;
+  $('billNo').textContent = billNo(bill.no);
+  $('billDate').textContent = fmtDate(bill.started);
+  $('billLines').innerHTML = bill.lines.map((l, i) => `<li class="line" data-cat="${esc(l.cat || '')}"><button class="line-main" type="button" data-edit="${i}">${pan(l)}<span class="line-name"><b>${esc(l.ml)}</b><small>${esc(lineDesc(l.qty, l.rate, l.unit))}</small></span><span class="line-amt">${fmtMoney(lineAmount(l.rate, l.qty, l.unit))}</span></button><button class="line-x" type="button" data-remove="${i}" aria-label="${esc(l.ml)} നീക്കം ചെയ്യുക">✕</button></li>`).join('');
+  $('billEmpty').hidden = n > 0;
+  $('sums').hidden = n === 0;
+  $('sumSub').textContent = fmtMoney(t.subtotal);
+  $('sumRound').textContent = signed(t.roundOff);
+  $('sumTotal').textContent = fmtMoney(t.total, true);
+  if (document.activeElement !== $('discount')) $('discount').value = t.discount ? String(t.discount / 100) : '';
+  $('printBtn').disabled = $('newBill').disabled = n === 0;
+  $('billBar').disabled = n === 0;
+  $('bbCount').textContent = n ? countLabel(n) : 'ബില്ലിൽ ഒന്നുമില്ല';
+  $('bbTotal').textContent = n ? fmtMoney(t.total, true) : '';
+}
+function renderReceipt() {
+  const t = totals(bill.lines, bill.discount);
+  const shop = $('shopName').value.trim();
+  const row = (a, b, cls = '') => `<tr${cls ? ` class="${cls}"` : ''}><td>${a}</td><td>${b}</td></tr>`;
+  $('receipt').innerHTML = (shop ? `<h1>${esc(shop)}</h1>` : '') +
+    `<p class="meta">ബിൽ നം. ${billNo(bill.no)} · ${esc(fmtDate(new Date()))}</p>` +
+    (samplePrices ? '<p class="meta">മാതൃകാ വിലകൾ · sample prices</p>' : '') + '<hr><table>' +
+    bill.lines.map(l => row(`${esc(l.ml)}<div class="sub">${esc(lineDesc(l.qty, l.rate, l.unit))}</div>`, fmtMoney(lineAmount(l.rate, l.qty, l.unit)))).join('') +
+    `</table><hr><table>${row('തുക', fmtMoney(t.subtotal))}` +
+    (t.discount ? row('കിഴിവ്', '−' + fmtMoney(t.discount)) : '') +
+    (t.roundOff ? row('റൗണ്ട് ഓഫ്', signed(t.roundOff)) : '') +
+    row('ആകെ', fmtMoney(t.total, true), 'grand') + `</table><hr><p class="thanks">നന്ദി, വീണ്ടും വരിക!</p>`;
+}
+function removeLine(i) {
+  const l = bill.lines[i];
+  if (!l) return;
+  undoState = JSON.stringify(bill);
+  bill.lines.splice(i, 1);
+  saveBill(); renderBill(); renderShelf();
+  toast(`${l.ml} നീക്കം ചെയ്തു`);
+}
+function newBill() {
+  if (!bill.lines.length) return;
+  undoState = JSON.stringify(bill);
+  bill = freshBill(bill.no + 1);
+  saveBill(); renderBill(); renderShelf();
+  toast(`പുതിയ ബിൽ നം. ${billNo(bill.no)}`);
+}
+function printBill() {
+  renderReceipt();                                       // stamps the print time
+  const title = document.title;
+  document.title = `Thraasu-Bill-${billNo(bill.no)}`;   // Save as PDF names the file from this
+  addEventListener('afterprint', () => { document.title = title; }, { once: true });
+  window.print();
+}
+
+// Phones: the bill is a full-screen layer with a history entry, so Android's back
+// button closes it instead of leaving the app. Wide screens: it is always visible.
+function openBill() {
+  if (wide.matches) { $('billTitle').focus(); return; }
+  history.pushState({ ...(history.state || {}), layer: 'bill' }, '');
+  showBill(true);
+}
+function closeBill() {
+  if (history.state && history.state.layer === 'bill') history.back(); else showBill(false);
+}
+function showBill(on) {
+  on = on && !wide.matches;
+  const was = $('bill').classList.contains('open');
+  $('bill').classList.toggle('open', on);
+  $('counter').inert = on;
+  document.body.classList.toggle('bill-open', on);
+  if (on && !was) $('billTitle').focus({ preventScroll: true });
+  if (!on && was) $('billBar').focus({ preventScroll: true });
+}
+
+// ---------- toast with undo ----------
+function toast(msg) {
+  $('toastMsg').textContent = msg;
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 6000);
+}
+function hideToast() { $('toast').classList.remove('show'); }
+
+// ---------- events ----------
+$('q').addEventListener('input', renderShelf);
+$('q').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const hit = search(products, $('q').value)[0];
+  if (hit) { e.preventDefault(); openSheet(asItem(hit), true); }
+});
+$('clearQ').addEventListener('click', () => { $('q').value = ''; renderShelf(); $('q').focus(); });
+$('shelf').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.id === 'retry') return loadCatalog();
+  if (b.id === 'backBtn') return history.state && history.state.cat ? history.back() : (cat = null, renderShelf());
+  if (b.dataset.pid) return byId.has(b.dataset.pid) && openSheet(asItem(byId.get(b.dataset.pid)), !!$('q').value.trim());
+  if (b.classList.contains('cat')) return openCat(b.dataset.cat);
+});
+$('presets').addEventListener('click', e => {
+  const c = e.target.closest('.chip');
+  if (c) { sheet.handSet = false; setQty(Number(c.dataset.q)); update(); }
+});
+$('unitSeg').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (b) { sheet.big = b.dataset.big === '1'; sheet.handSet = true; update(); }
+});
+$('qtyIn').addEventListener('input', () => {
+  if (!sheet.handSet && autoSmall($('qtyIn').value, sheet.item.unit, sheet.big)) sheet.big = false;   // typed "250" on kg means 250 g
+  update();
+});
+// Prefilled boxes: the first keystroke replaces the value instead of appending to it ("1" + "2" ≠ 12 kg).
+// Chrome places the caret after the focus event, and a tap's mouseup clears a selection:
+// select on the next tick, and swallow the first mouseup after focus.
+for (const id of ['qtyIn', 'rateIn', 'discount']) {
+  const el = $(id);
+  let fresh = false;
+  el.addEventListener('focus', () => { fresh = true; setTimeout(() => el.select()); });
+  el.addEventListener('mouseup', e => { if (fresh) e.preventDefault(); fresh = false; });
+  el.addEventListener('blur', () => { fresh = false; });
+}
+document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
+$('rateIn').addEventListener('input', update);
+$('sheetForm').addEventListener('submit', e => { e.preventDefault(); commit(); });
+$('sheetClose').addEventListener('click', () => sheetEl.close());
+$('removeBtn').addEventListener('click', () => {
+  const i = bill.lines.findIndex(l => l.pid === sheet.item.pid);
+  sheetEl.close();
+  removeLine(i);
+});
+sheetEl.addEventListener('click', e => { if (e.target === sheetEl) sheetEl.close(); });   // backdrop tap
+
+$('billBar').addEventListener('click', openBill);
+$('billClose').addEventListener('click', closeBill);
+$('addMore').addEventListener('click', closeBill);
+$('billLines').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.remove) removeLine(Number(b.dataset.remove));
+  else if (b.dataset.edit) openSheet(bill.lines[Number(b.dataset.edit)]);
+});
+$('discount').addEventListener('input', () => {
+  bill.discount = parseMoney($('discount').value) ?? 0;
+  saveBill(); renderBill();
+});
+$('discount').addEventListener('change', () => {
+  bill.discount = totals(bill.lines, bill.discount).discount;   // clamp to the subtotal once typing is done
+  saveBill(); renderBill();
+});
+$('shopName').addEventListener('input', () => { try { localStorage.setItem(SHOP_KEY, $('shopName').value); } catch {} });
+$('printBtn').addEventListener('click', printBill);
+$('newBill').addEventListener('click', newBill);
+$('toastUndo').addEventListener('click', () => {
+  if (!undoState) return hideToast();
+  bill = JSON.parse(undoState);
+  undoState = null;
+  saveBill(); renderBill(); renderShelf(); hideToast();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('bill').classList.contains('open') && !sheetEl.open) closeBill();
+});
+addEventListener('popstate', () => {
+  const s = history.state || {};
+  if (sheetEl.open) sheetEl.close();
+  cat = s.cat || null;
+  showBill(s.layer === 'bill');
+  renderShelf();
+});
+wide.addEventListener('change', () => { if (wide.matches) showBill(false); });
+// Another tab or window on this phone billed meanwhile: follow it rather than overwrite it.
+addEventListener('storage', e => { if (e.key === BILL_KEY) { bill = loadBill(); renderBill(); renderShelf(); } });
+
+// ---------- start ----------
+try { $('shopName').value = localStorage.getItem(SHOP_KEY) || ''; } catch {}
+cat = (history.state && history.state.cat) || null;
+history.replaceState({ cat }, '');                        // a reload never reopens the bill layer
+renderBill();
+loadCatalog();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+</script>
+</body>
+</html>
