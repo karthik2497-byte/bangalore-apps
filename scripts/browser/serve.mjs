@@ -3,9 +3,10 @@
 // usage: node serve.mjs <repoRoot> <port>   (started by scripts/browser-smoke.sh)
 import { createServer } from 'node:http';
 import { readFileSync, statSync, existsSync } from 'node:fs';
-import { join, extname, normalize } from 'node:path';
+import { join, extname, normalize, resolve } from 'node:path';
 
-const [root, port = 8811] = process.argv.slice(2);
+const [rootArg = '.', port = 8811] = process.argv.slice(2);
+const root = resolve(rootArg);   // a relative root ('.') made the traversal check 403 every request
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.json': 'application/json', '.svg': 'image/svg+xml', '.opus': 'audio/ogg', '.css': 'text/css',
   '.png': 'image/png', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain' };
