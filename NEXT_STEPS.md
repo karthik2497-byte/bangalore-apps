@@ -84,8 +84,9 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       is on the server; the public `products.json` is now the labelled template without stock.
       **New shops sign up in the app** (live 2026-10-10, `4763a5c`): the owner taps പുതിയ കട രജിസ്റ്റർ
       ചെയ്യുക in the shop sheet and gets a code; run `shop-admin.mjs requests`, call the mobile if unsure,
-      then `approve CODE` (or `reject CODE`). Each request pings the ntfy app (topic in the Pages
-      secret `NTFY_TOPIC`, given to Karthik, not in the repo; code + shop name only). Or make one directly with
+      then `approve CODE` (or `reject CODE`). Each request pings the ntfy app (Pages secrets `NTFY_TOPIC`,
+      given to Karthik, and `NTFY_TOKEN`, his ntfy.sh access token; neither in the repo; code + shop name
+      only). A Pages secret takes effect on the next deploy. Failures log to `wrangler pages deployment tail <id>`. Or make one directly with
       `add CODE "Name"`; `catalog CODE list.json` if it has its own list. Fee: `MONTHLY_FEE = 0` in the
       app, a label only; charging (manual UPI or Razorpay) is built when it goes above 0. At most 20
       requests wait at once; 25 MB of photos per shop; sold bills kept 60 days.
