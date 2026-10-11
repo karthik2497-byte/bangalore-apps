@@ -12,7 +12,8 @@ Eight standalone PWAs, each a single `index.html` with inline JS plus a service
 worker and manifest. No framework, no bundler, no npm install. One backend, Thraasu's shop sync:
 `functions/api/thraasu/[[path]].js` (a Pages Function on the same origin) over the D1 database
 `thraasu`, bound in `wrangler.toml`; owners request a shop in the app and it waits until approved with
-`8_thraasu/tools/shop-admin.mjs approve` (which also makes shops directly).
+`8_thraasu/tools/shop-admin.mjs approve` (which also makes shops directly) or from the signed link in the
+request email, sent by the Worker `workers/thraasu-mail` (deployed on its own, bound as `MAILER`).
 `node` is used only to run the test files.
 
 ```

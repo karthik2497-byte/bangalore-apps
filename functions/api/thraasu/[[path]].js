@@ -1,8 +1,9 @@
 // Thraasu shop sync. One Pages Function on the app's own origin (so the app's CSP
 // `connect-src 'self'` covers it) over one D1 database bound as THRAASU_DB; schema in
 // 8_thraasu/tools/schema.sql. A shop is requested from the app (POST signup) and starts pending;
-// 8_thraasu/tools/shop-admin.mjs approves it (or makes one directly). A request also pings Karthik
-// through ntfy.sh when the Pages secret NTFY_TOPIC is set (shop code and name only, never the mobile). A shop's list, its prices and its photos are kept per shop; the
+// 8_thraasu/tools/shop-admin.mjs approves it (or makes one directly). Each request is emailed to the
+// operator (Worker workers/thraasu-mail, service binding MAILER) with a link to GET/POST review,
+// signed with the Pages secret REVIEW_KEY, to approve or reject it from the inbox. A shop's list, its prices and its photos are kept per shop; the
 // app works offline and pushes when it can. Last write wins per item. Bills lower the shop's
 // stock (POST sales). On the Free plan an invocation gets 50 D1 queries, so no route's query
 // count grows with its input: lists go in as one JSON parameter through json_each.
@@ -24,6 +25,13 @@ const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, 
 const sha256 = async s => hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)));
 const sameText = (a, b) => a.length === b.length && [...a].reduce((d, c, i) => d | (c.charCodeAt(0) ^ b.charCodeAt(i)), 0) === 0;
 const readJson = async request => { try { return await request.json(); } catch { return null; } };
+const escHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ist = t => new Date(t).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+// A review link names one shop; its signature is the only credential, so it is checked in constant time.
+async function sign(key, code) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return hex(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode('review:' + code)));
+}
 
 export async function pinHash(pin, salt) {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
@@ -62,7 +70,7 @@ async function login(request, db) {
 }
 
 // A request for a new shop. It cannot log in until approved with shop-admin.mjs approve.
-async function signup(request, db, notify) {
+async function signup(request, db, { send, reviewKey }) {
   const b = await readJson(request);
   const name = String(b?.name ?? '').trim().replace(/\s+/g, ' ').slice(0, 60);
   const mobile = String(b?.mobile ?? '').replace(/[\s-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, '');
@@ -76,14 +84,67 @@ async function signup(request, db, notify) {
     const code = [...crypto.getRandomValues(new Uint8Array(6))].map(x => CODE_CHARS[x % 32]).join('');
     const r = await db.prepare("INSERT INTO shops (code, name, salt, pin_hash, created, status, mobile) VALUES (?, ?, ?, ?, ?, 'pending', ?) ON CONFLICT (code) DO NOTHING")
       .bind(code, name, salt, hash, Date.now(), mobile).run();
-    if (r.meta.changes) { notify(`${code} · ${name}\nnode 8_thraasu/tools/shop-admin.mjs requests`); return json({ code }); }
+    if (r.meta.changes) {
+      if (send) send(await requestMail({ code, name, mobile }, new URL(request.url).origin, reviewKey)); else console.log('mail: no MAILER binding');
+      return json({ code });
+    }
   }
   return json({ error: 'server' }, 500);
 }
 
-export async function handle(request, db, path, notify = () => {}) {
+// The email for a new request: the facts, and a signed link to approve or reject it.
+async function requestMail(shop, origin, key) {
+  const link = key ? `${origin}/api/thraasu/review?code=${shop.code}&sig=${await sign(key, shop.code)}` : '';
+  const facts = [`Shop: ${shop.name}`, `Code: ${shop.code}`, `Owner mobile: ${shop.mobile}`, `Asked: ${ist(Date.now())}`];
+  const cli = `node 8_thraasu/tools/shop-admin.mjs approve ${shop.code}`;
+  return {
+    subject: `New Thraasu shop request: ${shop.name} (${shop.code})`,
+    text: [...facts, '', ...(link ? [`Approve or reject: ${link}`] : []), `Or from the repo: ${cli}`].join('\n'),
+    html: `<p style="font:16px/1.5 sans-serif">${facts.map(escHtml).join('<br>')}</p>` + (link
+      ? `<p><a href="${escHtml(link)}" style="display:inline-block;padding:12px 22px;background:#1E6B3A;color:#fff;border-radius:10px;text-decoration:none;font:600 16px sans-serif">Review and approve</a></p>` : '') +
+      `<p style="font:14px sans-serif;color:#4B584F">Or from the repo: <code>${escHtml(cli)}</code></p>`,
+  };
+}
+
+const page = (title, body, status = 200) => new Response('<!doctype html><html lang="en"><meta charset="utf-8">' +
+  `<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${escHtml(title)}</title>` +
+  '<style>body{font:17px/1.5 system-ui,sans-serif;max-width:480px;margin:32px auto;padding:0 16px;color:#1C2620;background:#FBF8F1}' +
+  'h1{font-size:22px;line-height:1.25}dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px}dt{color:#4B584F}dd{margin:0}a{color:#154F2A}' +
+  'form{display:flex;gap:10px;margin-top:24px}button{font:inherit;font-weight:650;min-height:48px;padding:0 22px;border-radius:12px;border:0}' +
+  '.ok{background:#1E6B3A;color:#fff}.no{background:#F8E0DA;color:#B3301F}</style>' + body, {
+  status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer',
+    'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'" },
+});
+
+// GET shows the request (mail scanners that open links change nothing); POST do=approve|reject acts.
+async function review(request, db, key) {
+  const q = new URL(request.url).searchParams, code = q.get('code') || '';
+  if (!key || !/^[A-Z0-9-]{2,20}$/.test(code) || !sameText(q.get('sig') || '', await sign(key, code))) return page('Link not valid', '<h1>This link is not valid</h1>', 403);
+  if (request.method !== 'GET' && request.method !== 'POST') return page('Not allowed', '<h1>Not allowed</h1>', 405);
+  let shop = await db.prepare('SELECT code, name, mobile, status, created FROM shops WHERE code = ?').bind(code).first(), done = '';
+  if (request.method === 'POST' && shop?.status === 'pending') {
+    const act = new URLSearchParams(await request.text()).get('do');
+    if (act === 'approve') {
+      await db.prepare("UPDATE shops SET status = 'active' WHERE code = ? AND status = 'pending'").bind(code).run();
+      shop.status = 'active'; done = 'Approved: the shop can log in now.';
+    } else if (act === 'reject') {
+      await db.prepare("DELETE FROM shops WHERE code = ? AND status = 'pending'").bind(code).run();
+      shop = null; done = 'Rejected: the request is deleted.';
+    }
+  }
+  if (!shop) return page('Shop request', `<h1>${done || 'This request no longer exists'}</h1>`);
+  const facts = `<dl><dt>Shop</dt><dd>${escHtml(shop.name)}</dd><dt>Code</dt><dd>${escHtml(shop.code)}</dd>` +
+    `<dt>Mobile</dt><dd>${shop.mobile ? `<a href="tel:+91${escHtml(shop.mobile)}">${escHtml(shop.mobile)}</a>` : '–'}</dd><dt>Asked</dt><dd>${escHtml(ist(shop.created))}</dd></dl>`;
+  return page(`Shop request ${shop.code}`, shop.status === 'pending'
+    ? `<h1>New shop request</h1>${facts}<form method="post"><button class="ok" name="do" value="approve">Approve</button><button class="no" name="do" value="reject">Reject</button></form>`
+    : `<h1>${done || 'Approved: this shop can log in.'}</h1>${facts}`);
+}
+
+// opts: send(mail) delivers an email (onRequest wires it to the mailer Worker); reviewKey signs review links.
+export async function handle(request, db, path, opts = {}) {
   if (request.method === 'POST' && path === 'login') return login(request, db);
-  if (request.method === 'POST' && path === 'signup') return signup(request, db, notify);
+  if (request.method === 'POST' && path === 'signup') return signup(request, db, opts);
+  if (path === 'review') return review(request, db, opts.reviewKey);
   const shop = await sessionShop(request, db);
   if (!shop) return json({ error: 'login' }, 401);
   const count = table => db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE shop = ?`).bind(shop).first('n');
@@ -176,17 +237,11 @@ export async function handle(request, db, path, notify = () => {}) {
   return json({ error: 'not found' }, 404);
 }
 
-// The alert is sent after the answer (waitUntil), and an ntfy failure never fails the request.
-// NTFY_TOKEN (an ntfy.sh access token, also a secret) is needed in practice: ntfy.sh limits anonymous
-// senders by IP, and Cloudflare's shared egress IPs are always over it (HTTP 429).
-// Failures go to the Functions log (wrangler pages deployment tail <id>).
-const ntfy = context => body => {
-  if (!context.env.NTFY_TOPIC) return console.log('ntfy: no NTFY_TOPIC secret');
-  context.waitUntil(fetch('https://ntfy.sh/' + context.env.NTFY_TOPIC, {
-    method: 'POST', body, headers: { title: 'Thraasu: new shop request', tags: 'shopping_cart',
-      ...(context.env.NTFY_TOKEN ? { authorization: 'Bearer ' + context.env.NTFY_TOKEN } : {}) },
-  }).then(r => r.ok || console.log('ntfy: HTTP', r.status)).catch(e => console.log('ntfy:', e.message)));
+// The email goes after the answer (waitUntil); a mailer failure is logged and never fails the request.
+export const onRequest = context => {
+  const { env } = context;
+  const send = env.MAILER && (mail => context.waitUntil(env.MAILER.fetch('https://thraasu-mail/', { method: 'POST', body: JSON.stringify(mail) })
+    .then(r => r.ok || console.log('mail: HTTP', r.status)).catch(e => console.log('mail:', e.message))));
+  return handle(context.request, env.THRAASU_DB, [].concat(context.params.path ?? []).join('/'), { send, reviewKey: env.REVIEW_KEY })
+    .catch(() => json({ error: 'server' }, 500));
 };
-
-export const onRequest = context =>
-  handle(context.request, context.env.THRAASU_DB, [].concat(context.params.path ?? []).join('/'), ntfy(context)).catch(() => json({ error: 'server' }, 500));

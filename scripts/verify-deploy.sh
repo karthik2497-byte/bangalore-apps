@@ -43,7 +43,7 @@ done
 [ "$(code "$B/nonexistent-probe-$$")" = 404 ] || say "no 404.html: unmatched paths soft-404, leak check below is meaningless"
 for leak in EXECUTION_PLAN.md WORK_LOG.md MISTAKES.md PLAYBOOK.html CLAUDE.md \
             scripts/build-site.sh .gitignore 2_meter_smart/test-fares.mjs 7_card_guard/TODO.md 8_thraasu/test-bill.mjs 8_thraasu/PRODUCT.md 8_thraasu/.impeccable/design.json \
-            8_thraasu/tools/shop-admin.mjs 8_thraasu/tools/catalogs/NANMA.json 8_thraasu/NANMA-IMPORT-NOTES.md wrangler.toml; do
+            8_thraasu/tools/shop-admin.mjs 8_thraasu/tools/catalogs/NANMA.json 8_thraasu/NANMA-IMPORT-NOTES.md wrangler.toml workers/thraasu-mail/index.js; do
   c=$(code "$B/$leak"); [ "$c" = 404 ] || say "LEAKED $leak -> HTTP $c"
 done
 
@@ -55,6 +55,7 @@ api=$(curl -s --max-time 20 -w ' %{http_code}' -X POST -H 'content-type: applica
 [ "$api" = '{"error":"wrong"} 401' ] || say "Thraasu login (D1 reachable?): got: ${api:0:80}"
 api=$(curl -s --max-time 20 -w ' %{http_code}' -X POST -H 'content-type: application/json' -d '{"name":"","mobile":"0","pin":"x"}' "$B/api/thraasu/signup")
 [ "$api" = '{"error":"bad"} 400' ] || say "Thraasu sign-up should refuse a bad request, got: ${api:0:80}"
+c=$(code "$B/api/thraasu/review?code=NANMA&sig=0"); [ "$c" = 403 ] || say "Thraasu review link with a bad signature should be 403, got $c"
 curl -sL --max-time 20 "$B/8_thraasu/privacy.html" | grep -q 'Thraasu — Privacy Policy' || say "Thraasu privacy page missing"
 
 [ $fail = 0 ] && echo "PASS — 8 apps, CSPs applied, assetlinks 8/8, 404s real, no leaks, sync API up" || echo "FAILED"

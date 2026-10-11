@@ -1,7 +1,9 @@
 # Cloudflare Pages config for the `tinkerhouse` project (repo-connected; every push to main
 # builds with `bash scripts/build-site.sh` into dist/). With this file present, Pages takes its
-# bindings from here, not the dashboard. Its only job: the D1 database behind Thraasu's shop
-# sync (functions/api/thraasu, schema in 8_thraasu/tools/schema.sql).
+# bindings from here, not the dashboard (secrets are set with `wrangler pages secret put`).
+# Bindings: the D1 database behind Thraasu's shop sync (functions/api/thraasu, schema in
+# 8_thraasu/tools/schema.sql), and the mailer Worker that emails new shop requests
+# (workers/thraasu-mail, deployed on its own).
 name = "tinkerhouse"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-09-01"
@@ -10,3 +12,7 @@ compatibility_date = "2025-09-01"
 binding = "THRAASU_DB"
 database_name = "thraasu"
 database_id = "309d2f0f-3efc-4a5b-a913-48c97a2f9f31"
+
+[[services]]
+binding = "MAILER"
+service = "thraasu-mail"

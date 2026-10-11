@@ -4,6 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { handle, pinHash } from '../functions/api/thraasu/[[path]].js';
+import { mime } from '../workers/thraasu-mail/mime.js';
 
 const raw = new DatabaseSync(':memory:');
 raw.exec(readFileSync(new URL('./tools/schema.sql', import.meta.url), 'utf8'));
@@ -27,7 +28,7 @@ const call = async (method, path, { token, body } = {}) => {
   const res = await handle(new Request('https://x.test/api/thraasu/' + path, {
     method, headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) },
     body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
-  }), db, path.split('?')[0], msg => alerts.push(msg));
+  }), db, path.split('?')[0], { send: m => mails.push(m), reviewKey: 'test-review-key' });
   const text = await res.text();
   let data; try { data = JSON.parse(text); } catch { data = text; }
   return { status: res.status, data, text };
@@ -39,7 +40,7 @@ const salt = 'salt-1';
 raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created) VALUES (?, ?, ?, ?, ?)').run('NANMA', 'Nanma Store', salt, await pinHash('482913', salt), Date.now());
 
 let token, signupCode;
-const alerts = [];
+const mails = [];
 await t('login: wrong PIN and unknown code answer alike; the right PIN gets a token', async () => {
   assert.equal((await call('POST', 'login', { body: { code: 'nanma', pin: '000000' } })).status, 401);
   assert.equal((await call('POST', 'login', { body: { code: 'NOPE', pin: '482913' } })).status, 401);
@@ -165,7 +166,12 @@ await t('sign-up: checked, pending with a readable code, one request per mobile'
   const row = raw.prepare('SELECT name, mobile, status FROM shops WHERE code = ?').get(r.data.code);
   assert.deepEqual({ ...row }, { name: 'Raju Stores', mobile: '9847012345', status: 'pending' });
   assert.equal((await su({ name: 'Again', mobile: '09847012345', pin: '1357' })).status, 409);
-  assert.deepEqual(alerts, [`${r.data.code} · Raju Stores\nnode 8_thraasu/tools/shop-admin.mjs requests`], 'one alert, for the request that was made; no mobile in it');
+  assert.equal(mails.length, 1, 'one email, for the request that was made');
+  assert.equal(mails[0].subject, `New Thraasu shop request: Raju Stores (${r.data.code})`);
+  assert.match(mails[0].text, /Owner mobile: 9847012345/);
+  const link = mails[0].text.match(/Approve or reject: (\S+)/)[1];
+  assert.ok(link.startsWith(`https://x.test/api/thraasu/review?code=${r.data.code}&sig=`), link);
+  assert.ok(mails[0].html.includes('>Review and approve</a>'));
   signupCode = r.data.code;
 });
 
@@ -177,6 +183,42 @@ await t('a pending shop cannot log in: wrong PIN as ever, right PIN says pending
   raw.prepare("UPDATE shops SET status = 'active' WHERE code = ?").run(signupCode);
   assert.equal((await call('POST', 'login', { body: { code: signupCode, pin: '2468' } })).status, 200);
   assert.equal((await call('POST', 'signup', { body: { name: 'Second shop', mobile: '9847012345', pin: '1357' } })).status, 200, 'approved: the same owner may ask again');
+});
+
+await t('review link: GET shows the request; POST approves or rejects; a bad or reused link changes nothing', async () => {
+  const path = l => l.split('/api/thraasu/')[1];
+  const mailed = mails.at(-1), code = mailed.subject.match(/\((\w+)\)$/)[1], link = path(mailed.text.match(/Approve or reject: (\S+)/)[1]);
+  assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'pending');
+  for (const bad of [link.replace(/sig=\w/, 'sig=0'), link.replace(/sig=\w+/, 'sig='), link.replace(code, 'NANMA'), 'review?code=NANMA'])
+    assert.equal((await call('POST', bad, { body: 'do=approve' })).status, 403, bad);
+  const g = await call('GET', link);
+  assert.equal(g.status, 200);
+  assert.ok(g.text.includes('Second shop') && g.text.includes('value="approve"') && g.text.includes('tel:+919847012345'));
+  assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'pending', 'opening the link approves nothing');
+  const a = await call('POST', link, { body: 'do=approve' });
+  assert.ok(a.text.includes('Approved: the shop can log in now.'));
+  assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'active');
+  await call('POST', link, { body: 'do=reject' });
+  assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'active', 'an approved shop is never rejected by its link');
+  // a hostile name is shown as text; reject deletes the request
+  const x = await call('POST', 'signup', { body: { name: '<img src=x onerror=alert(1)>', mobile: '9811111111', pin: '1234' } });
+  const xl = path(mails.at(-1).text.match(/Approve or reject: (\S+)/)[1]);
+  assert.ok(!(await call('GET', xl)).text.includes('<img') && mails.at(-1).html.includes('&lt;img'));
+  assert.ok((await call('POST', xl, { body: 'do=reject' })).text.includes('Rejected'));
+  assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM shops WHERE code = ?').get(x.data.code).n, 0);
+  assert.ok((await call('GET', xl)).text.includes('This request no longer exists'));
+  const h = (await handle(new Request('https://x.test/api/thraasu/' + xl), db, 'review', { reviewKey: 'test-review-key' })).headers;
+  assert.match(h.get('content-security-policy'), /default-src 'none'/);
+  assert.equal(h.get('referrer-policy'), 'no-referrer');
+});
+
+await t('the mailer writes UTF-8 MIME: encoded subject, text and HTML parts', async () => {
+  const m = mime({ from: 'alerts@tinkerhouse.uk', to: 'a@b.c', subject: 'നന്മ (K7M3QX)', text: 'കട: നന്മ', html: '<p>കട</p>' });
+  const dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\r\n/g, '')), c => c.charCodeAt(0)));
+  assert.equal(dec(m.match(/^Subject: =\?UTF-8\?B\?(.+)\?=$/m)[1]), 'നന്മ (K7M3QX)');
+  const parts = m.split(/--b[0-9a-f-]+/).slice(1, 3).map(p => [p.match(/Content-Type: (\S+);/)[1], dec(p.split('\r\n\r\n')[1])]);
+  assert.deepEqual(parts, [['text/plain', 'കട: നന്മ'], ['text/html', '<p>കട</p>']]);
+  assert.ok(m.split('\r\n').every(l => l.length <= 998), 'no line over the SMTP limit');
 });
 
 await t('at most 20 requests wait at once', async () => {
