@@ -25,7 +25,7 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
       effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-11,
-      after the Thraasu add-item deploy (`main` at `93a0f63`): PASS — 8 apps, CSPs applied,
+      after the Thraasu fresh-precache fix (`main` at `130a24b`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
