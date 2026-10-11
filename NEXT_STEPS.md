@@ -88,7 +88,8 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       tinkerhouse.uk, Worker `workers/thraasu-mail`, from alerts@tinkerhouse.uk) with a "Review and approve"
       link (signed with the Pages secret `REVIEW_KEY`): Approve / Reject from the phone. A Pages secret
       takes effect on the next deploy. Failures log to `wrangler pages deployment tail <id>` and
-      `wrangler tail thraasu-mail`. Or make one directly with
+      `npx wrangler@4 tail --config workers/thraasu-mail/wrangler.toml` (from the root, a bare
+      `wrangler tail` picks up the Pages config and refuses). Or make one directly with
       `add CODE "Name"`; `catalog CODE list.json` if it has its own list. Fee: `MONTHLY_FEE = 0` in the
       app, a label only; charging (manual UPI or Razorpay) is built when it goes above 0. At most 20
       requests wait at once; 25 MB of photos per shop; sold bills kept 60 days.
