@@ -579,7 +579,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v9', sw === 'thraasu-v9', sw);
+  t.check('service worker precached thraasu-v10', sw === 'thraasu-v10', sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a
@@ -626,4 +626,31 @@ export default async (t) => {
     return (photos.get(id) || '').slice(0, 15);
   }, real.id);
   t.check('the shop photo survives a reload', kept === 'data:image/jpeg', kept);
+
+  // Every sheet, at its tallest, fits small and tall phones and a phone with the keyboard up (360x420):
+  // the sheet and its buttons inside the screen, nothing wider than it.
+  for (const [w, h] of [[320, 568], [360, 640], [412, 924], [360, 420]]) {
+    await t.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: true });
+    await t.sleep(150);
+    const out = await t.evaluate(async () => {
+      const $ = id => document.getElementById(id), wait = ms => new Promise(r => setTimeout(r, ms)), bad = [];
+      const inside = el => { const b = el.getBoundingClientRect(); return b.top >= -0.5 && b.left >= -0.5 && b.bottom <= innerHeight + 0.5 && b.right <= innerWidth + 0.5; };
+      const measure = async (name, dlg) => {
+        await wait(320);
+        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
+        if (!inside(dlg)) bad.push(name);
+        if (dlg.scrollWidth > dlg.clientWidth + 1 || document.documentElement.scrollWidth > innerWidth + 1) bad.push(name + ':wide');
+        dlg.close(); await wait(50);
+      };
+      cat = null; renderShelf(); openCat('veg');
+      $('addHere').click(); $('addName').value = 'tomato sauce'; $('addName').dispatchEvent(new Event('input', { bubbles: true }));
+      await measure('add', $('addSheet'));
+      document.querySelector('.prod').click(); await measure('qty', $('sheet'));
+      openPrices(); await measure('prices', $('prices'));
+      $('acctBtn').click(); await measure('shop', $('shopSheet'));
+      $('acctBtn').click(); $('signupOpen').click(); await measure('signup', $('shopSheet'));
+      return bad;
+    });
+    t.check(`every sheet and its buttons fit a ${w}x${h} screen`, out.length === 0, out);
+  }
 };

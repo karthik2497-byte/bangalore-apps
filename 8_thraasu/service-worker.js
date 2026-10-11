@@ -1,9 +1,11 @@
-const CACHE_NAME = 'thraasu-v9';
+const CACHE_NAME = 'thraasu-v10';
 const urlsToCache = ['./', './index.html', './bill-core.js', './products.json', './manifest.json', './icon-192.svg', './icon-512.svg'];
 const FONTS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
 
+// cache: 'reload' skips the browser's HTTP cache: Cloudflare serves .js with max-age=14400, so a plain
+// addAll paired a new index.html with a 4-hour-old bill-core.js (v9: "sameName is not defined").
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache.map(u => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();
 });
 
