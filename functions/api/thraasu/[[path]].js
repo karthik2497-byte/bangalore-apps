@@ -177,11 +177,14 @@ export async function handle(request, db, path, notify = () => {}) {
 }
 
 // The alert is sent after the answer (waitUntil), and an ntfy failure never fails the request.
-// Failures go to the Functions log (wrangler pages deployment tail).
+// NTFY_TOKEN (an ntfy.sh access token, also a secret) is needed in practice: ntfy.sh limits anonymous
+// senders by IP, and Cloudflare's shared egress IPs are always over it (HTTP 429).
+// Failures go to the Functions log (wrangler pages deployment tail <id>).
 const ntfy = context => body => {
   if (!context.env.NTFY_TOPIC) return console.log('ntfy: no NTFY_TOPIC secret');
   context.waitUntil(fetch('https://ntfy.sh/' + context.env.NTFY_TOPIC, {
-    method: 'POST', body, headers: { title: 'Thraasu: new shop request', tags: 'shopping_cart' },
+    method: 'POST', body, headers: { title: 'Thraasu: new shop request', tags: 'shopping_cart',
+      ...(context.env.NTFY_TOKEN ? { authorization: 'Bearer ' + context.env.NTFY_TOKEN } : {}) },
   }).then(r => r.ok || console.log('ntfy: HTTP', r.status)).catch(e => console.log('ntfy:', e.message)));
 };
 
