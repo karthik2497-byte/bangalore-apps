@@ -25,7 +25,7 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
       effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-11,
-      after the Thraasu fresh-precache fix (`main` at `130a24b`): PASS — 8 apps, CSPs applied,
+      after the Thraasu iPhone-keyboard fix (`main` at `966fa2b`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
@@ -167,6 +167,9 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 - [ ] **LingoLocal `clip.play()` under a real user gesture** — not verifiable in
       automation (the tab stays `visibilityState: hidden` and Chrome blocks media
       there). Decode is proven end to end; one tap on a real device closes it.
+- [ ] **Thraasu sheets with a real keyboard** (2026-10-11, `966fa2b`): sheets fit above the keyboard via
+      `visualViewport`, proven in a Chrome simulation only. Open the add sheet with the keyboard up once on an
+      iPhone and once on an Android phone: title, name box and Add button visible, the middle scrolls.
 - [ ] **Thraasu printing on a real phone.** `window.print()` is proven to fire with the PDF
       title `Thraasu-Bill-NNNN`, and print media is proven to show only the receipt. Not proven:
       Android's dialog itself, a Wi-Fi printer, and a 58 mm Bluetooth printer through RawBT.
