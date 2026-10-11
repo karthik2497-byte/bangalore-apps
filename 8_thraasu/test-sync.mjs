@@ -27,7 +27,7 @@ const call = async (method, path, { token, body } = {}) => {
   const res = await handle(new Request('https://x.test/api/thraasu/' + path, {
     method, headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) },
     body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
-  }), db, path.split('?')[0]);
+  }), db, path.split('?')[0], msg => alerts.push(msg));
   const text = await res.text();
   let data; try { data = JSON.parse(text); } catch { data = text; }
   return { status: res.status, data, text };
@@ -39,6 +39,7 @@ const salt = 'salt-1';
 raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created) VALUES (?, ?, ?, ?, ?)').run('NANMA', 'Nanma Store', salt, await pinHash('482913', salt), Date.now());
 
 let token, signupCode;
+const alerts = [];
 await t('login: wrong PIN and unknown code answer alike; the right PIN gets a token', async () => {
   assert.equal((await call('POST', 'login', { body: { code: 'nanma', pin: '000000' } })).status, 401);
   assert.equal((await call('POST', 'login', { body: { code: 'NOPE', pin: '482913' } })).status, 401);
@@ -164,6 +165,7 @@ await t('sign-up: checked, pending with a readable code, one request per mobile'
   const row = raw.prepare('SELECT name, mobile, status FROM shops WHERE code = ?').get(r.data.code);
   assert.deepEqual({ ...row }, { name: 'Raju Stores', mobile: '9847012345', status: 'pending' });
   assert.equal((await su({ name: 'Again', mobile: '09847012345', pin: '1357' })).status, 409);
+  assert.deepEqual(alerts, [`${r.data.code} · Raju Stores\nnode 8_thraasu/tools/shop-admin.mjs requests`], 'one alert, for the request that was made; no mobile in it');
   signupCode = r.data.code;
 });
 

@@ -1,7 +1,8 @@
 // Thraasu shop sync. One Pages Function on the app's own origin (so the app's CSP
 // `connect-src 'self'` covers it) over one D1 database bound as THRAASU_DB; schema in
 // 8_thraasu/tools/schema.sql. A shop is requested from the app (POST signup) and starts pending;
-// 8_thraasu/tools/shop-admin.mjs approves it (or makes one directly). A shop's list, its prices and its photos are kept per shop; the
+// 8_thraasu/tools/shop-admin.mjs approves it (or makes one directly). A request also pings Karthik
+// through ntfy.sh when the Pages secret NTFY_TOPIC is set (shop code and name only, never the mobile). A shop's list, its prices and its photos are kept per shop; the
 // app works offline and pushes when it can. Last write wins per item. Bills lower the shop's
 // stock (POST sales). On the Free plan an invocation gets 50 D1 queries, so no route's query
 // count grows with its input: lists go in as one JSON parameter through json_each.
@@ -61,7 +62,7 @@ async function login(request, db) {
 }
 
 // A request for a new shop. It cannot log in until approved with shop-admin.mjs approve.
-async function signup(request, db) {
+async function signup(request, db, notify) {
   const b = await readJson(request);
   const name = String(b?.name ?? '').trim().replace(/\s+/g, ' ').slice(0, 60);
   const mobile = String(b?.mobile ?? '').replace(/[\s-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, '');
@@ -75,14 +76,14 @@ async function signup(request, db) {
     const code = [...crypto.getRandomValues(new Uint8Array(6))].map(x => CODE_CHARS[x % 32]).join('');
     const r = await db.prepare("INSERT INTO shops (code, name, salt, pin_hash, created, status, mobile) VALUES (?, ?, ?, ?, ?, 'pending', ?) ON CONFLICT (code) DO NOTHING")
       .bind(code, name, salt, hash, Date.now(), mobile).run();
-    if (r.meta.changes) return json({ code });
+    if (r.meta.changes) { notify(`${code} · ${name}\nnode 8_thraasu/tools/shop-admin.mjs requests`); return json({ code }); }
   }
   return json({ error: 'server' }, 500);
 }
 
-export async function handle(request, db, path) {
+export async function handle(request, db, path, notify = () => {}) {
   if (request.method === 'POST' && path === 'login') return login(request, db);
-  if (request.method === 'POST' && path === 'signup') return signup(request, db);
+  if (request.method === 'POST' && path === 'signup') return signup(request, db, notify);
   const shop = await sessionShop(request, db);
   if (!shop) return json({ error: 'login' }, 401);
   const count = table => db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE shop = ?`).bind(shop).first('n');
@@ -175,5 +176,10 @@ export async function handle(request, db, path) {
   return json({ error: 'not found' }, 404);
 }
 
-export const onRequest = ({ request, env, params }) =>
-  handle(request, env.THRAASU_DB, [].concat(params.path ?? []).join('/')).catch(() => json({ error: 'server' }, 500));
+// The alert is sent after the answer (waitUntil), and an ntfy failure never fails the request.
+const ntfy = context => body => context.env.NTFY_TOPIC && context.waitUntil(fetch('https://ntfy.sh/' + context.env.NTFY_TOPIC, {
+  method: 'POST', body, headers: { title: 'Thraasu: new shop request', tags: 'shopping_cart' },
+}).catch(() => {}));
+
+export const onRequest = context =>
+  handle(context.request, context.env.THRAASU_DB, [].concat(context.params.path ?? []).join('/'), ntfy(context)).catch(() => json({ error: 'server' }, 500));
