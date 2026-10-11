@@ -177,9 +177,13 @@ export async function handle(request, db, path, notify = () => {}) {
 }
 
 // The alert is sent after the answer (waitUntil), and an ntfy failure never fails the request.
-const ntfy = context => body => context.env.NTFY_TOPIC && context.waitUntil(fetch('https://ntfy.sh/' + context.env.NTFY_TOPIC, {
-  method: 'POST', body, headers: { title: 'Thraasu: new shop request', tags: 'shopping_cart' },
-}).catch(() => {}));
+// Failures go to the Functions log (wrangler pages deployment tail).
+const ntfy = context => body => {
+  if (!context.env.NTFY_TOPIC) return console.log('ntfy: no NTFY_TOPIC secret');
+  context.waitUntil(fetch('https://ntfy.sh/' + context.env.NTFY_TOPIC, {
+    method: 'POST', body, headers: { title: 'Thraasu: new shop request', tags: 'shopping_cart' },
+  }).then(r => r.ok || console.log('ntfy: HTTP', r.status)).catch(e => console.log('ntfy:', e.message)));
+};
 
 export const onRequest = context =>
   handle(context.request, context.env.THRAASU_DB, [].concat(context.params.path ?? []).join('/'), ntfy(context)).catch(() => json({ error: 'server' }, 500));
