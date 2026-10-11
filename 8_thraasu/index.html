@@ -266,7 +266,7 @@ button:disabled { cursor: default; }
 .sums dd { font-weight: 600; }
 .disc dd { display: flex; align-items: center; gap: 4px; color: var(--ink-2); }
 .disc input {
-  width: 92px; height: 48px; padding: 0 10px; border: 1.5px solid var(--field); border-radius: 10px;
+  width: 92px; height: 48px; padding: 0 10px; font-size: 16px; border: 1.5px solid var(--field); border-radius: 10px;
   background: var(--slip); text-align: right; font-weight: 650; color: var(--ink);
 }
 .disc input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
@@ -299,14 +299,16 @@ button:disabled { cursor: default; }
 
 /* ---------- quantity sheet ---------- */
 .sheet {
-  width: 100%; max-width: 560px; max-height: 92dvh; margin: auto auto 0; padding: 0;
+  /* --kb / --vvh: the strip an iPhone keyboard covers and the height left above it, set by fitSheets() */
+  --sheet-max: min(92dvh, calc(var(--vvh, 100dvh) - 8px));
+  width: 100%; max-width: 560px; max-height: var(--sheet-max); margin: auto auto 0; bottom: var(--kb, 0px); padding: 0;
   border: 0; border-radius: 22px 22px 0 0; background: var(--slip); color: var(--ink);
   box-shadow: 0 -8px 40px rgba(30, 25, 10, .2);
 }
 .sheet::backdrop { background: rgba(28, 38, 32, .5); }
 .sheet[open] { animation: rise 260ms var(--ease); }
 @keyframes rise { from { transform: translateY(40px); opacity: .4; } }
-.sheet form { display: flex; flex-direction: column; max-height: 92dvh; }
+.sheet form { display: flex; flex-direction: column; max-height: var(--sheet-max); }
 .sheet-body { overflow-y: auto; padding-bottom: 6px; }
 .sheet-head { display: flex; align-items: flex-start; gap: 14px; padding: 14px 12px 14px 16px; }
 .scale { flex: none; width: 108px; height: 84px; margin-top: 4px; overflow: visible; }
@@ -319,7 +321,7 @@ button:disabled { cursor: default; }
 .sheet-title p { font-size: 14px; color: var(--ink-2); }
 .rate-field { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 15px; color: var(--ink-2); }
 .rate-field input {
-  width: 76px; height: 48px; padding: 0 8px; border: 1.5px solid var(--field); border-radius: 10px;
+  width: 76px; height: 48px; padding: 0 8px; font-size: 16px; /* under 16px, iPhone zooms the page on focus */ border: 1.5px solid var(--field); border-radius: 10px;
   text-align: right; font-weight: 680; color: var(--ink);
 }
 .rate-field input:focus, .qty-row input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
@@ -348,6 +350,7 @@ button:disabled { cursor: default; }
 .hint { margin-top: 6px; font-size: 14px; font-weight: 560; color: var(--chilli); }
 
 .sheet-foot { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--paper); }
+.kb .sheet-foot, .kb .price-list, .kb .shop-body { padding-bottom: 14px; }   /* the keyboard covers the home bar */
 .calc { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .calc span { font-size: 15px; color: var(--ink-2); }
 .calc strong { font-size: 32px; font-weight: 760; line-height: 1.1; color: var(--leaf-deep); }
@@ -357,7 +360,7 @@ button:disabled { cursor: default; }
 .keep input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--leaf); }
 
 /* ---------- price list: the shop's own rates, over the sample list ---------- */
-.prices { height: min(92dvh, 820px); }
+.prices { height: min(var(--sheet-max), 820px); }
 .prices[open] { display: flex; flex-direction: column; }
 .prices-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 12px 10px 16px; }
 .prices-head h2 { font-size: 25px; font-weight: 720; line-height: 1.2; }
@@ -376,7 +379,7 @@ button:disabled { cursor: default; }
 .price .names small.sample { color: var(--brass-ink); }
 .price-in { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 15px; color: var(--ink-2); }
 .price-in input {
-  width: 72px; height: 48px; padding: 0 8px; border: 1.5px solid var(--field); border-radius: 10px;
+  width: 72px; height: 48px; padding: 0 8px; font-size: 16px; border: 1.5px solid var(--field); border-radius: 10px;
   background: var(--slip); text-align: right; font-weight: 680; color: var(--ink);
 }
 .price-in input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
@@ -1700,6 +1703,21 @@ $('toastUndo').addEventListener('click', () => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('bill').classList.contains('open') && !sheetEl.open) closeBill();
 });
+// iOS ignores interactive-widget=resizes-content: its keyboard covers the page instead of shrinking it, so a
+// sheet kept its full height and its top (title, name box) went off screen. Sit open sheets on the keyboard
+// and cap them to the strip still visible (--vvh also covers a browser that shrinks innerHeight instead); their
+// bodies scroll. Android already shrinks the page: --kb stays 0. Not while pinch-zoomed.
+const vv = window.visualViewport;
+function fitSheets(e) {
+  const zoomed = vv.scale > 1.01, root = document.documentElement;
+  const kb = zoomed ? 0 : Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+  root.classList.toggle('kb', kb > 0);
+  root.style.setProperty('--kb', kb + 'px');
+  if (zoomed) root.style.removeProperty('--vvh'); else root.style.setProperty('--vvh', Math.round(vv.height) + 'px');
+  const a = document.activeElement;   // the sheet just shrank: keep the box being typed in on screen
+  if (e && e.type === 'resize' && kb > 0 && a && a.closest('dialog[open]')) requestAnimationFrame(() => a.scrollIntoView({ block: 'nearest' }));
+}
+if (vv) { vv.addEventListener('resize', fitSheets); vv.addEventListener('scroll', fitSheets); }
 addEventListener('popstate', () => {
   const s = history.state || {};
   if (sheetEl.open) sheetEl.close();

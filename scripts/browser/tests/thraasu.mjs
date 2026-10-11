@@ -579,7 +579,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v10', sw === 'thraasu-v10', sw);
+  t.check('service worker precached thraasu-v11', sw === 'thraasu-v11', sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a
@@ -652,5 +652,41 @@ export default async (t) => {
       return bad;
     });
     t.check(`every sheet and its buttons fit a ${w}x${h} screen`, out.length === 0, out);
+  }
+
+  // iPhone: the keyboard covers the page instead of shrinking it. innerHeight stays 844 while the visual
+  // viewport drops to 343 px (Karthik's iPhone in Firefox Focus), at the top or panned 120 px down. Every
+  // sheet sits inside that strip, and a price box focused low in the add sheet is scrolled back into view.
+  await t.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+  await t.sleep(150);
+  for (const top of [0, 120]) {
+    const out = await t.evaluate(async top => {
+      const $ = id => document.getElementById(id), wait = ms => new Promise(r => setTimeout(r, ms)), bad = [], H = 343;
+      const kb = (on) => {
+        for (const [k, v] of [['height', H], ['offsetTop', top], ['scale', 1]])
+          on ? Object.defineProperty(visualViewport, k, { get: () => v, configurable: true }) : delete visualViewport[k];
+        visualViewport.dispatchEvent(new Event('resize'));
+      };
+      const inside = el => { const b = el.getBoundingClientRect(); return b.top >= top - 0.5 && b.bottom <= top + H + 0.5 && b.left >= -0.5 && b.right <= innerWidth + 0.5; };
+      const measure = async (name, dlg) => {
+        kb(true); await wait(320);
+        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button, .prices-head button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
+        if (!inside(dlg)) bad.push(name);
+        dlg.close(); kb(false); await wait(50);
+      };
+      cat = null; renderShelf(); openCat('veg');
+      $('addHere').click(); $('addName').value = 'tomato sauce'; $('addName').dispatchEvent(new Event('input', { bubbles: true }));
+      $('addRate').focus(); kb(true); await wait(200);
+      const body = document.querySelector('.add-body').getBoundingClientRect(), rate = $('addRate').getBoundingClientRect();
+      if (!(inside($('addRate')) && rate.top >= body.top - 0.5 && rate.bottom <= body.bottom + 0.5)) bad.push('add:addRate hidden');
+      kb(false);
+      await measure('add', $('addSheet'));
+      document.querySelector('.prod').click(); await measure('qty', $('sheet'));
+      openPrices(); await measure('prices', $('prices'));
+      $('acctBtn').click(); await measure('shop', $('shopSheet'));
+      $('acctBtn').click(); $('signupOpen').click(); await measure('signup', $('shopSheet'));
+      return bad;
+    }, top);
+    t.check(`with an iPhone keyboard up (343 px visible, panned ${top}), every sheet sits above it`, out.length === 0, out);
   }
 };

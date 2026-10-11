@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thraasu-v10';
+const CACHE_NAME = 'thraasu-v11';
 const urlsToCache = ['./', './index.html', './bill-core.js', './products.json', './manifest.json', './icon-192.svg', './icon-512.svg'];
 const FONTS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
 
