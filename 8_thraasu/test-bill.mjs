@@ -11,11 +11,12 @@ import assert from 'node:assert/strict';
 
 const APP = dirname(fileURLToPath(import.meta.url));
 const core = vm.runInNewContext(readFileSync(join(APP, 'bill-core.js'), 'utf8') +
-  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg, cleanPrices, cleanBackup })');
+  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg, cleanPrices, cleanBackup, nameKey, sameName, similar, cleanItem })');
 // Objects made inside the vm realm have its prototypes, which deepStrictEqual rejects: copy them out.
 const plain = f => (...args) => JSON.parse(JSON.stringify(f(...args)));
 const { lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, autoSmall, safeImg } = core;
-const [totals, search, validProducts, cleanPrices, cleanBackup] = [core.totals, core.search, core.validProducts, core.cleanPrices, core.cleanBackup].map(plain);
+const [totals, search, validProducts, cleanPrices, cleanBackup, sameName, similar, cleanItem] = [core.totals, core.search, core.validProducts, core.cleanPrices, core.cleanBackup, core.sameName, core.similar, core.cleanItem].map(plain);
+const { nameKey } = core;
 const data = JSON.parse(readFileSync(join(APP, 'products.json'), 'utf8'));
 // Search behaviour is pinned on the frozen sample list; the shop's list is checked as data below.
 const sample = JSON.parse(readFileSync(join(APP, '../scripts/browser/fixtures/thraasu-sample.json'), 'utf8'));
@@ -163,9 +164,9 @@ t('backup file: only a Thraasu backup, only clean entries', () => {
   const jpg = 'data:image/jpeg;base64,/9j/4AAQ';
   const ok = cleanBackup({ app: 'thraasu', kind: 'backup', v: 1, shop: '  Nanma  ', prices: { P1: 5900, P2: 'x' },
     photos: { P1: jpg, P2: 'https://evil.test/a.jpg', P3: 'data:image/svg+xml;base64,PHN2Zz4=', '../x': jpg, P4: 'data:image/jpeg;base64,' + 'A'.repeat(3e5) } });
-  assert.deepEqual(ok, { shop: 'Nanma', prices: { P1: 5900 }, photos: { P1: jpg } });
+  assert.deepEqual(ok, { shop: 'Nanma', prices: { P1: 5900 }, photos: { P1: jpg }, items: {} });
   for (const junk of [null, {}, { app: 'thraasu' }, { app: 'other', kind: 'backup' }, [], 'x']) assert.equal(cleanBackup(junk), null);
-  assert.deepEqual(cleanBackup({ app: 'thraasu', kind: 'backup', shop: 42, photos: [jpg] }), { shop: '', prices: {}, photos: {} });
+  assert.deepEqual(cleanBackup({ app: 'thraasu', kind: 'backup', shop: 42, photos: [jpg] }), { shop: '', prices: {}, photos: {}, items: {} });
 });
 
 t('every photo named is a safe path to a file that ships; every category has one', () => {
@@ -174,6 +175,38 @@ t('every photo named is a safe path to a file that ships; every category has one
     assert.ok(existsSync(join(APP, x.img)), `${x.id}: ${x.img} not in the repo`);
   }
   for (const c of data.categories) assert.ok(c.img, `category ${c.id} has no photo`);
+});
+
+t("a name's key forgives spelling, spaces and case", () => {
+  assert.equal(nameKey('Thakkali'), nameKey('takkali'));
+  assert.equal(nameKey('thakali'), nameKey('takkali'));
+  assert.equal(nameKey('Milky bar'), nameKey('milkybar'));
+  assert.notEqual(nameKey('Milkybar 50'), nameKey('Milkybar 30'));
+});
+
+t('the same name: Malayalam, English or one search word; never a part of a name', () => {
+  assert.equal(sameName(sample.products, 'തക്കാളി')?.id, 'tomato');
+  assert.equal(sameName(sample.products, 'TOMATO')?.id, 'tomato');
+  assert.equal(sameName(sample.products, 'Thakkali')?.id, 'tomato');
+  assert.equal(sameName(sample.products, 'tomat'), null);
+  assert.equal(sameName(sample.products, '  '), null);
+});
+
+t('similar: whole name first, then its words, at most four, never twice', () => {
+  const s = similar(sample.products, 'tomato sauce');
+  assert.equal(s[0].id, 'tomato');
+  assert.equal(new Set(s.map(p => p.id)).size, s.length);
+  assert.ok(similar(sample.products, 'a').length <= 4);
+  assert.deepEqual(similar(sample.products, ''), []);
+});
+
+t('an added item is checked like a backup entry', () => {
+  const ok = { cat: 'veg', ml: ' മിൽക്കിബാർ  50 ', en: 'Milkybar 50', unit: 'pc', rate: 50, icon: '🍪', junk: 1 };
+  assert.deepEqual(cleanItem(ok), { cat: 'veg', ml: 'മിൽക്കിബാർ 50', en: 'Milkybar 50', unit: 'pc', rate: 50, icon: '🍪' });
+  for (const bad of [null, 'x', { ...ok, ml: '' }, { ...ok, ml: 'x'.repeat(61) }, { ...ok, unit: 'g' }, { ...ok, rate: 0 },
+    { ...ok, rate: 1e7 }, { ...ok, rate: '5' }, { ...ok, cat: 'a b' }]) assert.equal(cleanItem(bad), null, JSON.stringify(bad));
+  const b = cleanBackup({ app: 'thraasu', kind: 'backup', items: { uAAAAAAAAAA: ok, 'bad id!': ok, uBBBBBBBBBB: { ...ok, unit: 'x' } } });
+  assert.deepEqual(Object.keys(b.items), ['uAAAAAAAAAA']);
 });
 
 console.log(`OK: ${n} checks passed (thraasu bill-core)`);

@@ -54,7 +54,7 @@ await t('login: wrong PIN and unknown code answer alike; the right PIN gets a to
 });
 
 await t('every other route needs a session', async () => {
-  for (const [m, p] of [['GET', 'state'], ['POST', 'prices'], ['POST', 'sales'], ['PUT', 'photo'], ['GET', 'catalog'], ['PUT', 'shop']]) {
+  for (const [m, p] of [['GET', 'state'], ['POST', 'prices'], ['POST', 'sales'], ['PUT', 'photo'], ['GET', 'catalog'], ['PUT', 'shop'], ['POST', 'items'], ['GET', 'items']]) {
     assert.equal((await call(m, p)).status, 401, p);
     assert.equal((await call(m, p, { token: 'f'.repeat(64) })).status, 401, p + ' with a made-up token');
   }
@@ -189,7 +189,7 @@ await t('review link: GET shows the request; POST approves or rejects; a bad or 
   const path = l => l.split('/api/thraasu/')[1];
   const mailed = mails.at(-1), code = mailed.subject.match(/\((\w+)\)$/)[1], link = path(mailed.text.match(/Approve or reject: (\S+)/)[1]);
   assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'pending');
-  for (const bad of [link.replace(/sig=\w/, 'sig=0'), link.replace(/sig=\w+/, 'sig='), link.replace(code, 'NANMA'), 'review?code=NANMA'])
+  for (const bad of [link.replace(/sig=(\w)/, (_, c) => 'sig=' + (c === '0' ? '1' : '0')), link.replace(/sig=\w+/, 'sig='), link.replace(code, 'NANMA'), 'review?code=NANMA'])
     assert.equal((await call('POST', bad, { body: 'do=approve' })).status, 403, bad);
   const g = await call('GET', link);
   assert.equal(g.status, 200);
@@ -246,6 +246,37 @@ await t('sold bills older than 60 days are dropped; stock is not touched', async
   assert.equal(raw.prepare("SELECT COUNT(*) AS n FROM sales WHERE shop = 'NANMA' AND bill = 'old'").get().n, 0);
   assert.equal(raw.prepare("SELECT COUNT(*) AS n FROM sales WHERE shop = 'OTHER'").get().n, 1, "another shop's are its own business");
   assert.equal(raw.prepare("SELECT qty FROM stock WHERE shop = 'NANMA' AND id = 'P1'").get().qty, before - 1);
+});
+
+await t('items: added on a phone, one per name; drop takes its price and photo along', async () => {
+  const token = (await call('POST', 'login', { body: { code: 'NANMA', pin: '482913' } })).data.token;
+  const it = (ml, key, extra = {}) => ({ cat: 'veg', ml, en: '', unit: 'pc', rate: 50, icon: '🍪', key, ...extra });
+  let r = await call('POST', 'items', { token, body: { set: { uA1: it('മിൽക്കിബാർ 50', 'milkybar50'), 'bad id!': it('x', 'x'), uB2: it('', 'y') }, drop: [] } });
+  assert.equal(r.status, 200); assert.deepEqual(r.data.dup, []);
+  let s = await call('GET', 'state', { token });
+  assert.ok(s.data.items > 0, 'state names when items last changed');
+  const was = s.data.items;
+  await call('POST', 'items', { token, body: { set: { uA1: it('മിൽക്കിബാർ 50', 'milkybar50') } } });
+  await call('POST', 'items', { token, body: { set: { uA1: it('മിൽക്കിബാർ 50', 'milkybar50') } } });
+  assert.ok((await call('GET', 'state', { token })).data.items >= was + 2, 'items_at moves on every change, even within a millisecond');
+  assert.deepEqual((await call('GET', 'items', { token })).data, { uA1: { cat: 'veg', ml: 'മിൽക്കിബാർ 50', en: '', unit: 'pc', rate: 50, icon: '🍪' } });
+  r = await call('POST', 'items', { token, body: { set: { uC3: it('Milkybar 50', 'milkybar50') } } });   // another phone, same name
+  assert.deepEqual(r.data.dup, ['uC3']);
+  r = await call('POST', 'items', { token, body: { set: { uA1: it('മിൽക്കിബാർ 50', 'milkybar50', { rate: 55 }) } } });   // its own price change
+  assert.deepEqual(r.data.dup, []);
+  assert.equal((await call('GET', 'items', { token })).data.uA1.rate, 55);
+  await call('POST', 'prices', { token, body: { set: { uA1: 6000 } } });
+  await call('PUT', 'photo', { token, body: { id: 'uA1', data: 'data:image/jpeg;base64,/9j/AAAA' } });
+  db.queries = 0;
+  r = await call('POST', 'items', { token, body: { drop: ['uA1'], set: { uD4: it('Milkybar 50', 'milkybar50') } } });   // dropped: its name is free again
+  assert.ok(db.queries <= 8, `items used ${db.queries} queries`);
+  assert.deepEqual(r.data.dup, []);
+  assert.deepEqual(Object.keys((await call('GET', 'items', { token })).data), ['uD4']);
+  s = await call('GET', 'state', { token });
+  assert.equal(s.data.prices.uA1, undefined); assert.equal(s.data.photos.uA1, undefined);
+  const many = Object.fromEntries(Array.from({ length: 1000 }, (_, i) => ['uM' + i, it('m' + i, 'm' + i)]));
+  assert.equal((await call('POST', 'items', { token, body: { set: many } })).status, 413);
+  assert.deepEqual(Object.keys((await call('GET', 'items', { token })).data), ['uD4']);
 });
 
 await t('unknown routes are a JSON 404', async () => {

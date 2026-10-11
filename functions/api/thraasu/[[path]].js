@@ -3,7 +3,7 @@
 // 8_thraasu/tools/schema.sql. A shop is requested from the app (POST signup) and starts pending;
 // 8_thraasu/tools/shop-admin.mjs approves it (or makes one directly). Each request is emailed to the
 // operator (Worker workers/thraasu-mail, service binding MAILER) with a link to GET/POST review,
-// signed with the Pages secret REVIEW_KEY, to approve or reject it from the inbox. A shop's list, its prices and its photos are kept per shop; the
+// signed with the Pages secret REVIEW_KEY, to approve or reject it from the inbox. A shop's list, the items it adds, its prices and its photos are kept per shop; the
 // app works offline and pushes when it can. Last write wins per item. Bills lower the shop's
 // stock (POST sales). On the Free plan an invocation gets 50 D1 queries, so no route's query
 // count grows with its input: lists go in as one JSON parameter through json_each.
@@ -14,7 +14,7 @@ const LOCK_AFTER = 5, LOCK_MS = 15 * 60e3, SESSION_MS = 365 * 864e5;
 const MAX_PHOTO = 300000, MAX_PHOTOS = 3000, MAX_PRICES = 5000, IDS_PER_GET = 30, BILLS_PER_POST = 100;
 // D1 Free holds 500 MB per database: a shop's photos are capped in bytes, and sold bills are kept
 // only as long as a phone might send one again.
-const PHOTO_BYTES = 25e6, SALES_KEEP_MS = 60 * 864e5, PENDING_MAX = 20;
+const PHOTO_BYTES = 25e6, SALES_KEEP_MS = 60 * 864e5, PENDING_MAX = 20, MAX_ITEMS = 1000;
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32: no 0/O or 1/I to misread over the phone
 const ID = /^[\w-]{1,40}$/, PHOTO = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
@@ -31,6 +31,17 @@ const ist = t => new Date(t).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata',
 async function sign(key, code) {
   const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return hex(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode('review:' + code)));
+}
+
+// An item a shop added on a phone: the same rules as cleanItem in 8_thraasu/bill-core.js, plus the
+// name key the phone sends (its nameKey of the name).
+function cleanItem(x) {
+  if (!x || typeof x !== 'object') return null;
+  const text = v => typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : '';
+  const ml = text(x.ml), en = text(x.en), key = typeof x.key === 'string' ? x.key : '';
+  if (!ml || ml.length > 60 || en.length > 60 || typeof x.cat !== 'string' || !ID.test(x.cat) || !['kg', 'l', 'pc'].includes(x.unit) ||
+    typeof x.rate !== 'number' || !(x.rate > 0 && x.rate < 1e7) || !key || key.length > 80) return null;
+  return { key, body: JSON.stringify({ cat: x.cat, ml, en, unit: x.unit, rate: Math.round(x.rate * 100) / 100, icon: typeof x.icon === 'string' ? x.icon.slice(0, 16) : '' }) };
 }
 
 export async function pinHash(pin, salt) {
@@ -156,12 +167,12 @@ export async function handle(request, db, path, opts = {}) {
       return json({ ok: true });
     }
     case 'GET state': {
-      const s = await db.prepare('SELECT name, catalog_at FROM shops WHERE code = ?').bind(shop).first();
+      const s = await db.prepare('SELECT name, catalog_at, items_at FROM shops WHERE code = ?').bind(shop).first();
       const prices = await db.prepare('SELECT id, paise FROM prices WHERE shop = ?').bind(shop).all();
       const photos = await db.prepare('SELECT id, at FROM photos WHERE shop = ?').bind(shop).all();
       const stock = await db.prepare('SELECT id, qty FROM stock WHERE shop = ?').bind(shop).all();
       return json({
-        shop: { code: shop, name: s.name }, catalog: s.catalog_at ?? null,
+        shop: { code: shop, name: s.name }, catalog: s.catalog_at ?? null, items: s.items_at ?? null,
         prices: Object.fromEntries(prices.results.map(r => [r.id, r.paise])),
         photos: Object.fromEntries(photos.results.map(r => [r.id, r.at])),
         stock: Object.fromEntries(stock.results.map(r => [r.id, r.qty])),
@@ -226,6 +237,36 @@ export async function handle(request, db, path, opts = {}) {
       const r = await db.prepare('SELECT body FROM catalog_parts WHERE shop = ? ORDER BY part').bind(shop).all();
       if (!r.results.length) return json({ error: 'none' }, 404);
       return new Response(r.results.map(x => x.body).join(''), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+    }
+    case 'POST items': {
+      // {set: {id: item}, drop: [ids]}. One item per name: a set whose key another item holds is
+      // refused and named in dup, so the phone drops its copy. A dropped item takes its price and photo.
+      // ponytail: read, then write; two phones adding one name in the same instant get a 500 and retry into dup.
+      const b = await readJson(request);
+      const set = Object.entries(b?.set && typeof b.set === 'object' ? b.set : {}).map(([id, x]) => [id, ID.test(id) && cleanItem(x)]).filter(([, x]) => x);
+      const drop = (Array.isArray(b?.drop) ? b.drop : []).filter(id => typeof id === 'string' && ID.test(id));
+      if (!set.length && !drop.length) return json({ ok: true, dup: [] });
+      const held = (await db.prepare('SELECT id, key FROM items WHERE shop = ?').bind(shop).all()).results.filter(r => !drop.includes(r.id));
+      const owner = new Map(held.map(r => [r.key, r.id])), keep = {}, dup = [];
+      for (const [id, x] of set) {
+        const o = owner.get(x.key);
+        if (o && o !== id) { dup.push(id); continue; }
+        owner.set(x.key, id); keep[id] = x;
+      }
+      if (new Set([...held.map(r => r.id), ...Object.keys(keep)]).size > MAX_ITEMS) return json({ error: 'too many' }, 413);
+      const at = Date.now(), gone = JSON.stringify(drop);
+      await db.batch([
+        ...['items', 'prices', 'photos'].map(t => db.prepare(`DELETE FROM ${t} WHERE shop = ? AND id IN (SELECT value FROM json_each(?))`).bind(shop, gone)),
+        db.prepare("INSERT INTO items (shop, id, body, key, at) SELECT ?, key, json_extract(value, '$.body'), json_extract(value, '$.key'), ? FROM json_each(?) WHERE true ON CONFLICT (shop, id) DO UPDATE SET body = excluded.body, key = excluded.key, at = excluded.at")
+          .bind(shop, at, JSON.stringify(keep)),
+        // always forward, even within one millisecond: a phone pulls the items when this differs from its last
+        db.prepare('UPDATE shops SET items_at = MAX(COALESCE(items_at, 0) + 1, ?) WHERE code = ?').bind(at, shop),
+      ]);
+      return json({ ok: true, dup });
+    }
+    case 'GET items': {
+      const r = await db.prepare('SELECT id, body FROM items WHERE shop = ?').bind(shop).all();
+      return json(Object.fromEntries(r.results.map(x => [x.id, JSON.parse(x.body)])));
     }
     case 'PUT shop': {
       const name = String((await readJson(request))?.name ?? '').trim().slice(0, 60);

@@ -64,9 +64,9 @@ DELETE FROM sessions WHERE shop = ${q(code)};`);
   console.log(`${code}: stock set for ${counted.length} products; bills lower it from here`);
 } else if (cmd === 'remove') {
   needCode();
-  d1(['shops WHERE code', 'sessions WHERE shop', 'prices WHERE shop', 'photos WHERE shop', 'catalog_parts WHERE shop', 'stock WHERE shop', 'sales WHERE shop']
+  d1(['shops WHERE code', 'sessions WHERE shop', 'prices WHERE shop', 'photos WHERE shop', 'catalog_parts WHERE shop', 'stock WHERE shop', 'sales WHERE shop', 'items WHERE shop']
     .map(w => `DELETE FROM ${w} = ${q(code)};`).join('\n'));
-  console.log(`${code} removed with its prices, photos, list, stock, sales and sessions`);
+  console.log(`${code} removed with its prices, photos, list, added items, stock, sales and sessions`);
 } else if (cmd === 'requests') {
   const rows = d1read("SELECT code, name, mobile, datetime(created / 1000, 'unixepoch', '+330 minutes') AS asked_ist FROM shops WHERE status = 'pending' ORDER BY created");
   rows.length ? console.table(rows) : console.log('no requests waiting');
@@ -77,5 +77,5 @@ DELETE FROM sessions WHERE shop = ${q(code)};`);
   d1(cmd === 'approve' ? `UPDATE shops SET status = 'active' WHERE code = ${q(code)};` : `DELETE FROM shops WHERE code = ${q(code)} AND status = 'pending';`);
   console.log(cmd === 'approve' ? `${code} approved: it can log in now` : `${code} request deleted`);
 } else if (cmd === 'list') {
-  console.table(d1read(`SELECT s.code, s.name, s.status, s.mobile, (SELECT COUNT(*) FROM prices p WHERE p.shop = s.code) AS prices, (SELECT COUNT(*) FROM photos f WHERE f.shop = s.code) AS photos, (SELECT COUNT(*) FROM stock k WHERE k.shop = s.code) AS counted, (SELECT COUNT(*) FROM sales b WHERE b.shop = s.code) AS bills, s.catalog_at IS NOT NULL AS own_list FROM shops s ORDER BY s.code`));
+  console.table(d1read(`SELECT s.code, s.name, s.status, s.mobile, (SELECT COUNT(*) FROM prices p WHERE p.shop = s.code) AS prices, (SELECT COUNT(*) FROM photos f WHERE f.shop = s.code) AS photos, (SELECT COUNT(*) FROM stock k WHERE k.shop = s.code) AS counted, (SELECT COUNT(*) FROM sales b WHERE b.shop = s.code) AS bills, (SELECT COUNT(*) FROM items i WHERE i.shop = s.code) AS added, s.catalog_at IS NOT NULL AS own_list FROM shops s ORDER BY s.code`));
 } else die(readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 11).join('\n'));

@@ -412,6 +412,48 @@ button:disabled { cursor: default; }
 #syncState { font-weight: 620; color: var(--leaf-deep); }
 #syncState[data-state="wait"] { color: var(--brass-ink); }
 
+/* ---------- adding an item: the name first, searched against the whole list ---------- */
+/* The add button sits in the category's head row: seen on arrival, never a tile where billing taps land. */
+.cat-head { margin: -2px 0 12px; align-items: center; }
+.add-pill {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 16px 0 12px;
+  border: 0; border-radius: 999px; background: var(--tint); color: var(--tint-ink); font-size: 15px; font-weight: 650;
+  transition: transform 160ms var(--ease);
+}
+.add-pill:active { transform: scale(.97); }
+.add-pill svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }
+.add-body { display: grid; gap: 14px; min-height: 0; overflow-y: auto; padding: 0 16px 16px; }
+.add-body .hint { margin: -8px 0 0; }
+.field.big input { height: 58px; font-size: 21px; font-weight: 650; }
+.field input.bad { border-color: var(--chilli); box-shadow: 0 0 0 3px var(--chilli-wash); }
+.field small { font-weight: 450; }
+.found { display: grid; gap: 6px; }
+.found h3 { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.found .row { min-height: 58px; padding: 7px 12px; }
+.found .row .pan { width: 38px; height: 38px; font-size: 20px; }
+.found .row .names b { font-size: 16px; }
+.found .go { flex: none; color: var(--ink-2); font-size: 20px; }
+.row.same { background: var(--chilli-wash); }
+.row.same .go { color: var(--chilli); font-size: 15px; font-weight: 650; }
+.details { display: grid; gap: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.cats { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px; scrollbar-width: none; }
+.cat-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 14px;
+  border: 1.5px solid var(--line); border-radius: 999px; background: var(--slip); font-size: 15px; font-weight: 600;
+}
+.cat-chip[aria-pressed="true"] { border-color: var(--tint-ink); background: var(--tint); color: var(--tint-ink); }
+.unit-price { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+#addUnit button { width: auto; min-width: 54px; height: 52px; padding: 0 10px; }
+.money { display: flex; align-items: center; gap: 6px; font-size: 16px; color: var(--ink-2); }
+.money input {
+  width: 92px; height: 52px; padding: 0 10px; border: 1.5px solid var(--field); border-radius: 12px;
+  background: var(--slip); text-align: right; font-size: 19px; font-weight: 680; color: var(--ink);
+}
+.money input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
+.price .drop { width: 48px; color: var(--chilli); font-size: 17px; }
+.price .names small.added { color: var(--leaf-deep); font-weight: 560; }
+.prod.fresh { border-color: var(--leaf); outline: 2px solid var(--leaf); outline-offset: -2px; }
+
 /* ---------- toast ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); z-index: 30;
@@ -591,6 +633,29 @@ button:disabled { cursor: default; }
   <ol class="price-list" id="priceList"></ol>
 </dialog>
 
+<dialog class="sheet add" id="addSheet" aria-labelledby="addTitle">
+  <form id="addForm" novalidate>
+    <div class="prices-head">
+      <h2 id="addTitle">പുതിയ സാധനം</h2>
+      <button class="icon-btn" id="addClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
+    </div>
+    <div class="add-body">
+      <label class="field big">പേര്<input id="addName" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-describedby="addHint" autofocus></label>
+      <p class="hint" id="addHint" role="alert" hidden>ഈ പേരിൽ ഒരു സാധനം ഇതിനകം ഉണ്ട്. പുതിയത് ചേർക്കാനാവില്ല.</p>
+      <section class="found" id="found" aria-labelledby="foundHead" hidden><h3 id="foundHead"></h3><div class="results" id="foundList"></div></section>
+      <div class="details" id="addDetails" hidden>
+        <div class="field"><span id="addCatLabel">വിഭാഗം</span><div class="cats" id="addCats" role="group" aria-labelledby="addCatLabel"></div></div>
+        <div class="unit-price">
+          <div class="field"><span id="addUnitLabel">അളവ്</span><div class="seg" id="addUnit" role="group" aria-labelledby="addUnitLabel"><button type="button" data-unit="kg">kg</button><button type="button" data-unit="l">L</button><button type="button" data-unit="pc">എണ്ണം</button></div></div>
+          <label class="field"><span>വില</span><span class="money">₹<input id="addRate" inputmode="decimal" autocomplete="off" enterkeyhint="done"><span id="addPer"></span></span></label>
+        </div>
+        <label class="field"><span>മറ്റൊരു പേര് <small>(തിരയാൻ സഹായിക്കും, വേണമെങ്കിൽ)</small></span><input id="addEn" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></label>
+      </div>
+    </div>
+    <div class="sheet-foot"><div class="sheet-btns"><button class="btn primary" id="addSave" type="submit" disabled>പട്ടികയിൽ ചേർക്കുക</button></div></div>
+  </form>
+</dialog>
+
 <dialog class="sheet shop" id="shopSheet" aria-labelledby="shopTitle">
   <div class="prices-head">
     <div><h2 id="shopTitle" tabindex="-1" autofocus>കട</h2><p id="shopSub"></p></div>
@@ -651,6 +716,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const BILL_KEY = 'thraasu_bill', SHOP_KEY = 'thraasu_shop', PRICES_KEY = 'thraasu_prices';
 const SESSION_KEY = 'thraasu_session', OUTBOX_KEY = 'thraasu_outbox', SYNCED_KEY = 'thraasu_synced', CATALOG_KEY = 'thraasu_catalog';
 const SIGNUP_KEY = 'thraasu_signup';   // { code, name } of a shop asked for on this phone, until it logs in
+const ITEMS_KEY = 'thraasu_items';     // { id: item } the shop added on its phones (cleanItem in bill-core.js)
 // The monthly fee shown at sign-up, in rupees.
 // ponytail: a label only. Charging needs a payment step (manual UPI or Razorpay), built when this goes above 0.
 const MONTHLY_FEE = 0;
@@ -658,10 +724,11 @@ const wide = matchMedia('(min-width: 900px)');
 const sheetEl = $('sheet'), pricesEl = $('prices'), shopEl = $('shopSheet');
 
 let cats = [], products = [], byId = new Map(), catById = new Map();
+let shopList = null;        // the loaded list, the template or the shop's own, before its added items join it
 let bill = loadBill();
 let cat = null;             // open category, or null for the category grid
 let sheet = null;           // the quantity sheet's working state
-let undoState = null, toastTimer = 0;
+let undo = null, toastTimer = 0;   // undo: what the toast's പഴയപടി puts back
 let samplePrices = false;   // products.json says its rates are placeholders
 
 // ---------- small formatters ----------
@@ -678,6 +745,7 @@ const asItem = p => ({ pid: p.id, cat: p.cat, ml: p.ml, en: p.en || '', icon: p.
 const srcOf = x => photos.get(x.pid || x.id) || (safeImg(x.img) ? './' + safeImg(x.img) : '');
 const shot = cls => x => { const src = srcOf(x); return `<span class="${cls} emo" aria-hidden="true">${esc(x.icon || '')}${src ? `<img src="${esc(src)}" alt="" loading="lazy">` : ''}</span>`; };
 const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.8h7l1.8 2.8h3.2v10.8h-17z"/><circle cx="12" cy="13.6" r="3.4"/></svg>';
+const PLUS = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 const pan = shot('pan'), photo = shot('ph');   // round pan in rows and the bill; across the top of a tile
 const lineOf = pid => bill.lines.find(l => l.pid === pid);
 
@@ -712,18 +780,28 @@ function markSold() { if (!bill.sold) { bill.sold = true; saveBill(); } }
 async function loadCatalog() {
   $('shelf').innerHTML = `<div class="shelf-head"><h2>വിഭാഗങ്ങൾ</h2></div><div class="grid" aria-busy="true">${'<div class="sk"></div>'.repeat(8)}</div>`;
   try {
-    const data = await fetchCatalog();
-    cats = (data.categories || []).filter(c => c && typeof c.id === 'string' && typeof c.ml === 'string');
-    products = validProducts(data).map(p => ({ ...p, base: Math.round(p.rate * 100) }));
-    byId = new Map(products.map(p => [p.id, p]));
-    catById = new Map(cats.map(c => [c.id, c]));
-    samplePrices = data.sample === true;
-    applyPrices();
+    shopList = await fetchCatalog();
+    buildProducts();
     renderShelf();
   } catch {
     products = [];
     $('shelf').innerHTML = `<div class="state"><b>വിലവിവരപ്പട്ടിക ലോഡ് ആയില്ല</b>ഇന്റർനെറ്റ് കണക്ഷൻ നോക്കിയിട്ട് വീണ്ടും ശ്രമിക്കൂ.<br><button class="btn ghost" id="retry" type="button">വീണ്ടും ശ്രമിക്കുക</button></div>`;
   }
+}
+
+// The list, with each item the shop added after the last of its category.
+function buildProducts() {
+  cats = (shopList.categories || []).filter(c => c && typeof c.id === 'string' && typeof c.ml === 'string');
+  const all = [...(shopList.products || [])];
+  for (const [id, x] of Object.entries(shopItems)) {
+    const i = all.findLastIndex(p => p && p.cat === x.cat);
+    all.splice(i < 0 ? all.length : i + 1, 0, { ...x, id, added: true });
+  }
+  products = validProducts({ categories: cats, products: all }).map(p => ({ ...p, base: Math.round(p.rate * 100) }));
+  byId = new Map(products.map(p => [p.id, p]));
+  catById = new Map(cats.map(c => [c.id, c]));
+  samplePrices = shopList.sample === true;
+  applyPrices();
 }
 
 // ---------- the shop's own prices ----------
@@ -734,7 +812,7 @@ async function loadCatalog() {
 let mine = loadPrices();
 function loadPrices() { try { return cleanPrices(JSON.parse(localStorage.getItem(PRICES_KEY))); } catch { return cleanPrices(null); } }
 function applyPrices() {
-  for (const p of products) { p.mine = Object.hasOwn(mine, p.id); p.rate = p.mine ? mine[p.id] : p.base; }
+  for (const p of products) { const own = Object.hasOwn(mine, p.id); p.mine = own || !!p.added; p.rate = own ? mine[p.id] : p.base; }
   const n = products.filter(p => p.mine).length, warn = samplePrices && n < products.length;
   $('samplePill').hidden = !products.length;
   $('samplePill').classList.toggle('mine', !warn);
@@ -747,13 +825,16 @@ function setMine(p, paise) {         // the sample rate itself is not "mine", wh
   queue('price', p.id, mine[p.id] || 0);
   applyPrices();
 }
+// A rate kept as the shop's own: an added item's own rate, or any other product's price over the list.
+const setRate = (p, paise) => p.added ? setItem(p.id, { ...shopItems[p.id], rate: paise / 100 }) : setMine(p, paise);
 const listWord = () => samplePrices ? 'മാതൃക' : 'പട്ടിക';   // the sheet's price: sample, or the shop's list
-const priceNote = p => [p.mine ? `${listWord()} ${fmtMoney(p.base, true)}` : samplePrices ? 'മാതൃകാ വില' : '', stockText(p)].filter(Boolean).join(' · ');
-const priceRow = p => `<li class="price${p.mine ? ' mine' : ''}" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">` +
+const priceNote = p => [p.added ? 'നിങ്ങൾ ചേർത്തത്' : p.mine ? `${listWord()} ${fmtMoney(p.base, true)}` : samplePrices ? 'മാതൃകാ വില' : '', stockText(p)].filter(Boolean).join(' · ');
+const priceRow = p => `<li class="price${p.mine && !p.added ? ' mine' : ''}" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">` +
   `<button class="pan-btn" type="button" data-photo="${esc(p.id)}" aria-label="${esc(p.ml)}: ഫോട്ടോ ${srcOf(p) ? 'മാറ്റുക' : 'ചേർക്കുക'}">${pan(p)}${CAM}</button>` +
-  `<span class="names"><b>${esc(p.ml)}</b>${priceNote(p) ? `<small${!p.mine && samplePrices ? ' class="sample"' : ''}>${esc(priceNote(p))}</small>` : ''}</span>` +
+  `<span class="names"><b>${esc(p.ml)}</b>${priceNote(p) ? `<small${p.added ? ' class="added"' : !p.mine && samplePrices ? ' class="sample"' : ''}>${esc(priceNote(p))}</small>` : ''}</span>` +
   `<label class="price-in"><span class="vh">${esc(p.ml)} വില</span>₹<input inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${p.rate / 100}"><span>${esc(perUnit(p.unit))}</span></label>` +
-  (p.mine ? `<button class="icon-btn reset" type="button" aria-label="${esc(p.ml)}: ${listWord()} വില ${esc(fmtMoney(p.base, true))}">↺</button>` : '') + '</li>';
+  (p.added ? `<button class="icon-btn drop" type="button" data-drop="${esc(p.id)}" aria-label="${esc(p.ml)}: നീക്കുക">✕</button>`
+    : p.mine ? `<button class="icon-btn reset" type="button" aria-label="${esc(p.ml)}: ${listWord()} വില ${esc(fmtMoney(p.base, true))}">↺</button>` : '') + '</li>';
 function renderPrices() {
   const q = $('pq').value.trim();
   let last = null;
@@ -772,8 +853,8 @@ function openPrices() {
 function priceChanged(row, paise) {
   const p = byId.get(row.dataset.pid);
   if (!p) return;
-  if (paise) setMine(p, paise);
-  row.outerHTML = priceRow(p);        // also restores the old value when the entry was not a price
+  if (paise) setRate(p, paise);
+  row.outerHTML = priceRow(byId.get(p.id) || p);        // also restores the old value when the entry was not a price
   renderShelf();
 }
 
@@ -830,13 +911,26 @@ async function setPhoto(id, file) {
 // ponytail: two phones changing the same price offline: whichever syncs last wins.
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 const writeJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {} });
+const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {}, items: {} });
 let account = readJSON(SESSION_KEY);                 // { token, code, name } once logged in
 let signingUp = false;                               // the sign-up form is showing in the shop sheet
 let outbox = { ...freshOutbox(), ...readJSON(OUTBOX_KEY) };
 let synced = readJSON(SYNCED_KEY) || { at: 0, photos: {} };   // when, and the server time of each photo we hold
+let shopItems = loadItems();
+function loadItems() {
+  const raw = readJSON(ITEMS_KEY), out = {};
+  if (raw && typeof raw === 'object') for (const [id, x] of Object.entries(raw)) { const c = cleanItem(x); if (c) out[id] = c; }
+  return out;
+}
+// An item added, changed (its rate) or removed (null) on this phone: saved at once, sent with the next sync.
+function setItem(id, item) {
+  if (item) shopItems[id] = item; else delete shopItems[id];
+  writeJSON(ITEMS_KEY, shopItems);
+  queue('item', id, item);
+  buildProducts(); renderShelf();
+}
 let syncing = null, syncError = '', syncTimer = 0;
-const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length;
+const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length + Object.keys(outbox.items).length;
 // Stock on hand: the shop's count at the last sync, less this phone's bills not sent yet. null: not counted.
 function stockLeft(id) {
   if (!synced.stock || !Object.hasOwn(synced.stock, id)) return null;
@@ -877,6 +971,7 @@ function queue(kind, id, value) {
   if (kind === 'photo' && !outbox.photos.includes(id)) outbox.photos.push(id);
   if (kind === 'name') outbox.name = id;
   if (kind === 'sale') outbox.sales[id] = value;
+  if (kind === 'item') outbox.items[id] = value;
   writeJSON(OUTBOX_KEY, outbox);
   renderSync();
   clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500);
@@ -894,6 +989,21 @@ function sync() {
         for (const id in set) if (outbox.set[id] === set[id]) delete outbox.set[id];
         outbox.clear = outbox.clear.filter(id => !clear.includes(id));
         writeJSON(OUTBOX_KEY, outbox);
+      }
+      let itemsChanged = false;
+      const sentItems = { ...outbox.items };
+      if (Object.keys(sentItems).length) {
+        const set = {}, drop = [];
+        for (const [id, x] of Object.entries(sentItems)) if (x) set[id] = { ...x, key: nameKey(x.ml) }; else drop.push(id);
+        const r = await api('items', { method: 'POST', body: JSON.stringify({ set, drop }) });
+        if (!r.ok) throw new Error(r.status);
+        for (const id in sentItems) if (outbox.items[id] === sentItems[id]) delete outbox.items[id];
+        writeJSON(OUTBOX_KEY, outbox);
+        for (const id of (await r.json()).dup || []) {   // another phone added this name first: theirs stays
+          const x = shopItems[id];
+          delete shopItems[id]; writeJSON(ITEMS_KEY, shopItems); itemsChanged = true;
+          if (x) toast(`${x.ml} ഇതിനകം ഉണ്ട്`);
+        }
       }
       for (const id of [...outbox.photos]) {
         if (photos.has(id)) {
@@ -925,6 +1035,14 @@ function sync() {
       mine = cleanPrices({ ...st.prices, ...outbox.set });
       for (const id of outbox.clear) delete mine[id];
       writeJSON(PRICES_KEY, mine);
+      if (st.items !== (synced.items ?? null)) {         // items added or removed on any phone of the shop
+        const g = await api('items');
+        if (!g.ok) throw new Error(g.status);
+        shopItems = {};
+        for (const [id, x] of Object.entries(await g.json())) { const c = cleanItem(x); if (c) shopItems[id] = c; }
+        for (const [id, x] of Object.entries(outbox.items)) if (x) shopItems[id] = x; else delete shopItems[id];   // not sent yet
+        writeJSON(ITEMS_KEY, shopItems); itemsChanged = true;
+      }
       const want = Object.keys(st.photos).filter(id => !(synced.photos[id] >= st.photos[id]) && !outbox.photos.includes(id));
       for (let i = 0; i < want.length; i += 30) {
         const g = await api('photos?ids=' + want.slice(i, i + 30).join(','));
@@ -938,9 +1056,9 @@ function sync() {
       if (!$('shopName').value.trim() && st.shop.name) { $('shopName').value = st.shop.name; try { localStorage.setItem(SHOP_KEY, st.shop.name); } catch {} }
       account = { ...account, name: st.shop.name }; writeJSON(SESSION_KEY, account);
       const listChanged = st.catalog !== (synced.catalog ?? null);
-      synced = { ...synced, at: Date.now(), catalog: st.catalog, stock: st.stock || {} };
+      synced = { ...synced, at: Date.now(), catalog: st.catalog, items: st.items ?? null, stock: st.stock || {} };
       writeJSON(SYNCED_KEY, synced);
-      if (listChanged) await loadCatalog(); else applyPrices();
+      if (listChanged) await loadCatalog(); else if (itemsChanged) buildProducts(); else applyPrices();
       renderShelf(); renderBill(); if (pricesEl.open) renderPrices();
       syncError = '';
     } catch { syncError = navigator.onLine === false ? 'offline' : 'server'; }
@@ -962,6 +1080,7 @@ async function login(code, pin) {
   // What this phone had before logging in goes up to the shop, not lost.
   for (const [id, v] of Object.entries(mine)) queue('price', id, v);
   for (const id of photos.keys()) queue('photo', id);
+  for (const [id, x] of Object.entries(shopItems)) queue('item', id, x);
   await loadCatalog();
   await sync();
   return '';
@@ -999,6 +1118,7 @@ function signOut(wipe) {
   if (wipe) {
     mine = cleanPrices(null); writeJSON(PRICES_KEY, null);
     photos.clear(); idb('readwrite', st => st.clear()).catch(() => {});
+    shopItems = {}; writeJSON(ITEMS_KEY, null);
   }
   loadCatalog(); renderBill(); renderSync();
 }
@@ -1024,12 +1144,13 @@ function renderSync() {
 // ---------- backup file: prices, photos and the shop name, to keep anywhere ----------
 function backupFile() {
   const body = JSON.stringify({ app: 'thraasu', kind: 'backup', v: 1, at: new Date().toISOString(),
-    shop: $('shopName').value.trim(), prices: mine, photos: Object.fromEntries(photos) });
+    shop: $('shopName').value.trim(), prices: mine, photos: Object.fromEntries(photos), items: shopItems });
   return new File([body], `thraasu-backup-${new Date().toISOString().slice(0, 10)}.json`, { type: 'application/json' });
 }
 function saveBackup() {                                  // synchronous to the tap, so the share keeps its activation
   const file = backupFile();
-  $('backupMsg').textContent = `${Object.keys(mine).length} വില, ${photos.size} ഫോട്ടോ · ${Math.ceil(file.size / 1024)} KB`;
+  const added = Object.keys(shopItems).length;
+  $('backupMsg').textContent = `${Object.keys(mine).length} വില, ${photos.size} ഫോട്ടോ${added ? `, ${added} സാധനം` : ''} · ${Math.ceil(file.size / 1024)} KB`;
   if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: file.name }).catch(() => {});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(file); a.download = file.name; a.click();
@@ -1050,13 +1171,17 @@ async function restoreBackup(text) {
   if (!b) { $('backupMsg').textContent = 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല'; return; }
   for (const [id, v] of Object.entries(b.prices)) { mine[id] = v; queue('price', id, v); }
   writeJSON(PRICES_KEY, mine);
+  let got = 0;                                           // an item whose name the list has meanwhile stays out
+  for (const [id, x] of Object.entries(b.items)) if (!shopItems[id] && !sameName(products, x.ml)) { shopItems[id] = x; queue('item', id, x); got++; }
+  writeJSON(ITEMS_KEY, shopItems);
+  if (shopList) buildProducts();
   for (const [id, url] of Object.entries(b.photos)) {
     try { await idb('readwrite', st => st.put(url, id)); } catch { continue; }
     photos.set(id, url); queue('photo', id);
   }
   if (b.shop && !$('shopName').value.trim()) { $('shopName').value = b.shop; try { localStorage.setItem(SHOP_KEY, b.shop); } catch {} }
   applyPrices(); renderShelf(); renderBill();
-  $('backupMsg').textContent = `${Object.keys(b.prices).length} വിലയും ${Object.keys(b.photos).length} ഫോട്ടോയും തിരികെ എടുത്തു`;
+  $('backupMsg').textContent = `${Object.keys(b.prices).length} വിലയും ${Object.keys(b.photos).length} ഫോട്ടോയും${got ? ` ${got} സാധനവും` : ''} തിരികെ എടുത്തു`;
 }
 const topLayer = () => [...document.querySelectorAll('dialog[open]')].pop() || document.body;   // an open modal makes the rest inert
 
@@ -1074,7 +1199,7 @@ function renderShelf() {
 }
 function renderCategory(c) {
   const items = products.filter(p => p.cat === c.id);
-  $('shelf').innerHTML = `<div class="crumb" data-cat="${esc(c.id)}"><button class="back" id="backBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>വിഭാഗങ്ങൾ</button><h2>${esc(c.ml)}<small lang="en">${esc(c.en || '')}</small></h2></div><div class="grid">${items.map(p => {
+  $('shelf').innerHTML = `<div class="crumb" data-cat="${esc(c.id)}"><button class="back" id="backBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>വിഭാഗങ്ങൾ</button><h2>${esc(c.ml)}<small lang="en">${esc(c.en || '')}</small></h2></div><div class="shelf-head cat-head" data-cat="${esc(c.id)}"><h2>${esc(countLabel(items.length))}</h2><button class="add-pill" id="addHere" type="button">${PLUS}പുതിയ സാധനം</button></div><div class="grid">${items.map(p => {
     const l = lineOf(p.id);
     const tile = `<button class="prod${l ? ' in' : ''}" type="button" data-cat="${esc(p.cat)}" data-pid="${esc(p.id)}">${photo(p)}<span class="meta"><span class="names"><b>${esc(p.ml)}</b><small lang="en">${esc(p.en || '')}</small></span><span class="rate">${esc(rateLabel(p.rate, p.unit))}</span></span>${l ? `<span class="badge">${esc(fmtQty(l.qty, l.unit))}</span>` : ''}</button>`;
     // a button may not sit inside a button: the camera rides on a wrapper over the emoji
@@ -1084,7 +1209,7 @@ function renderCategory(c) {
 function renderResults(q) {
   const hits = search(products, q);
   if (!hits.length) {
-    $('shelf').innerHTML = `<div class="state"><b>“${esc(q)}” കണ്ടെത്തിയില്ല</b>ഇംഗ്ലീഷിലോ മംഗ്ലീഷിലോ തിരയൂ — <span lang="en">tomato, thakkali</span></div>`;
+    $('shelf').innerHTML = `<div class="state"><b>“${esc(q)}” കണ്ടെത്തിയില്ല</b>ഇംഗ്ലീഷിലോ മംഗ്ലീഷിലോ തിരയൂ — <span lang="en">tomato, thakkali</span><br><button class="btn ghost" id="addFound" type="button">${PLUS}പുതിയ സാധനമായി ചേർക്കുക</button></div>`;
     return;
   }
   $('shelf').innerHTML = `<div class="shelf-head"><h2>${hits.length} ഫലങ്ങൾ</h2></div><div class="results">${hits.map(p => {
@@ -1166,13 +1291,13 @@ function commit() {
   if ($('addBtn').disabled) return;
   const { item, qty, rate, fromSearch } = sheet;
   const p = byId.get(item.pid);
-  if (p && !$('keepRow').hidden && $('keepRate').checked) setMine(p, rate);
+  if (p && !$('keepRow').hidden && $('keepRate').checked) setRate(p, rate);
   // `sample`: billed at the placeholder rate, so the receipt must say so
   const line = { pid: item.pid, cat: item.cat, ml: item.ml, en: item.en, icon: item.icon, img: item.img, unit: item.unit, rate, qty,
     sample: samplePrices && !!p && !p.mine && rate === p.base };
   const i = bill.lines.findIndex(l => l.pid === item.pid);
   if (i >= 0) bill.lines[i] = line; else bill.lines.push(line);
-  undoState = null; hideToast();
+  undo = null; hideToast();
   saveBill();
   sheetEl.close();
   renderBill(); renderShelf();
@@ -1281,15 +1406,18 @@ function shareBill() {
 function removeLine(i) {
   const l = bill.lines[i];
   if (!l) return;
-  undoState = JSON.stringify(bill);
+  const was = JSON.stringify(bill);
+  undo = () => restoreBill(was);
   bill.lines.splice(i, 1);
   saveBill(); renderBill(); renderShelf();
   toast(`${l.ml} നീക്കം ചെയ്തു`);
 }
+function restoreBill(was) { bill = JSON.parse(was); saveBill(); renderBill(); renderShelf(); }
 function newBill() {
   if (!bill.lines.length) return;
   markSold();
-  undoState = JSON.stringify(bill);
+  const was = JSON.stringify(bill);
+  undo = () => restoreBill(was);
   bill = freshBill(bill.no + 1);
   saveBill(); renderBill(); renderShelf();
   toast(`പുതിയ ബിൽ നം. ${billNo(bill.no)}`);
@@ -1323,8 +1451,82 @@ function showBill(on) {
   if (!on && was) $('billBar').focus({ preventScroll: true });
 }
 
+// ---------- adding an item: the name first, searched against the whole list ----------
+// A name the list already has (sameName: spelling, spaces and case forgiven) cannot be added; similar
+// ones are listed so the owner can open one instead. Category, unit and price appear once the name is new.
+const addEl = $('addSheet');
+const ID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const hasMalayalam = s => /[ഀ-ൿ]/.test(s);
+let adding = null;            // { cat, unit, unitSet } while the add sheet is open
+// The unit most of a category's items are sold in: a new vegetable goes per kg, a new biscuit per piece.
+function unitFor(c) {
+  const n = { kg: 0, l: 0, pc: 0 };
+  for (const p of products) if (p.cat === c) n[p.unit]++;
+  return Object.keys(n).reduce((a, b) => n[b] > n[a] ? b : a, 'pc');
+}
+function openAdd(name, c) {
+  adding = { cat: c && catById.has(c) ? c : null, unit: null, unitSet: false };
+  if (adding.cat) adding.unit = unitFor(adding.cat);
+  $('addName').value = name; $('addEn').value = ''; $('addRate').value = '';
+  $('addDetails').hidden = true;
+  $('addCats').innerHTML = cats.map(x => `<button class="cat-chip" type="button" data-cat="${esc(x.id)}" aria-pressed="false"><span class="emo" aria-hidden="true">${esc(x.icon || '')}</span>${esc(x.ml)}</button>`).join('');
+  renderAdd();
+  addEl.showModal();
+}
+function renderAdd() {
+  const name = $('addName').value.trim(), en = $('addEn').value.trim();
+  const sameN = name ? sameName(products, name) : null, sameE = !sameN && en ? sameName(products, en) : null, same = sameN || sameE;
+  const found = same ? [same] : name ? similar(products, name) : [];
+  $('addName').classList.toggle('bad', !!sameN);
+  $('addEn').classList.toggle('bad', !!sameE);
+  $('addHint').hidden = !same;
+  $('found').hidden = !found.length;
+  $('foundHead').textContent = same ? 'ഇതേ പേര്' : 'ഇതിനകം ഉള്ളവ · ഇതാണെങ്കിൽ തൊടുക';
+  $('foundList').innerHTML = found.map(p => `<button class="row${p === same ? ' same' : ''}" type="button" data-cat="${esc(p.cat)}" data-open="${esc(p.id)}">${pan(p)}` +
+    `<span class="names"><b>${esc(p.ml)}</b><small>${esc([p.en, catById.get(p.cat)?.ml, rateLabel(p.rate, p.unit)].filter(Boolean).join(' · '))}</small></span>` +
+    `<span class="go">${p === same ? 'തുറക്കുക ›' : '›'}</span></button>`).join('');
+  const show = !!name && !sameN, shown = !$('addDetails').hidden;
+  $('addDetails').hidden = !show;
+  for (const b of $('addCats').children) b.setAttribute('aria-pressed', String(b.dataset.cat === adding.cat));
+  for (const b of $('addUnit').children) b.setAttribute('aria-pressed', String(b.dataset.unit === adding.unit));
+  $('addPer').textContent = adding.unit ? perUnit(adding.unit) : '';
+  $('addSave').disabled = !show || !!same || !adding.cat || !adding.unit || !(parseMoney($('addRate').value) > 0);
+  const strip = $('addCats'), chip = strip.querySelector('[aria-pressed="true"]');
+  if (show && !shown && chip) strip.scrollLeft = chip.offsetLeft - strip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2;
+}
+function saveAdd() {
+  renderAdd();
+  if ($('addSave').disabled) return;
+  const a = $('addName').value.trim(), b = $('addEn').value.trim();
+  const [ml, en] = !hasMalayalam(a) && hasMalayalam(b) ? [b, a] : [a, b];   // the Malayalam name shows large
+  const item = cleanItem({ cat: adding.cat, ml, en, unit: adding.unit, rate: parseMoney($('addRate').value) / 100, icon: catById.get(adding.cat)?.icon || '' });
+  if (!item) return;
+  const id = 'u' + [...crypto.getRandomValues(new Uint8Array(10))].map(x => ID_CHARS[x % 62]).join('');
+  addEl.close();
+  setItem(id, item);
+  if ($('q').value.trim()) { $('q').value = item.ml; renderShelf(); }   // from search: the new item is the result
+  else if (cat !== item.cat) openCat(item.cat);
+  const tile = $('shelf').querySelector(`[data-pid="${id}"]`);
+  if (tile) {
+    tile.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    tile.classList.add('fresh'); setTimeout(() => tile.classList.remove('fresh'), 2000);
+  }
+  undo = () => setItem(id, null);
+  toast(`${item.ml} ചേർത്തു`);
+}
+// Only an item the shop added can be removed; bills keep their own copy of every line.
+function removeItem(id) {
+  const x = shopItems[id];
+  if (!x) return;
+  setItem(id, null);
+  if (pricesEl.open) renderPrices();
+  undo = () => { setItem(id, x); if (photos.has(id)) queue('photo', id); if (pricesEl.open) renderPrices(); };
+  toast(`${x.ml} നീക്കി`);
+}
+
 // ---------- toast with undo ----------
 function toast(msg) {
+  topLayer().append($('toast'));                        // over an open dialog, or its undo could not be tapped
   $('toastMsg').textContent = msg;
   $('toast').classList.add('show');
   clearTimeout(toastTimer);
@@ -1345,6 +1547,8 @@ $('shelf').addEventListener('click', e => {
   if (!b) return;
   if (b.id === 'retry') return loadCatalog();
   if (b.dataset.photo) return pickPhoto(b.dataset.photo);
+  if (b.id === 'addHere') return openAdd('', cat);
+  if (b.id === 'addFound') return openAdd($('q').value.trim(), null);
   if (b.id === 'backBtn') return history.state && history.state.cat ? history.back() : (cat = null, renderShelf());
   if (b.dataset.pid) return byId.has(b.dataset.pid) && openSheet(asItem(byId.get(b.dataset.pid)), !!$('q').value.trim());
   if (b.classList.contains('cat')) return openCat(b.dataset.cat);
@@ -1419,6 +1623,30 @@ $('restoreBtn').addEventListener('click', pickBackup);
 addEventListener('online', () => sync());
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && account) sync(); });
 
+$('addName').addEventListener('input', renderAdd);
+$('addEn').addEventListener('input', renderAdd);
+$('addRate').addEventListener('input', renderAdd);
+$('addCats').addEventListener('click', e => {
+  const b = e.target.closest('[data-cat]');
+  if (!b) return;
+  adding.cat = b.dataset.cat;
+  if (!adding.unitSet) adding.unit = unitFor(adding.cat);
+  renderAdd();
+});
+$('addUnit').addEventListener('click', e => {
+  const b = e.target.closest('[data-unit]');
+  if (b) { adding.unit = b.dataset.unit; adding.unitSet = true; renderAdd(); }
+});
+$('foundList').addEventListener('click', e => {
+  const b = e.target.closest('[data-open]'), p = b && byId.get(b.dataset.open);
+  if (!p) return;
+  addEl.close();
+  openSheet(asItem(p), !!$('q').value.trim());
+});
+$('addForm').addEventListener('submit', e => { e.preventDefault(); saveAdd(); });
+$('addClose').addEventListener('click', () => addEl.close());
+addEl.addEventListener('click', e => { if (e.target === addEl) addEl.close(); });
+
 $('pricesClose').addEventListener('click', () => pricesEl.close());
 pricesEl.addEventListener('click', e => { if (e.target === pricesEl) pricesEl.close(); });
 $('pq').addEventListener('input', renderPrices);
@@ -1430,6 +1658,8 @@ $('priceList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.tar
 $('priceList').addEventListener('click', e => {
   const cam = e.target.closest('[data-photo]');
   if (cam) return pickPhoto(cam.dataset.photo);
+  const d = e.target.closest('[data-drop]');
+  if (d) return removeItem(d.dataset.drop);
   const b = e.target.closest('button.reset');
   if (!b) return;
   const row = b.closest('.price'), p = byId.get(row.dataset.pid);
@@ -1463,10 +1693,9 @@ $('shareBtn').addEventListener('click', shareBill);
 $('homeBtn').addEventListener('click', goHome);
 $('newBill').addEventListener('click', newBill);
 $('toastUndo').addEventListener('click', () => {
-  if (!undoState) return hideToast();
-  bill = JSON.parse(undoState);
-  undoState = null;
-  saveBill(); renderBill(); renderShelf(); hideToast();
+  const u = undo;
+  undo = null; hideToast();
+  if (u) u();
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('bill').classList.contains('open') && !sheetEl.open) closeBill();
@@ -1474,6 +1703,7 @@ document.addEventListener('keydown', e => {
 addEventListener('popstate', () => {
   const s = history.state || {};
   if (sheetEl.open) sheetEl.close();
+  if (addEl.open) addEl.close();
   if (pricesEl.open) pricesEl.close();
   if (shopEl.open) shopEl.close();
   cat = s.cat || null;
@@ -1485,6 +1715,7 @@ wide.addEventListener('change', () => { if (wide.matches) showBill(false); });
 addEventListener('storage', e => {
   if (e.key === BILL_KEY) { bill = loadBill(); renderBill(); renderShelf(); }
   if (e.key === PRICES_KEY) { mine = loadPrices(); applyPrices(); renderShelf(); if (pricesEl.open) renderPrices(); }
+  if (e.key === ITEMS_KEY && shopList) { shopItems = loadItems(); buildProducts(); renderShelf(); if (pricesEl.open) renderPrices(); }
 });
 
 // ---------- start ----------

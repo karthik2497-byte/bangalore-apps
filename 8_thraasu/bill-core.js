@@ -81,6 +81,38 @@ function search(products, query) {
   return hits.sort((a, b) => b[0] - a[0]).map(h => h[1]);
 }
 
+// A name's identity for duplicates: search's forgiving spelling, with the spaces gone.
+function nameKey(s) { return skeleton(s).replace(/\s+/g, ''); }
+
+// The product that already has this name, or null: its Malayalam or English name, or any one of its
+// search words. ponytail: a one-word name can collide with another item's search word ("win" with
+// KitKat's "kit cat win"); the add sheet shows which item matched, so a fuller name gets past it.
+function sameName(products, name) {
+  const k = nameKey(name);
+  if (!k) return null;
+  return products.find(p => [p.ml, p.en, ...String(p.alias || '').split(/\s+/)].some(n => n && nameKey(n) === k)) || null;
+}
+
+// What the add sheet lists under the name: hits for the whole name, then for each word of three or
+// more letters, no product twice.
+function similar(products, name, max = 4) {
+  const out = [];
+  for (const q of [name, ...String(name).split(/\s+/).filter(w => skeleton(w).length >= 3)])
+    for (const p of search(products, q)) if (out.length < max && !out.includes(p)) out.push(p);
+  return out;
+}
+
+// An item a shop added on a phone, as kept on the phone, in a backup file and on the server
+// (functions/api/thraasu keeps the same rules). Rate in rupees, like products.json.
+function cleanItem(x) {
+  if (!x || typeof x !== 'object') return null;
+  const text = v => typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : '';
+  const ml = text(x.ml), en = text(x.en);
+  if (!ml || ml.length > 60 || en.length > 60 || typeof x.cat !== 'string' || !/^[\w-]{1,40}$/.test(x.cat) ||
+    !Object.hasOwn(UNITS, x.unit) || typeof x.rate !== 'number' || !(x.rate > 0 && x.rate < 1e7)) return null;
+  return { cat: x.cat, ml, en, unit: x.unit, rate: Math.round(x.rate * 100) / 100, icon: typeof x.icon === 'string' ? x.icon.slice(0, 16) : '' };
+}
+
 // A counter types grams as "250" and kilos as "1.5". On the kg / L side a whole number
 // of 50 or more is almost always grams, so the box switches sides unless the toggle was
 // set by hand. ponytail: one fixed threshold; a 50 kg sack needs the toggle. Per-item
@@ -113,7 +145,10 @@ function cleanBackup(raw) {
   if (raw.photos && typeof raw.photos === 'object' && !Array.isArray(raw.photos))
     for (const [id, url] of Object.entries(raw.photos))
       if (/^[\w-]{1,40}$/.test(id) && typeof url === 'string' && url.length < 3e5 && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)) photos[id] = url;
-  return { shop: typeof raw.shop === 'string' ? raw.shop.trim().slice(0, 60) : '', prices: cleanPrices(raw.prices), photos };
+  const items = Object.create(null);
+  if (raw.items && typeof raw.items === 'object' && !Array.isArray(raw.items))
+    for (const [id, x] of Object.entries(raw.items)) { const c = /^[\w-]{1,40}$/.test(id) && cleanItem(x); if (c) items[id] = c; }
+  return { shop: typeof raw.shop === 'string' ? raw.shop.trim().slice(0, 60) : '', prices: cleanPrices(raw.prices), photos, items };
 }
 
 // products.json is hand-edited: drop any row the bill maths cannot price.

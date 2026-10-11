@@ -308,6 +308,88 @@ export default async (t) => {
   t.check('a rate typed in the sheet can be kept as the shop price', pr.keep0 && pr.keep1 && pr.kept.join() === '5200,5200,false', pr);
   t.check('receipt says sample prices only while a billed line used one', pr.metaMixed === 2 && pr.metaOwn === 1, pr);
 
+  // Adding an item: the category's add button and an empty search open one sheet; a name the list
+  // has is refused, similar ones are only shown; a new item joins the end of its category, the
+  // Malayalam name shows large, it survives a reload, and the price list removes it (with undo).
+  const ad = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    const type = (id, v) => { $(id).value = v; $(id).dispatchEvent(new Event('input', { bubbles: true })); };
+    const r = {};
+    bill = freshBill(1); saveBill(); renderBill(); hideToast();
+    $('q').value = ''; cat = null; renderShelf();
+    openCat('veg');
+    r.head = [document.querySelector('.cat-head h2')?.textContent, Math.round($('addHere').getBoundingClientRect().height)];
+    $('addHere').click();
+    r.open = [addEl.open, document.activeElement === $('addName'), document.querySelector('#addCats [aria-pressed="true"]')?.dataset.cat, adding.unit, $('addSave').disabled, $('addDetails').hidden];
+    type('addName', 'Thakkali');
+    r.same = [$('addHint').hidden, $('addDetails').hidden, [...$('foundList').children].map(b => b.dataset.open + (b.classList.contains('same') ? '!' : '')).join(), $('addSave').disabled, $('foundHead').textContent];
+    $('foundList').querySelector('[data-open="tomato"]').click();
+    r.opened = [addEl.open, $('sheet').open, $('sheetName').textContent];
+    $('sheet').close();
+    $('addHere').click();
+    type('addName', 'tomato sauce');
+    r.similar = [$('addHint').hidden, $('foundList').firstElementChild?.dataset.open, $('addDetails').hidden, $('addSave').disabled];
+    document.querySelector('#addUnit [data-unit="pc"]').click();
+    type('addRate', '30');
+    r.ready = [$('addSave').disabled, $('addPer').textContent];
+    $('addSave').click();
+    const id = Object.keys(shopItems)[0], x = shopItems[id] || {};
+    r.saved = [addEl.open, /^u[A-Za-z0-9]{10}$/.test(id), [x.cat, x.ml, x.unit, x.rate].join(), $('toastMsg').textContent];
+    const tile = document.querySelector(`.prod[data-pid="${id}"]`);
+    r.tile = [!!tile, !!tile?.classList.contains('fresh'), [...document.querySelectorAll('.prod')].pop()?.dataset.pid === id, document.querySelector('.cat-head h2').textContent];
+    $('toastUndo').click();
+    r.undone = [Object.keys(shopItems).length, !!document.querySelector(`.prod[data-pid="${id}"]`)];
+    $('q').value = 'qwxy'; renderShelf();
+    $('addFound').click();
+    r.fromSearch = [$('addName').value, !!document.querySelector('#addCats [aria-pressed="true"]'), adding.unit];
+    type('addName', 'Tomato sauce'); type('addEn', 'ടൊമാറ്റോ സോസ്'); type('addRate', '45');
+    r.noCat = $('addSave').disabled;
+    document.querySelector('#addCats [data-cat="veg"]').click();
+    r.withCat = [$('addSave').disabled, adding.unit];
+    document.querySelector('#addUnit [data-unit="pc"]').click();
+    $('addSave').click();
+    const id2 = Object.keys(shopItems)[0];
+    r.ml = [shopItems[id2]?.ml, shopItems[id2]?.en, $('q').value, !!document.querySelector(`#shelf .row[data-pid="${id2}"]`)];
+    $('q').value = ''; renderShelf(); openCat('veg');
+    $('addHere').click(); type('addName', 'tomatosauce');
+    r.again = [$('addHint').hidden, $('addSave').disabled];
+    addEl.close();
+    $('samplePill').click();
+    const row = () => $('priceList').querySelector(`.price[data-pid="${id2}"]`);
+    r.row = [row()?.querySelector('small')?.textContent, !!row()?.querySelector('[data-drop]'), !!row()?.querySelector('.reset')];
+    const inp = row().querySelector('input'); inp.value = '50'; inp.dispatchEvent(new Event('change', { bubbles: true }));
+    r.rate = [shopItems[id2].rate, byId.get(id2).rate, (localStorage.getItem('thraasu_prices') || '').includes(id2)];
+    row().querySelector('[data-drop]').click();
+    r.dropped = [!!row(), !!shopItems[id2], $('toastMsg').textContent, $('toast').parentElement === pricesEl];
+    $('toastUndo').click();
+    r.back = [!!row(), shopItems[id2]?.rate];
+    pricesEl.close(); hideToast();
+    return { ...r, id2 };
+  });
+  t.check('a category shows its count and a 48 px add button above the grid', ad.head.join() === '16 ഇനങ്ങൾ,48' || (ad.head[0] === '16 ഇനങ്ങൾ' && ad.head[1] >= 48), ad.head);
+  t.check('the add sheet opens on the name, with the category and its usual unit picked', ad.open.join() === 'true,true,veg,kg,true,true', ad.open);
+  t.check('a name the list has is refused and offered instead (Thakkali = tomato)', ad.same.join('|') === 'false|true|tomato!|true|ഇതേ പേര്', ad.same);
+  t.check('tapping the offered item opens its quantity sheet', ad.opened.join() === 'false,true,തക്കാളി', ad.opened);
+  t.check('a similar name is shown but does not block', ad.similar.join() === 'true,tomato,false,true', ad.similar);
+  t.check('with unit and price set, Add is on', ad.ready.join() === 'false,ഒന്നിന്', ad.ready);
+  t.check('saved: a new u-id item, toast says so', ad.saved.join('|') === 'false|true|veg,tomato sauce,pc,30|tomato sauce ചേർത്തു', ad.saved);
+  t.check('the new tile ends its category, outlined, and the count goes up', ad.tile.join() === 'true,true,true,17 ഇനങ്ങൾ', ad.tile);
+  t.check('undo on the toast takes the new item away', ad.undone.join() === '0,false', ad.undone);
+  t.check('an empty search offers the add with the typed name and no category', ad.fromSearch.join() === 'qwxy,false,', ad.fromSearch);
+  t.check('Add waits for a category; picking one sets its usual unit', ad.noCat && ad.withCat.join() === 'false,kg', [ad.noCat, ad.withCat]);
+  t.check('the Malayalam name shows large; from search the new item is the result', ad.ml.join() === 'ടൊമാറ്റോ സോസ്,Tomato sauce,ടൊമാറ്റോ സോസ്,true', ad.ml);
+  t.check('the same name typed differently is refused next time', ad.again.join() === 'false,true', ad.again);
+  t.check('the price list marks an added item and gives it ✕, not reset', ad.row.join() === 'നിങ്ങൾ ചേർത്തത്,true,false', ad.row);
+  t.check("an added item's price is its own rate, not a list override", ad.rate.join() === '50,5000,false', ad.rate);
+  t.check('✕ removes it with an undo toast over the price list; undo puts it back', ad.dropped.join() === 'false,false,ടൊമാറ്റോ സോസ് നീക്കി,true' && ad.back.join() === 'true,50', [ad.dropped, ad.back]);
+  await t.reload(); await ready(t);
+  const adKept = await t.evaluate(id => {
+    const r = [byId.get(id)?.ml, byId.get(id)?.added];
+    localStorage.removeItem('thraasu_items'); shopItems = {}; buildProducts(); cat = null; renderShelf();
+    return r;
+  }, ad.id2);
+  t.check('an added item survives a reload', adKept.join() === 'ടൊമാറ്റോ സോസ്,true', adKept);
+
   // Sign-up: the form checks before the network; a request shows its code and fills Login;
   // logging in before approval says so.
   const su = await t.evaluate(async () => {
@@ -361,7 +443,7 @@ export default async (t) => {
   const sy = await t.evaluate(async () => {
     const $ = id => document.getElementById(id);
     const until = async ok => { for (let i = 0; i < 60 && !ok(); i++) await new Promise(r => setTimeout(r, 50)); };
-    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false, stock: { onion: 3000, tomato: 5000 }, sales: {},
+    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false, stock: { onion: 3000, tomato: 5000 }, sales: {}, items: {}, itemsAt: null,
       catalog: { sample: false, categories: [{ id: 'veg', ml: 'പച്ചക്കറി', en: 'Vegetables', icon: '🥬' }], products: [
         { id: 'tomato', cat: 'veg', ml: 'തക്കാളി', en: 'Tomato', icon: '🍅', unit: 'kg', rate: 44 },
         { id: 'onion', cat: 'veg', ml: 'സവാള', en: 'Onion', icon: '🧅', unit: 'kg', rate: 50 },
@@ -378,7 +460,7 @@ export default async (t) => {
       if (o.headers?.authorization !== 'Bearer ' + server.token) return res({ error: 'login' }, 401);
       if (m === 'GET catalog') return res(JSON.stringify(server.catalog));
       if (m === 'GET state') return res({ shop: { code: 'NANMA', name: server.name }, catalog: 1, prices: server.prices,
-        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])), stock: server.stock });
+        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])), stock: server.stock, items: server.itemsAt });
       if (m === 'POST prices') { Object.assign(server.prices, body.set); body.clear.forEach(id => delete server.prices[id]); return res({ ok: true }); }
       if (m === 'POST sales') {
         for (const [k, items] of Object.entries(body.sales)) {
@@ -390,6 +472,13 @@ export default async (t) => {
       }
       if (m === 'PUT photo') { server.photos[body.id] = { data: body.data, at: Date.now() }; return res({ ok: true, at: server.photos[body.id].at }); }
       if (m === 'GET photos') return res(Object.fromEntries(new URLSearchParams(qs).get('ids').split(',').filter(id => server.photos[id]).map(id => [id, server.photos[id]])));
+      if (m === 'POST items') {
+        const dup = [];
+        for (const [id, x] of Object.entries(body.set)) if (Object.entries(server.items).some(([k, y]) => k !== id && y.key === x.key)) dup.push(id); else server.items[id] = x;
+        body.drop.forEach(id => delete server.items[id]); server.itemsAt = Math.max((server.itemsAt || 0) + 1, Date.now());
+        return res({ ok: true, dup });
+      }
+      if (m === 'GET items') return res(Object.fromEntries(Object.entries(server.items).map(([k, { key, ...x }]) => [k, x])));
       if (m === 'PUT shop') { server.name = body.name; return res({ ok: true }); }
       if (m === 'POST logout') { server.token = null; return res({ ok: true }); }
       return res({ error: 'nf' }, 404);
@@ -411,6 +500,12 @@ export default async (t) => {
     server.prices.shallot = 9900; server.photos.onion = { data: 'data:image/jpeg;base64,/9j/AAAA', at: Date.now() };
     await sync();
     r.pull = [mine.shallot, (photos.get('onion') || '').slice(0, 15), byId.get('shallot').rate];
+    // Items: one added here goes up; a name another phone took first is dropped here, and theirs comes down.
+    setItem('uLOCAL00001', cleanItem({ cat: 'veg', ml: 'കോവക്ക', en: 'Ivy gourd', unit: 'kg', rate: 80, icon: '🥬' })); await sync();
+    r.itemUp = [server.items.uLOCAL00001?.ml, server.items.uLOCAL00001?.key === nameKey('കോവക്ക'), pending()];
+    server.items.uOTHER00001 = { cat: 'veg', ml: 'Kale', en: '', unit: 'kg', rate: 90, icon: '🥬', key: 'kale' };
+    setItem('uLOCAL00002', cleanItem({ cat: 'veg', ml: 'KALE', en: '', unit: 'kg', rate: 95, icon: '🥬' })); await sync();
+    r.itemDup = [!!shopItems.uLOCAL00002, byId.get('uOTHER00001')?.ml, $('toastMsg').textContent, pending()];
     // Stock: an open bill is not sold; closing it lowers stock, and later changes to it move stock by the difference.
     bill = freshBill(1); saveBill(); renderBill();
     openSheet(asItem(byId.get('onion'))); r.sheetStock = $('sheetStock').hidden ? '' : $('sheetStock').textContent;
@@ -432,15 +527,16 @@ export default async (t) => {
     let shared = null; navigator.canShare = () => true; navigator.share = async d => { shared = d.files[0]; };
     $('backupBtn').click();
     const backup = JSON.parse(await shared.text());
-    r.backup = [backup.app, backup.prices.onion, !!backup.photos.onion, shared.name.startsWith('thraasu-backup-')];
+    r.backup = [backup.app, backup.prices.onion, !!backup.photos.onion, shared.name.startsWith('thraasu-backup-'), !!backup.items.uOTHER00001];
     r.logout = await logout();
-    await until(() => products.length > 3);
+    await until(() => products.length > 10);   // the template list again
     r.out = [account, Object.keys(mine).length, photos.size, products.length, $('acctBtn').dataset.state, localStorage.getItem('thraasu_session')];
     await restoreBackup(JSON.stringify(backup));
-    r.restored = [mine.onion, photos.has('onion')];
+    r.restored = [mine.onion, photos.has('onion'), byId.get('uOTHER00001')?.ml];
     await restoreBackup('{"app":"other"}');
     r.junk = $('backupMsg').textContent;
     localStorage.removeItem('thraasu_prices'); mine = loadPrices(); photos.clear(); await idb('readwrite', st => st.clear());
+    localStorage.removeItem('thraasu_items'); shopItems = {}; buildProducts();
     applyPrices(); renderShelf(); shopEl.close(); window.fetch = realFetch;
     return r;
   });
@@ -456,9 +552,11 @@ export default async (t) => {
   t.check('offline, the change waits on the phone', sy.offline.join() === '1,wait', sy.offline);
   t.check('logout refuses while a change is unsent', sy.blocked.join() === 'true,true', sy.blocked);
   t.check('back online, the waiting change goes up', sy.back.join() === '5600,0,ok', sy.back);
-  t.check('backup file carries prices and photos', sy.backup.join() === 'thraasu,5600,true,true', sy.backup);
+  t.check('an item added on the phone reaches the shop', sy.itemUp.join() === 'കോവക്ക,true,0', sy.itemUp);
+  t.check("a name another phone added first: theirs comes down, this phone's copy goes", sy.itemDup.join() === 'false,Kale,KALE ഇതിനകം ഉണ്ട്,0', sy.itemDup);
+  t.check('backup file carries prices, photos and added items', sy.backup.join() === 'thraasu,5600,true,true,true', sy.backup);
   t.check('logout leaves nothing of the shop on the phone', sy.logout === '' && sy.out.join() === ',0,0,68,out,', sy.out);
-  t.check('a backup file restores; anything else is refused', sy.restored.join() === '5600,true' && sy.junk === 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല', sy);
+  t.check('a backup file restores; anything else is refused', sy.restored.join() === '5600,true,Kale' && sy.junk === 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല', sy);
 
   // The logo goes home: out of a category and out of a search, back to the grid.
   const home = await t.evaluate(async () => {
@@ -481,7 +579,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v8', sw === 'thraasu-v8', sw);
+  t.check('service worker precached thraasu-v9', sw === 'thraasu-v9', sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a
