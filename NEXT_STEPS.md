@@ -24,8 +24,8 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 **fixed permanently at first Play publish** — get them right before submitting.
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
-      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-10,
-      after the Thraasu sign-up deploy (`main` at `4763a5c`): PASS — 8 apps, CSPs applied,
+      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-11,
+      after the Thraasu add-item deploy (`main` at `93a0f63`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
@@ -93,8 +93,13 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       `add CODE "Name"`; `catalog CODE list.json` if it has its own list. Fee: `MONTHLY_FEE = 0` in the
       app, a label only; charging (manual UPI or Razorpay) is built when it goes above 0. At most 20
       requests wait at once; 25 MB of photos per shop; sold bills kept 60 days.
-      Open: a shop must log in once on each phone; a shop changing its *list* (adding items) still
-      goes through me (sheet → import → `catalog`).
+      **Shops add their own items from the phone** (live 2026-10-11, `93a0f63`): + പുതിയ സാധനം in a
+      category's head row or in an empty search; a name the list already has is refused (spelling forgiven),
+      similar ones are only shown. Added items sync to all the shop's phones (D1 `items`, one per name, 1000
+      cap), survive a `catalog` re-import, and are removed from the price list (✕, undo). `shop-admin.mjs list`
+      counts them (`added`); folding them into the shop's sheet is still by hand. Not built: renaming (remove
+      and add again), new categories, a stock count at add.
+      Open: a shop must log in once on each phone.
 - [ ] **Thraasu stock goes down as bills are sold (live 2026-10-10, `1561c60`).** A bill counts once
       printed, shared or closed (പുതിയ ബിൽ); later edits move stock by the difference. Counts show in
       the quantity sheet and price list. NANMA has 394 counts from the sheet (`shop-admin.mjs stock
@@ -124,7 +129,7 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       no Kannada TTS at all — but not accent. A native speaker should review all 108
       phrases (is ನೇರೆ ಹೋಗಿ idiomatic?) and re-record; replacements are a drop-in under
       the same filenames, then re-run the tool for the manifest.
-- [ ] **Thraasu Malayalam is unreviewed.** The UI copy and the 459 product names (Nanma Store) were written
+- [ ] **Thraasu Malayalam is unreviewed.** The add-item copy (2026-10-11) is listed in its spec. The UI copy and the 459 product names (Nanma Store) were written
       by the build agent. A native speaker should read every label in `8_thraasu/index.html`
       and every `ml` field in `products.json`. Thraasu also needs a `privacy.html` before Play.
 - [ ] **CardGuard Play Billing**: create the `cardguard_premium_yearly` product in

@@ -38,6 +38,9 @@ phone can already reach.
 - Local first: the bill, prices and photos save on the phone at once and sync when online; a backup
   file (share to WhatsApp/Drive) carries prices and photos without an account. No bill history, GST
   or customers in v1 (deliberately deferred, not forgotten).
+- A shop adds items from the phone (category head row, or an empty search). Every add starts as a search
+  of the whole list, and a name the list has cannot be added again (`sameName` in `bill-core.js`).
+  Added items live beside the list (`thraasu_items`, D1 `items`) and join the end of their category.
 - localStorage keys prefixed `thraasu_`; Cache Storage prefixed `thraasu-` (shared origin).
 
 ## Brand Commitments
