@@ -632,7 +632,8 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v12', sw === 'thraasu-v12', sw);
+  const CACHE = readFileSync(new URL('../../../8_thraasu/service-worker.js', import.meta.url), 'utf8').match(/CACHE_NAME = '([^']+)'/)[1];
+  t.check(`service worker precached ${CACHE}`, sw === CACHE, sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a

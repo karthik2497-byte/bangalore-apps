@@ -17,7 +17,7 @@ trap 'kill "$SERVER" 2>/dev/null' EXIT
 for _ in $(seq 1 50); do (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null && break; sleep 0.1; done
 
 suites=("$@")
-[ ${#suites[@]} -eq 0 ] && suites=(cachepurge powerpulse metersmart pgbuddy nesthub lingolocal stockping cardguard thraasu privacy)
+[ ${#suites[@]} -eq 0 ] && suites=(cachepurge launch powerpulse metersmart pgbuddy nesthub lingolocal stockping cardguard thraasu privacy)
 fail=0
 for s in "${suites[@]}"; do
   out=$(node scripts/browser/cdp.mjs "scripts/browser/tests/$s.mjs" --quiet 2>&1); rc=$?

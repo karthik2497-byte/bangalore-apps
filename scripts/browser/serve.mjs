@@ -25,10 +25,14 @@ function rules() {
 const match = (pat, p) => pat.endsWith('*') ? p.startsWith(pat.slice(0, -1)) : p === pat;
 
 createServer((req, res) => {
-  const p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  const u = new URL(req.url, 'http://x'), p = decodeURIComponent(u.pathname);
+  // Pages' pretty URLs: a/index.html 308s to a/ and a/b.html to a/b, which serves b.html. Every app's
+  // start_url is ./index.html, so a worker serving a cached redirect failed each home-screen launch.
+  if (p.endsWith('.html')) { res.writeHead(308, { Location: u.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') + u.search }).end(); return; }
   let file = normalize(join(root, p));
   if (!file.startsWith(normalize(root))) { res.writeHead(403).end(); return; }
   if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
+  else if (!existsSync(file) && existsSync(file + '.html')) file += '.html';
   if (!existsSync(file)) { res.writeHead(404).end('404'); return; }
   const headers = {};
   for (const r of rules()) if (match(r.pat, p)) for (const h of r.hs) {
