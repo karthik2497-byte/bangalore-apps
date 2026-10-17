@@ -14,7 +14,7 @@ const LOCK_AFTER = 5, LOCK_MS = 15 * 60e3, SESSION_MS = 365 * 864e5;
 const MAX_PHOTO = 300000, MAX_PHOTOS = 3000, MAX_PRICES = 5000, IDS_PER_GET = 30, BILLS_PER_POST = 100;
 // D1 Free holds 500 MB per database: a shop's photos are capped in bytes, and sold bills are kept
 // only as long as a phone might send one again.
-const PHOTO_BYTES = 25e6, SALES_KEEP_MS = 60 * 864e5, PENDING_MAX = 20, MAX_ITEMS = 1000;
+const PHOTO_BYTES = 25e6, SALES_KEEP_MS = 60 * 864e5, PENDING_MAX = 20, MAX_ITEMS = 1000, MAX_HIDDEN = 2000;
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32: no 0/O or 1/I to misread over the phone
 const ID = /^[\w-]{1,40}$/, PHOTO = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
@@ -171,12 +171,29 @@ export async function handle(request, db, path, opts = {}) {
       const prices = await db.prepare('SELECT id, paise FROM prices WHERE shop = ?').bind(shop).all();
       const photos = await db.prepare('SELECT id, at FROM photos WHERE shop = ?').bind(shop).all();
       const stock = await db.prepare('SELECT id, qty FROM stock WHERE shop = ?').bind(shop).all();
+      const hidden = await db.prepare('SELECT id FROM hidden WHERE shop = ? ORDER BY at, id').bind(shop).all();
       return json({
         shop: { code: shop, name: s.name }, catalog: s.catalog_at ?? null, items: s.items_at ?? null,
         prices: Object.fromEntries(prices.results.map(r => [r.id, r.paise])),
         photos: Object.fromEntries(photos.results.map(r => [r.id, r.at])),
         stock: Object.fromEntries(stock.results.map(r => [r.id, r.qty])),
+        hidden: hidden.results.map(r => r.id),
       });
+    }
+    case 'POST hidden': {
+      // {hide: [ids], show: [ids]}: items the shop took off its list, or put back. Bills keep their own lines.
+      // ponytail: the cap counts a re-hidden id twice; exact only if a shop ever nears 2000.
+      const b = await readJson(request);
+      const ids = k => (Array.isArray(b?.[k]) ? b[k] : []).filter(id => typeof id === 'string' && ID.test(id));
+      const hide = ids('hide'), show = ids('show');
+      if (!hide.length && !show.length) return json({ ok: true });
+      if (await count('hidden') + hide.length > MAX_HIDDEN) return json({ error: 'too many' }, 413);
+      await db.batch([
+        db.prepare('DELETE FROM hidden WHERE shop = ? AND id IN (SELECT value FROM json_each(?))').bind(shop, JSON.stringify(show)),
+        db.prepare('INSERT INTO hidden (shop, id, at) SELECT ?, value, ? FROM json_each(?) WHERE true ON CONFLICT (shop, id) DO NOTHING')
+          .bind(shop, Date.now(), JSON.stringify(hide)),
+      ]);
+      return json({ ok: true });
     }
     case 'POST prices': {
       const b = await readJson(request);

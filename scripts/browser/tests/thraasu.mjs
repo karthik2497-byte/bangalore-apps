@@ -480,10 +480,12 @@ export default async (t) => {
     addEl.close();
     $('samplePill').click();
     const row = () => $('priceList').querySelector(`.price[data-pid="${id2}"]`);
-    r.row = [row()?.querySelector('small')?.textContent, !!row()?.querySelector('[data-drop]'), !!row()?.querySelector('.reset')];
+    r.row = [row()?.querySelector('small')?.textContent, !!row()?.querySelector('button:not(.pan-btn)'), $('priceList').querySelectorAll('.drop, [data-drop]').length];
     const inp = row().querySelector('input'); inp.value = '50'; inp.dispatchEvent(new Event('change', { bubbles: true }));
     r.rate = [shopItems[id2].rate, byId.get(id2).rate, (localStorage.getItem('thraasu_prices') || '').includes(id2)];
-    row().querySelector('[data-drop]').click();
+    $('pickStart').click(); $('priceList').querySelector(`[data-pick="${id2}"]`).click(); $('pickGo').click();
+    r.ask1 = [$('dropTitle').textContent, $('dropNames').children.length];
+    $('dropYes').click();
     r.dropped = [!!row(), !!shopItems[id2], $('toastMsg').textContent, $('toast').parentElement === pricesEl];
     $('toastUndo').click();
     r.back = [!!row(), shopItems[id2]?.rate];
@@ -501,9 +503,10 @@ export default async (t) => {
   t.check('Esc / Android back goes a step back before it closes', ad.escBack.join() === 'true,true,Cat', ad.escBack);
   t.check('the Malayalam name shows large; from search the new item is the result', ad.ml.join() === 'ടൊമാറ്റോ സോസ്,Tomato sauce,veg,ടൊമാറ്റോ സോസ്,true', ad.ml);
   t.check('the same name typed differently is refused next time', ad.again.join() === 'false,true', ad.again);
-  t.check('the price list marks an added item and gives it ✕, not reset', ad.row.join() === 'നിങ്ങൾ ചേർത്തത്,true,false', ad.row);
+  t.check('the price list marks an added item, with no ✕ and no reset on any row', ad.row.join() === 'നിങ്ങൾ ചേർത്തത്,false,0', ad.row);
   t.check("an added item's price is its own rate, not a list override", ad.rate.join() === '50,5000,false', ad.rate);
-  t.check('✕ removes it with an undo toast over the price list; undo puts it back', ad.dropped.join() === 'false,false,ടൊമാറ്റോ സോസ് നീക്കി,true' && ad.back.join() === 'true,50', [ad.dropped, ad.back]);
+  t.check('remove mode deletes it, named in the confirmation and the undo toast; undo puts it back',
+    ad.ask1.join() === 'ടൊമാറ്റോ സോസ് നീക്കണോ?,1' && ad.dropped.join() === 'false,false,ടൊമാറ്റോ സോസ് നീക്കി,true' && ad.back.join() === 'true,50', [ad.ask1, ad.dropped, ad.back]);
   await t.reload(); await ready(t);
   const adKept = await t.evaluate(id => {
     const r = [byId.get(id)?.ml, byId.get(id)?.added];
@@ -565,7 +568,7 @@ export default async (t) => {
   const sy = await t.evaluate(async () => {
     const $ = id => document.getElementById(id);
     const until = async ok => { for (let i = 0; i < 60 && !ok(); i++) await new Promise(r => setTimeout(r, 50)); };
-    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false, stock: { onion: 3000, tomato: 5000 }, sales: {}, items: {}, itemsAt: null,
+    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false, stock: { onion: 3000, tomato: 5000 }, sales: {}, items: {}, itemsAt: null, hidden: new Set(),
       catalog: { sample: false, categories: [{ id: 'veg', ml: 'പച്ചക്കറി', en: 'Vegetables', icon: '🥬' }], products: [
         { id: 'tomato', cat: 'veg', ml: 'തക്കാളി', en: 'Tomato', icon: '🍅', unit: 'kg', rate: 44 },
         { id: 'onion', cat: 'veg', ml: 'സവാള', en: 'Onion', icon: '🧅', unit: 'kg', rate: 50 },
@@ -582,7 +585,8 @@ export default async (t) => {
       if (o.headers?.authorization !== 'Bearer ' + server.token) return res({ error: 'login' }, 401);
       if (m === 'GET catalog') return res(JSON.stringify(server.catalog));
       if (m === 'GET state') return res({ shop: { code: 'NANMA', name: server.name }, catalog: 1, prices: server.prices,
-        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])), stock: server.stock, items: server.itemsAt });
+        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])), stock: server.stock, items: server.itemsAt, hidden: [...server.hidden] });
+      if (m === 'POST hidden') { body.hide.forEach(id => server.hidden.add(id)); body.show.forEach(id => server.hidden.delete(id)); return res({ ok: true }); }
       if (m === 'POST prices') { Object.assign(server.prices, body.set); body.clear.forEach(id => delete server.prices[id]); return res({ ok: true }); }
       if (m === 'POST sales') {
         for (const [k, items] of Object.entries(body.sales)) {
@@ -609,6 +613,7 @@ export default async (t) => {
     localStorage.removeItem('thraasu_prices'); mine = loadPrices(); applyPrices();
     r.btn = [$('acctBtn').dataset.state, Math.round($('acctBtn').getBoundingClientRect().height)];
     setMine(byId.get('tomato'), 4200);                     // set on the phone before logging in
+    hidden.add('gone1');                                   // and an item removed on it
     $('acctBtn').click();
     r.open = shopEl.open && !$('signedOut').hidden;
     $('shopCode').value = 'nanma'; $('shopPin').value = '000000'; $('loginForm').requestSubmit();
@@ -617,6 +622,7 @@ export default async (t) => {
     $('shopPin').value = '482913'; $('loginForm').requestSubmit();
     await until(() => account && synced.at && !syncing);
     r.login = [account?.code, products.length, $('pillText').textContent, server.prices.tomato, $('signedIn').hidden, $('acctBtn').dataset.state, $('shopPin').value];
+    r.hideLogin = server.hidden.has('gone1'); server.hidden.delete('gone1');   // the next sync brings that back down too
     setMine(byId.get('onion'), 5500); await sync();
     r.push = [server.prices.onion, pending()];
     server.prices.shallot = 9900; server.photos.onion = { data: 'data:image/jpeg;base64,/9j/AAAA', at: Date.now() };
@@ -628,6 +634,12 @@ export default async (t) => {
     server.items.uOTHER00001 = { cat: 'veg', ml: 'Kale', en: '', unit: 'kg', rate: 90, icon: '🥬', key: 'kale' };
     setItem('uLOCAL00002', cleanItem({ cat: 'veg', ml: 'KALE', en: '', unit: 'kg', rate: 95, icon: '🥬' })); await sync();
     r.itemDup = [!!shopItems.uLOCAL00002, byId.get('uOTHER00001')?.ml, $('toastMsg').textContent, pending()];
+    // Removing a list item hides it on every phone of the shop; another phone's change comes down.
+    dropItems(['shallot']); await sync();
+    r.hideUp = [server.hidden.has('shallot'), byId.has('shallot'), pending()];
+    server.hidden.delete('shallot'); server.hidden.add('tomato'); await sync();
+    r.hideDown = [byId.has('shallot'), byId.has('tomato'), localStorage.getItem('thraasu_hidden')];
+    server.hidden.clear(); await sync(); hideToast();
     // Stock: an open bill is not sold; closing it lowers stock, and later changes to it move stock by the difference.
     bill = freshBill(1); saveBill(); renderBill();
     openSheet(asItem(byId.get('onion'))); r.sheetStock = $('sheetStock').hidden ? '' : $('sheetStock').textContent;
@@ -647,18 +659,20 @@ export default async (t) => {
     server.fail = false; await sync();
     r.back = [server.prices.onion, pending(), $('acctBtn').dataset.state];
     let shared = null; navigator.canShare = () => true; navigator.share = async d => { shared = d.files[0]; };
+    hidden.add('shallot');                                 // as if removed here: the backup carries it
     $('backupBtn').click();
     const backup = JSON.parse(await shared.text());
-    r.backup = [backup.app, backup.prices.onion, !!backup.photos.onion, shared.name.startsWith('thraasu-backup-'), !!backup.items.uOTHER00001];
+    hidden.delete('shallot');
+    r.backup = [backup.app, backup.prices.onion, !!backup.photos.onion, shared.name.startsWith('thraasu-backup-'), !!backup.items.uOTHER00001, backup.hidden.join()];
     r.logout = await logout();
     await until(() => products.length > 10);   // the template list again
     r.out = [account, Object.keys(mine).length, photos.size, products.length, $('acctBtn').dataset.state, localStorage.getItem('thraasu_session')];
     await restoreBackup(JSON.stringify(backup));
-    r.restored = [mine.onion, photos.has('onion'), byId.get('uOTHER00001')?.ml];
+    r.restored = [mine.onion, photos.has('onion'), byId.get('uOTHER00001')?.ml, [...hidden].join()];
     await restoreBackup('{"app":"other"}');
     r.junk = $('backupMsg').textContent;
     localStorage.removeItem('thraasu_prices'); mine = loadPrices(); photos.clear(); await idb('readwrite', st => st.clear());
-    localStorage.removeItem('thraasu_items'); shopItems = {}; buildProducts();
+    localStorage.removeItem('thraasu_items'); shopItems = {}; localStorage.removeItem('thraasu_hidden'); hidden = new Set(); buildProducts();
     applyPrices(); renderShelf(); shopEl.close(); window.fetch = realFetch;
     return r;
   });
@@ -676,9 +690,70 @@ export default async (t) => {
   t.check('back online, the waiting change goes up', sy.back.join() === '5600,0,ok', sy.back);
   t.check('an item added on the phone reaches the shop', sy.itemUp.join() === 'കോവക്ക,true,0', sy.itemUp);
   t.check("a name another phone added first: theirs comes down, this phone's copy goes", sy.itemDup.join() === 'false,Kale,KALE ഇതിനകം ഉണ്ട്,0', sy.itemDup);
-  t.check('backup file carries prices, photos and added items', sy.backup.join() === 'thraasu,5600,true,true,true', sy.backup);
+  t.check('login sends up what the phone had removed', sy.hideLogin === true, sy.hideLogin);
+  t.check('a removed list item reaches the shop and leaves this phone', sy.hideUp.join() === 'true,false,0', sy.hideUp);
+  t.check("another phone's removal comes down, and so does its putting one back", sy.hideDown.join() === 'true,false,["tomato"]', sy.hideDown);
+  t.check('backup file carries prices, photos, added and removed items', sy.backup.join() === 'thraasu,5600,true,true,true,shallot', sy.backup);
   t.check('logout leaves nothing of the shop on the phone', sy.logout === '' && sy.out.join() === ',0,0,68,out,', sy.out);
-  t.check('a backup file restores; anything else is refused', sy.restored.join() === '5600,true,Kale' && sy.junk === 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല', sy);
+  t.check('a backup file restores; anything else is refused', sy.restored.join() === '5600,true,Kale,shallot' && sy.junk === 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല', sy);
+
+  // Removing items (2026-10-17, option A): no ✕ on any row; one button at the foot turns the price boxes into
+  // ticks; tick any number (search keeps them), one red button, one confirmation, undo. Logged out here.
+  const rm = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id), wait = ms => new Promise(res => setTimeout(res, ms)), r = {};
+    const pressed = () => [...$('priceList').querySelectorAll('.pick[aria-pressed="true"]')].map(b => b.dataset.pick).sort().join();
+    const search = v => { $('pq').value = v; $('pq').dispatchEvent(new Event('input')); };
+    setItem('uDROP000001', cleanItem({ cat: 'veg', ml: 'കോവക്ക', en: 'Ivy gourd', unit: 'kg', rate: 80, icon: '🥬' }));
+    openPrices(); await wait(300);
+    r.normal = [$('priceList').querySelectorAll('.drop, [data-drop]').length, $('pickStart').hidden, $('pickBtns').hidden];
+    $('priceList').querySelector('input').focus(); r.footTyping = getComputedStyle($('pricesFoot')).display; $('priceList').querySelector('input').blur();
+    $('pickStart').click();
+    r.pick = [$('pricesTitle').textContent, $('pricesSub').textContent, $('priceList').querySelectorAll('input').length,
+      $('priceList').querySelectorAll('.pick').length === products.length, $('pickGo').disabled];
+    $('priceList').querySelector('[data-pick="tomato"]').click();
+    search('ivy'); $('priceList').querySelector('[data-pick="uDROP000001"]').click();
+    search(''); $('priceList').querySelector('[data-pick="onion"]').click();
+    r.ticked = [pressed(), $('pricesSub').textContent, $('pickGo').textContent.trim(), $('pickGo').disabled];
+    $('pickGo').click();
+    r.ask = [$('dropConfirm').open, $('dropTitle').textContent, [...$('dropNames').children].map(li => li.lastChild.textContent).join('|'),
+      $('dropBody').textContent.includes('ഈ ഫോണിൽ നിന്ന് മാറും'), document.activeElement === $('dropNo')];
+    $('dropNo').click();
+    r.no = [$('dropConfirm').open, pressed(), byId.has('tomato')];
+    $('pickGo').click(); $('dropYes').click();
+    r.yes = [$('dropConfirm').open, picking, $('pricesTitle').textContent, byId.has('tomato'), byId.has('onion'), !!shopItems.uDROP000001,
+      localStorage.getItem('thraasu_hidden'), $('toastMsg').textContent, $('priceList').querySelectorAll('.pick').length];
+    pricesEl.close();
+    $('q').value = 'thakkali'; $('q').dispatchEvent(new Event('input'));
+    r.shelf = !!document.querySelector('#shelf [data-pid="tomato"]');
+    $('q').value = ''; $('q').dispatchEvent(new Event('input'));
+    $('toastUndo').click();
+    r.undo = [byId.has('tomato'), byId.has('onion'), byId.get('uDROP000001')?.ml, localStorage.getItem('thraasu_hidden')];
+    openPrices(); $('pickStart').click(); $('priceList').querySelector('[data-pick="tomato"]').click();
+    pricesEl.dispatchEvent(new Event('cancel', { cancelable: true }));     // Esc or Android back: out of remove mode first
+    r.cancel = [picking, pricesEl.open, $('pricesTitle').textContent, $('priceList').querySelectorAll('input').length > 0];
+    $('pickStart').click(); $('priceList').querySelector('[data-pick="tomato"]').click(); $('pickGo').click(); $('dropYes').click();
+    r.sizes = [$('pickStart'), $('priceList').querySelector('.price')].map(el => Math.round(el.getBoundingClientRect().height));
+    pricesEl.close(); hideToast();
+    return r;
+  });
+  t.check('price list: no ✕ on any row, one remove button at the foot', rm.normal.join() === '0,false,true', rm.normal);
+  t.check('the foot hides while a price is typed', rm.footTyping === 'none', rm.footTyping);
+  t.check('remove mode: ticks for price boxes, a new title, the red button off at none',
+    rm.pick.join() === 'നീക്കേണ്ടവ തൊടുക,ഒന്നും തിരഞ്ഞെടുത്തിട്ടില്ല,0,true,true', rm.pick);
+  t.check('ticks survive a search; the count and the button follow', rm.ticked.join() === 'onion,tomato,uDROP000001,3 എണ്ണം തിരഞ്ഞെടുത്തു,3 എണ്ണം നീക്കുക,false', rm.ticked);
+  t.check('one confirmation names them, says this phone, starts on വേണ്ട', rm.ask.join() === 'true,3 സാധനങ്ങൾ നീക്കണോ?,തക്കാളി|കോവക്ക|സവാള,true,true', rm.ask);
+  t.check('വേണ്ട keeps the ticks and the items', rm.no.join() === 'false,onion,tomato,uDROP000001,true', rm.no);
+  t.check('നീക്കുക: list items hidden, the added one deleted, back to prices, undo offered',
+    rm.yes.join() === 'false,,വിലയും ഫോട്ടോയും,false,false,false,["tomato","onion"],3 സാധനങ്ങൾ നീക്കി,0', rm.yes);
+  t.check('a removed item is gone from the shelf search', rm.shelf === false);
+  t.check('undo puts all three back', rm.undo.join() === 'true,true,കോവക്ക,[]', rm.undo);
+  t.check('Esc / Android back leaves remove mode before it closes the list', rm.cancel.join() === ',true,വിലയും ഫോട്ടോയും,true', rm.cancel);
+  t.check('the remove button and the rows are ≥48 px', rm.sizes.every(v => v >= 48), rm.sizes);
+  await t.reload(); await ready(t);
+  const rmKept = await t.evaluate(() => [byId.has('tomato'), localStorage.getItem('thraasu_hidden'), byId.has('uDROP000001')]);
+  t.check('a removed item stays off after a reload', rmKept.join() === 'false,["tomato"],true', rmKept);
+  await t.evaluate(() => { localStorage.removeItem('thraasu_hidden'); localStorage.removeItem('thraasu_items'); });   // the full list again for what follows
+  await t.reload(); await ready(t);
 
   // The logo goes home: out of a category and out of a search, back to the grid.
   const home = await t.evaluate(async () => {
@@ -760,7 +835,7 @@ export default async (t) => {
       const inside = el => { const b = el.getBoundingClientRect(); return b.top >= -0.5 && b.left >= -0.5 && b.bottom <= innerHeight + 0.5 && b.right <= innerWidth + 0.5; };
       const measure = async (name, dlg) => {
         await wait(320);
-        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button, .add-head button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
+        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button, .add-head button, .confirm-btns button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
         if (!inside(dlg)) bad.push(name);
         if (dlg.scrollWidth > dlg.clientWidth + 1 || document.documentElement.scrollWidth > innerWidth + 1) bad.push(name + ':wide');
         dlg.close(); await wait(50);
@@ -776,6 +851,8 @@ export default async (t) => {
       if (!kept.length) keep({ id: 'fit', no: 1, started: new Date().toISOString(), discount: 0, lines: [{ ml: 'ഉപ്പ്', qty: 1, unit: 'pc', rate: 2000 }] });
       openBills(); await measure('bills', billsEl);
       openBills(); showPast(kept[0].id); await measure('kept bill', billsEl);
+      openPrices(); pickMode(true); await measure('prices remove', pricesEl);
+      openPrices(); pickMode(true); picking.add(products[0].id); renderPick(); askDrop(); await measure('confirm', $('dropConfirm')); pricesEl.close();
       return bad;
     });
     t.check(`every sheet and its buttons fit a ${w}x${h} screen`, out.length === 0, out);

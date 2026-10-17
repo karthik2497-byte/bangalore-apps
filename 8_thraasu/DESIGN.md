@@ -208,7 +208,7 @@ Each category in `products.json` sets a `--tint` / `--tint-ink` pair through `da
 
 **The Brass Carries No Text Rule.** Brass (#B8862B) is for drawn metal. Any brass-coloured text, ring or outline uses brass-ink.
 
-**The Chilli Removes Rule.** Chilli appears only where something is taken off the bill or an entry is wrong. The spice category's red ink is a sack tint, not chilli.
+**The Chilli Removes Rule.** Chilli appears only where something is taken off the bill or the price list, or an entry is wrong. The spice category's red ink is a sack tint, not chilli.
 
 ## Typography
 
@@ -306,6 +306,8 @@ A product with no photo at all keeps its emoji, 46px, on the sack tint, with a c
 
 ### Price list ("വിലയും ഫോട്ടോയും", prices and photos)
 A tall sheet (same sheet shell, `min(92dvh, 820px)`): title and an "n/459 … ഫോട്ടോയിൽ തൊട്ടാൽ മാറ്റാം" line, the shelf search, then every product grouped under sticky category headings in the category's tint-ink. A row: 40px pan inside a 48px photo button with a small camera badge, Malayalam name (16px) over "മാതൃകാ വില" (brass, sample lists only) or "പട്ടിക ₹40" / "മാതൃക ₹40" (ink-2) once changed, then " · സ്റ്റോക്ക് 25 kg" (ink-2) for a counted item, a 72px rate input with its per-unit label, and a ↺ reset only on changed rows (no empty slot, so names keep the width). A shop price fills its input leaf-wash with a leaf edge. Saves on change; a non-price entry puts the old value back.
+
+No row has a remove control. A paper foot holds one quiet button, 🗑 സാധനങ്ങൾ നീക്കുക (hidden while a price is typed), which turns the list into remove mode: the title reads നീക്കേണ്ടവ തൊടുക with the count under it, each row becomes one toggle with a 30px tick circle where the price was (field edge; ticked: chilli fill, white tick, the row on chilli-wash), and the foot holds റദ്ദാക്കുക (ghost) beside a danger "2 എണ്ണം നീക്കുക". That opens a centred confirmation (slip white, 22px radius): the item's name or the count as title, the names as pan chips (six, then +N), what removal does, then വേണ്ട (ghost, focused) and നീക്കുക (danger). An undo toast follows.
 
 ### Keep-rate row
 In the quantity sheet, after the rate field is edited away from the shelf price: a 48px checkbox row in leaf-deep, "ഈ നിരക്ക് എന്റെ വിലയായി സൂക്ഷിക്കുക", checked by default.

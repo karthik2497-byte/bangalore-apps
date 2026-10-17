@@ -23,3 +23,6 @@ CREATE INDEX IF NOT EXISTS sales_at ON sales (shop, at);
 -- name, unique per shop so two phones adding the same name end with one item.
 CREATE TABLE IF NOT EXISTS items (shop TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, key TEXT NOT NULL, at INTEGER NOT NULL,
   PRIMARY KEY (shop, id), UNIQUE (shop, key));
+-- Items a shop took off its list on a phone (an item it added is deleted from items instead). The list
+-- itself is left alone, so a catalog re-import keeps them off; showing one again deletes its row.
+CREATE TABLE IF NOT EXISTS hidden (shop TEXT NOT NULL, id TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (shop, id));

@@ -279,6 +279,20 @@ await t('items: added on a phone, one per name; drop takes its price and photo a
   assert.deepEqual(Object.keys((await call('GET', 'items', { token })).data), ['uD4']);
 });
 
+await t('hidden: items a shop took off its list reach every phone; junk ignored; capped; per shop', async () => {
+  const token = (await call('POST', 'login', { body: { code: 'NANMA', pin: '482913' } })).data.token;
+  assert.deepEqual((await call('GET', 'state', { token })).data.hidden, []);
+  assert.equal((await call('POST', 'hidden', { token, body: { hide: ['tomato', 'onion', 'bad id!', 7], show: [] } })).status, 200);
+  await call('POST', 'hidden', { token, body: { hide: ['tomato'], show: ['onion', 'never'] } });   // again, and one back
+  assert.deepEqual((await call('GET', 'state', { token })).data.hidden, ['tomato']);
+  const other = (await call('POST', 'login', { body: { code: 'OTHER', pin: '1111' } })).data.token;
+  assert.deepEqual((await call('GET', 'state', { token: other })).data.hidden, [], "another shop's list is its own");
+  const many = Array.from({ length: 2000 }, (_, i) => 'h' + i);
+  assert.equal((await call('POST', 'hidden', { token, body: { hide: many } })).status, 413);
+  assert.deepEqual((await call('GET', 'state', { token })).data.hidden, ['tomato']);
+  assert.equal((await call('POST', 'hidden', { body: { hide: ['x'] } })).status, 401);
+});
+
 await t('unknown routes are a JSON 404', async () => {
   const fresh = (await call('POST', 'login', { body: { code: 'NANMA', pin: '482913' } })).data.token;
   assert.equal((await call('DELETE', 'state', { token: fresh })).status, 404);

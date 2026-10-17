@@ -148,7 +148,9 @@ function cleanBackup(raw) {
   const items = Object.create(null);
   if (raw.items && typeof raw.items === 'object' && !Array.isArray(raw.items))
     for (const [id, x] of Object.entries(raw.items)) { const c = /^[\w-]{1,40}$/.test(id) && cleanItem(x); if (c) items[id] = c; }
-  return { shop: typeof raw.shop === 'string' ? raw.shop.trim().slice(0, 60) : '', prices: cleanPrices(raw.prices), photos, items };
+  // ids of list items the shop took off its list
+  const hidden = Array.isArray(raw.hidden) ? [...new Set(raw.hidden.filter(id => typeof id === 'string' && /^[\w-]{1,40}$/.test(id)))].slice(0, 2000) : [];
+  return { shop: typeof raw.shop === 'string' ? raw.shop.trim().slice(0, 60) : '', prices: cleanPrices(raw.prices), photos, items, hidden };
 }
 
 // products.json is hand-edited: drop any row the bill maths cannot price.

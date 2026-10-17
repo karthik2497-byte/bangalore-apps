@@ -163,10 +163,11 @@ t('shop list: the prices Karthik confirmed are in, the rows held back are out', 
 t('backup file: only a Thraasu backup, only clean entries', () => {
   const jpg = 'data:image/jpeg;base64,/9j/4AAQ';
   const ok = cleanBackup({ app: 'thraasu', kind: 'backup', v: 1, shop: '  Nanma  ', prices: { P1: 5900, P2: 'x' },
-    photos: { P1: jpg, P2: 'https://evil.test/a.jpg', P3: 'data:image/svg+xml;base64,PHN2Zz4=', '../x': jpg, P4: 'data:image/jpeg;base64,' + 'A'.repeat(3e5) } });
-  assert.deepEqual(ok, { shop: 'Nanma', prices: { P1: 5900 }, photos: { P1: jpg }, items: {} });
+    photos: { P1: jpg, P2: 'https://evil.test/a.jpg', P3: 'data:image/svg+xml;base64,PHN2Zz4=', '../x': jpg, P4: 'data:image/jpeg;base64,' + 'A'.repeat(3e5) },
+    hidden: ['tomato', 'tomato', '../x', 7, 'onion'] });
+  assert.deepEqual(ok, { shop: 'Nanma', prices: { P1: 5900 }, photos: { P1: jpg }, items: {}, hidden: ['tomato', 'onion'] });
   for (const junk of [null, {}, { app: 'thraasu' }, { app: 'other', kind: 'backup' }, [], 'x']) assert.equal(cleanBackup(junk), null);
-  assert.deepEqual(cleanBackup({ app: 'thraasu', kind: 'backup', shop: 42, photos: [jpg] }), { shop: '', prices: {}, photos: {}, items: {} });
+  assert.deepEqual(cleanBackup({ app: 'thraasu', kind: 'backup', shop: 42, photos: [jpg], hidden: 'tomato' }), { shop: '', prices: {}, photos: {}, items: {}, hidden: [] });
 });
 
 t('every photo named is a safe path to a file that ships; every category has one', () => {

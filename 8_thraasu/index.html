@@ -514,8 +514,36 @@ button:disabled { cursor: default; }
 #addRate:focus { outline: none; border-bottom-color: var(--leaf); }
 #addUnit button { width: auto; min-width: 58px; height: 52px; padding: 0 12px; }
 .add .sheet-foot .primary { width: 100%; font-size: 17px; }
-.price .drop { width: 48px; color: var(--chilli); font-size: 17px; }
 .price .names small.added { color: var(--leaf-deep); font-weight: 560; }
+
+/* ---------- removing items: one button at the foot, a tick per row, one confirmation ---------- */
+.prices-foot { display: flex; justify-content: center; padding-top: 8px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+.prices:has(.price-in input:focus) .prices-foot { display: none; }   /* typing a price: the keyboard gets the room */
+.prices-foot .quiet { padding: 0 18px; }
+.pick-btns { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; width: 100%; }
+.price.pick-row { padding: 2px 0; }
+.pick {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 60px; padding: 4px 8px;
+  border: 0; border-radius: 12px; background: none; text-align: left;
+}
+.pick[aria-pressed="true"] { background: var(--chilli-wash); }
+.pick .names { flex: 1; }
+.tick { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border: 1.5px solid var(--field); border-radius: 50%; background: var(--slip); }
+.tick svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
+.pick[aria-pressed="true"] .tick { border-color: var(--chilli); background: var(--chilli); }
+.pick[aria-pressed="true"] .tick svg { visibility: visible; }
+.confirm {
+  width: min(calc(100% - 32px), 400px); max-width: none; margin: auto; padding: 22px 20px 16px;
+  border: 0; border-radius: 22px; background: var(--slip); color: var(--ink); box-shadow: 0 12px 40px rgba(60, 45, 15, .25);
+}
+.confirm::backdrop { background: rgba(28, 38, 32, .5); }
+.confirm h2 { font-size: 21px; font-weight: 720; line-height: 1.2; }
+.drop-names { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding: 0; list-style: none; }
+.drop-names li { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 4px; border-radius: 999px; background: var(--paper); font-weight: 640; }
+.drop-names .pan { width: 32px; height: 32px; font-size: 17px; }
+.drop-names li.more { padding: 0 14px; color: var(--ink-2); }
+.confirm p { margin-top: 14px; color: var(--ink-2); }
+.confirm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
 .prod.fresh { border-color: var(--leaf); outline: 2px solid var(--leaf); outline-offset: -2px; }
 
 /* ---------- toast ---------- */
@@ -696,6 +724,23 @@ button:disabled { cursor: default; }
     <input id="pq" type="search" placeholder="തിരയുക… thakkali" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
   </div>
   <ol class="price-list" id="priceList"></ol>
+  <div class="sheet-foot prices-foot" id="pricesFoot">
+    <button class="btn quiet" id="pickStart" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>സാധനങ്ങൾ നീക്കുക</button>
+    <div class="pick-btns" id="pickBtns" hidden>
+      <button class="btn ghost" id="pickCancel" type="button">റദ്ദാക്കുക</button>
+      <button class="btn danger" id="pickGo" type="button" disabled></button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="confirm" id="dropConfirm" aria-labelledby="dropTitle" aria-describedby="dropBody">
+  <h2 id="dropTitle"></h2>
+  <ul class="drop-names" id="dropNames"></ul>
+  <p id="dropBody"></p>
+  <div class="confirm-btns">
+    <button class="btn ghost" id="dropNo" type="button" autofocus>വേണ്ട</button>
+    <button class="btn danger" id="dropYes" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>നീക്കുക</button>
+  </div>
 </dialog>
 
 <dialog class="sheet prices" id="billsSheet" aria-labelledby="billsTitle">
@@ -808,6 +853,7 @@ const KEPT_KEY = 'thraasu_bills';      // the sold bills of today and yesterday,
 const SESSION_KEY = 'thraasu_session', OUTBOX_KEY = 'thraasu_outbox', SYNCED_KEY = 'thraasu_synced', CATALOG_KEY = 'thraasu_catalog';
 const SIGNUP_KEY = 'thraasu_signup';   // { code, name } of a shop asked for on this phone, until it logs in
 const ITEMS_KEY = 'thraasu_items';     // { id: item } the shop added on its phones (cleanItem in bill-core.js)
+const HIDDEN_KEY = 'thraasu_hidden';   // ids of list items the shop took off its list (one it added is deleted instead)
 // The monthly fee shown at sign-up, in rupees.
 // ponytail: a label only. Charging needs a payment step (manual UPI or Razorpay), built when this goes above 0.
 const MONTHLY_FEE = 0;
@@ -926,7 +972,7 @@ function buildProducts() {
     const i = all.findLastIndex(p => p && p.cat === x.cat);
     all.splice(i < 0 ? all.length : i + 1, 0, { ...x, id, added: true });
   }
-  products = validProducts({ categories: cats, products: all }).map(p => ({ ...p, base: Math.round(p.rate * 100) }));
+  products = validProducts({ categories: cats, products: all }).filter(p => !hidden.has(p.id)).map(p => ({ ...p, base: Math.round(p.rate * 100) }));
   byId = new Map(products.map(p => [p.id, p]));
   catById = new Map(cats.map(c => [c.id, c]));
   samplePrices = shopList.sample === true;
@@ -939,6 +985,7 @@ function buildProducts() {
 // rate they were billed at.
 // ponytail: one phone, no backup or sync. Add export/import when a shop changes phones.
 let mine = loadPrices();
+let picking = null;                  // the ids ticked while the price list is in remove mode, else null
 function loadPrices() { try { return cleanPrices(JSON.parse(localStorage.getItem(PRICES_KEY))); } catch { return cleanPrices(null); } }
 function applyPrices() {
   for (const p of products) { const own = Object.hasOwn(mine, p.id); p.mine = own || !!p.added; p.rate = own ? mine[p.id] : p.base; }
@@ -946,7 +993,7 @@ function applyPrices() {
   $('samplePill').hidden = !products.length;
   $('samplePill').classList.toggle('mine', !warn);
   $('pillText').textContent = !warn ? 'വിലകൾ' : n ? `സ്വന്തം വില ${n}/${products.length}` : 'മാതൃകാ വിലകൾ';
-  $('pricesSub').textContent = `${n}/${products.length} വില ഈ ഫോണിൽ മാറ്റി · ഫോട്ടോയിൽ തൊട്ടാൽ മാറ്റാം`;
+  if (!picking) $('pricesSub').textContent = `${n}/${products.length} വില ഈ ഫോണിൽ മാറ്റി · ഫോട്ടോയിൽ തൊട്ടാൽ മാറ്റാം`;
 }
 function setMine(p, paise) {         // the sample rate itself is not "mine", which keeps the count honest
   if (paise === p.base) delete mine[p.id]; else mine[p.id] = paise;
@@ -962,14 +1009,13 @@ const priceRow = p => `<li class="price${p.mine && !p.added ? ' mine' : ''}" dat
   `<button class="pan-btn" type="button" data-photo="${esc(p.id)}" aria-label="${esc(p.ml)}: ഫോട്ടോ ${srcOf(p) ? 'മാറ്റുക' : 'ചേർക്കുക'}">${pan(p)}${CAM}</button>` +
   `<span class="names"><b>${esc(p.ml)}</b>${priceNote(p) ? `<small${p.added ? ' class="added"' : !p.mine && samplePrices ? ' class="sample"' : ''}>${esc(priceNote(p))}</small>` : ''}</span>` +
   `<label class="price-in"><span class="vh">${esc(p.ml)} വില</span>₹<input inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${p.rate / 100}"><span>${esc(perUnit(p.unit))}</span></label>` +
-  (p.added ? `<button class="icon-btn drop" type="button" data-drop="${esc(p.id)}" aria-label="${esc(p.ml)}: നീക്കുക">✕</button>`
-    : p.mine ? `<button class="icon-btn reset" type="button" aria-label="${esc(p.ml)}: ${listWord()} വില ${esc(fmtMoney(p.base, true))}">↺</button>` : '') + '</li>';
+  (p.mine && !p.added ? `<button class="icon-btn reset" type="button" aria-label="${esc(p.ml)}: ${listWord()} വില ${esc(fmtMoney(p.base, true))}">↺</button>` : '') + '</li>';
 function renderPrices() {
   const q = $('pq').value.trim();
   let last = null;
   $('priceList').innerHTML = (q ? search(products, q) : products).map(p => {
     const head = !q && p.cat !== last ? `<li class="price-cat" data-cat="${esc(last = p.cat)}">${esc(catById.get(p.cat)?.ml || '')}</li>` : '';
-    return head + priceRow(p);
+    return head + (picking ? pickRow(p) : priceRow(p));
   }).join('') || '<li class="price-none">ഒന്നും കിട്ടിയില്ല</li>';
 }
 function openPrices() {
@@ -985,6 +1031,53 @@ function priceChanged(row, paise) {
   if (paise) setRate(p, paise);
   row.outerHTML = priceRow(byId.get(p.id) || p);        // also restores the old value when the entry was not a price
   renderShelf();
+}
+
+// ---------- removing items: tick them in the price list, one button, one confirmation ----------
+// No ✕ on any row. An item the shop added is deleted; any other is hidden (thraasu_hidden, and D1 hidden
+// for every phone of a shop), so a catalog re-import keeps it off. Bills keep their own lines.
+const TRASH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+const TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+const things = n => `${n} ${n === 1 ? 'സാധനം' : 'സാധനങ്ങൾ'}`;
+const pickRow = p => `<li class="price pick-row" data-cat="${esc(p.cat)}"><button class="pick" type="button" data-pick="${esc(p.id)}" aria-pressed="${picking.has(p.id)}">${pan(p)}` +
+  `<span class="names"><b>${esc(p.ml)}</b><small>${esc([rateLabel(p.rate, p.unit), stockText(p)].filter(Boolean).join(' · '))}</small></span><span class="tick">${TICK}</span></button></li>`;
+function pickMode(on) {
+  picking = on ? new Set() : null;
+  $('pricesTitle').textContent = on ? 'നീക്കേണ്ടവ തൊടുക' : 'വിലയും ഫോട്ടോയും';
+  $('pickStart').hidden = on; $('pickBtns').hidden = !on;
+  renderPrices();
+  if (on) renderPick(); else applyPrices();
+}
+function renderPick() {
+  const n = picking.size;
+  $('pricesSub').textContent = n ? `${n} എണ്ണം തിരഞ്ഞെടുത്തു` : 'ഒന്നും തിരഞ്ഞെടുത്തിട്ടില്ല';
+  $('pickGo').disabled = !n;
+  $('pickGo').innerHTML = TRASH + (n ? `${n} എണ്ണം നീക്കുക` : 'നീക്കുക');   // short: one line at 320 px
+}
+function askDrop() {
+  const ps = [...picking].map(id => byId.get(id)).filter(Boolean);
+  if (!ps.length) return;
+  $('dropTitle').textContent = `${ps.length === 1 ? ps[0].ml : things(ps.length)} നീക്കണോ?`;
+  $('dropNames').innerHTML = ps.slice(0, 6).map(p => `<li>${pan(p)}${esc(p.ml)}</li>`).join('') + (ps.length > 6 ? `<li class="more">+${ps.length - 6}</li>` : '');
+  $('dropBody').textContent = `ഷെൽഫിലും തിരച്ചിലിലും വിലപ്പട്ടികയിലും ഇനി കാണില്ല. ${account ? 'കടയിലെ എല്ലാ ഫോണിൽ നിന്നും' : 'ഈ ഫോണിൽ നിന്ന്'} മാറും. ഇതുവരെയുള്ള ബില്ലുകളെ ബാധിക്കില്ല.`;
+  $('dropConfirm').showModal();
+}
+function dropItems(ids) {
+  const added = {}, listed = [];
+  for (const id of ids) if (shopItems[id]) added[id] = shopItems[id]; else if (byId.has(id)) listed.push(id);
+  const put = back => {                                  // back: the toast's undo puts everything back
+    for (const [id, x] of Object.entries(added)) {
+      if (back) { shopItems[id] = x; queue('item', id, x); if (photos.has(id)) queue('photo', id); }   // the server dropped its photo with it
+      else { delete shopItems[id]; queue('item', id, null); }
+    }
+    for (const id of listed) { if (back) hidden.delete(id); else hidden.add(id); queue('hide', id, !back); }
+    writeJSON(ITEMS_KEY, shopItems); writeJSON(HIDDEN_KEY, [...hidden]);
+    buildProducts(); renderShelf(); if (pricesEl.open) renderPrices();
+  };
+  const names = [...Object.values(added).map(x => x.ml), ...listed.map(id => byId.get(id).ml)];
+  put(false);
+  undo = () => put(true);
+  toast(`${names.length === 1 ? names[0] : things(names.length)} നീക്കി`);
 }
 
 // ---------- the shop's own photos ----------
@@ -1040,12 +1133,14 @@ async function setPhoto(id, file) {
 // ponytail: two phones changing the same price offline: whichever syncs last wins.
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 const writeJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {}, items: {} });
+const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {}, items: {}, hide: {} });
 let account = readJSON(SESSION_KEY);                 // { token, code, name } once logged in
 let signingUp = false;                               // the sign-up form is showing in the shop sheet
 let outbox = { ...freshOutbox(), ...readJSON(OUTBOX_KEY) };
 let synced = readJSON(SYNCED_KEY) || { at: 0, photos: {} };   // when, and the server time of each photo we hold
 let shopItems = loadItems();
+let hidden = new Set(loadHidden());
+function loadHidden() { const raw = readJSON(HIDDEN_KEY); return Array.isArray(raw) ? raw.filter(id => typeof id === 'string' && /^[\w-]{1,40}$/.test(id)) : []; }
 function loadItems() {
   const raw = readJSON(ITEMS_KEY), out = {};
   if (raw && typeof raw === 'object') for (const [id, x] of Object.entries(raw)) { const c = cleanItem(x); if (c) out[id] = c; }
@@ -1059,7 +1154,7 @@ function setItem(id, item) {
   buildProducts(); renderShelf();
 }
 let syncing = null, syncError = '', syncTimer = 0;
-const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length + Object.keys(outbox.items).length;
+const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length + Object.keys(outbox.items).length + Object.keys(outbox.hide).length;
 // Stock on hand: the shop's count at the last sync, less this phone's bills not sent yet. null: not counted.
 function stockLeft(id) {
   if (!synced.stock || !Object.hasOwn(synced.stock, id)) return null;
@@ -1101,6 +1196,7 @@ function queue(kind, id, value) {
   if (kind === 'name') outbox.name = id;
   if (kind === 'sale') outbox.sales[id] = value;
   if (kind === 'item') outbox.items[id] = value;
+  if (kind === 'hide') outbox.hide[id] = value;   // true: off the list; false: back on it
   writeJSON(OUTBOX_KEY, outbox);
   renderSync();
   clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500);
@@ -1133,6 +1229,13 @@ function sync() {
           delete shopItems[id]; writeJSON(ITEMS_KEY, shopItems); itemsChanged = true;
           if (x) toast(`${x.ml} ഇതിനകം ഉണ്ട്`);
         }
+      }
+      const sentHide = { ...outbox.hide }, hideIds = on => Object.keys(sentHide).filter(id => sentHide[id] === on);
+      if (Object.keys(sentHide).length) {
+        const r = await api('hidden', { method: 'POST', body: JSON.stringify({ hide: hideIds(true), show: hideIds(false) }) });
+        if (!r.ok) throw new Error(r.status);
+        for (const id in sentHide) if (outbox.hide[id] === sentHide[id]) delete outbox.hide[id];
+        writeJSON(OUTBOX_KEY, outbox);
       }
       for (const id of [...outbox.photos]) {
         if (photos.has(id)) {
@@ -1172,6 +1275,13 @@ function sync() {
         for (const [id, x] of Object.entries(outbox.items)) if (x) shopItems[id] = x; else delete shopItems[id];   // not sent yet
         writeJSON(ITEMS_KEY, shopItems); itemsChanged = true;
       }
+      if (Array.isArray(st.hidden)) {                    // items taken off the list on any phone of the shop
+        const was = [...hidden].sort().join();
+        hidden = new Set(st.hidden);
+        for (const [id, on] of Object.entries(outbox.hide)) on ? hidden.add(id) : hidden.delete(id);   // not sent yet
+        writeJSON(HIDDEN_KEY, [...hidden]);
+        if ([...hidden].sort().join() !== was) itemsChanged = true;
+      }
       const want = Object.keys(st.photos).filter(id => !(synced.photos[id] >= st.photos[id]) && !outbox.photos.includes(id));
       for (let i = 0; i < want.length; i += 30) {
         const g = await api('photos?ids=' + want.slice(i, i + 30).join(','));
@@ -1210,6 +1320,7 @@ async function login(code, pin) {
   for (const [id, v] of Object.entries(mine)) queue('price', id, v);
   for (const id of photos.keys()) queue('photo', id);
   for (const [id, x] of Object.entries(shopItems)) queue('item', id, x);
+  for (const id of hidden) queue('hide', id, true);
   await loadCatalog();
   await sync();
   return '';
@@ -1248,6 +1359,7 @@ function signOut(wipe) {
     mine = cleanPrices(null); writeJSON(PRICES_KEY, null);
     photos.clear(); idb('readwrite', st => st.clear()).catch(() => {});
     shopItems = {}; writeJSON(ITEMS_KEY, null);
+    hidden = new Set(); writeJSON(HIDDEN_KEY, null);
   }
   loadCatalog(); renderBill(); renderSync();
 }
@@ -1273,7 +1385,7 @@ function renderSync() {
 // ---------- backup file: prices, photos and the shop name, to keep anywhere ----------
 function backupFile() {
   const body = JSON.stringify({ app: 'thraasu', kind: 'backup', v: 1, at: new Date().toISOString(),
-    shop: $('shopName').value.trim(), prices: mine, photos: Object.fromEntries(photos), items: shopItems });
+    shop: $('shopName').value.trim(), prices: mine, photos: Object.fromEntries(photos), items: shopItems, hidden: [...hidden] });
   return new File([body], `thraasu-backup-${new Date().toISOString().slice(0, 10)}.json`, { type: 'application/json' });
 }
 function saveBackup() {                                  // synchronous to the tap, so the share keeps its activation
@@ -1303,6 +1415,8 @@ async function restoreBackup(text) {
   let got = 0;                                           // an item whose name the list has meanwhile stays out
   for (const [id, x] of Object.entries(b.items)) if (!shopItems[id] && !sameName(products, x.ml)) { shopItems[id] = x; queue('item', id, x); got++; }
   writeJSON(ITEMS_KEY, shopItems);
+  for (const id of b.hidden) if (!hidden.has(id)) { hidden.add(id); queue('hide', id, true); }
+  writeJSON(HIDDEN_KEY, [...hidden]);
   if (shopList) buildProducts();
   for (const [id, url] of Object.entries(b.photos)) {
     try { await idb('readwrite', st => st.put(url, id)); } catch { continue; }
@@ -1719,15 +1833,6 @@ function saveAdd() {
   undo = () => setItem(id, null);
   toast(`${item.ml} ചേർത്തു`);
 }
-// Only an item the shop added can be removed; bills keep their own copy of every line.
-function removeItem(id) {
-  const x = shopItems[id];
-  if (!x) return;
-  setItem(id, null);
-  if (pricesEl.open) renderPrices();
-  undo = () => { setItem(id, x); if (photos.has(id)) queue('photo', id); if (pricesEl.open) renderPrices(); };
-  toast(`${x.ml} നീക്കി`);
-}
 
 // ---------- toast with undo ----------
 function toast(msg) {
@@ -1867,6 +1972,19 @@ addEl.addEventListener('click', e => { if (e.target === addEl) addEl.close(); })
 
 $('pricesClose').addEventListener('click', () => pricesEl.close());
 pricesEl.addEventListener('click', e => { if (e.target === pricesEl) pricesEl.close(); });
+pricesEl.addEventListener('cancel', e => { if (picking) { e.preventDefault(); pickMode(false); } });   // Esc or Android back: out of remove mode first
+pricesEl.addEventListener('close', () => { if (picking) pickMode(false); });
+$('pickStart').addEventListener('click', () => pickMode(true));
+$('pickCancel').addEventListener('click', () => pickMode(false));
+$('pickGo').addEventListener('click', askDrop);
+$('dropNo').addEventListener('click', () => $('dropConfirm').close());
+$('dropConfirm').addEventListener('click', e => { if (e.target === $('dropConfirm')) $('dropConfirm').close(); });
+$('dropYes').addEventListener('click', () => {
+  const ids = [...picking];
+  $('dropConfirm').close();
+  dropItems(ids);
+  pickMode(false);
+});
 $('pq').addEventListener('input', renderPrices);
 $('priceList').addEventListener('change', e => {
   const row = e.target.closest('.price');
@@ -1874,10 +1992,15 @@ $('priceList').addEventListener('change', e => {
 });
 $('priceList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input')) e.target.blur(); });
 $('priceList').addEventListener('click', e => {
+  const pk = e.target.closest('[data-pick]');
+  if (pk) {
+    const id = pk.dataset.pick;
+    if (picking.has(id)) picking.delete(id); else picking.add(id);
+    pk.setAttribute('aria-pressed', picking.has(id));
+    return renderPick();
+  }
   const cam = e.target.closest('[data-photo]');
   if (cam) return pickPhoto(cam.dataset.photo);
-  const d = e.target.closest('[data-drop]');
-  if (d) return removeItem(d.dataset.drop);
   const b = e.target.closest('button.reset');
   if (!b) return;
   const row = b.closest('.price'), p = byId.get(row.dataset.pid);
@@ -1949,6 +2072,7 @@ addEventListener('popstate', () => {
   if (pricesEl.open) pricesEl.close();
   if (shopEl.open) shopEl.close();
   if (billsEl.open) billsEl.close();
+  if ($('dropConfirm').open) $('dropConfirm').close();
   cat = s.cat || null;
   showBill(s.layer === 'bill');
   renderShelf();
@@ -1959,6 +2083,7 @@ addEventListener('storage', e => {
   if (e.key === BILL_KEY) { bill = loadBill(); renderBill(); renderShelf(); }
   if (e.key === PRICES_KEY) { mine = loadPrices(); applyPrices(); renderShelf(); if (pricesEl.open) renderPrices(); }
   if (e.key === ITEMS_KEY && shopList) { shopItems = loadItems(); buildProducts(); renderShelf(); if (pricesEl.open) renderPrices(); }
+  if (e.key === HIDDEN_KEY && shopList) { hidden = new Set(loadHidden()); buildProducts(); renderShelf(); if (pricesEl.open) renderPrices(); }
 });
 
 // ---------- start ----------

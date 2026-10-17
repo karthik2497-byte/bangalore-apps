@@ -44,6 +44,8 @@ phone can already reach.
   It goes in steps so nothing scrolls above a keyboard: the name (letters), the category (only from
   search; taps), the price (number pad). From a category it is name, Enter, price, Enter.
   Added items live beside the list (`thraasu_items`, D1 `items`) and join the end of their category.
+- Any item can be taken off the price list (remove mode: tick, one confirmation, undo). A list item is
+  hidden (`thraasu_hidden`, D1 `hidden`, on every phone of the shop); an added one is deleted.
 - localStorage keys prefixed `thraasu_`; Cache Storage prefixed `thraasu-` (shared origin).
 
 ## Brand Commitments

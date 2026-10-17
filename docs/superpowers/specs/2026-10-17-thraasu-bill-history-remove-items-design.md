@@ -39,7 +39,7 @@ Design canvas: https://claude.ai/artifact/Y86cJdu28pyaeHgdNTM7kr
 - **Remove mode:** the title reads നീക്കേണ്ടവ തൊടുക with "2 എണ്ണം തിരഞ്ഞെടുത്തു" under it. Each row becomes
   one toggle (`aria-pressed`): pan, name, its price and stock, a tick circle where the price box was; ticked
   rows turn chilli-wash with a filled chilli tick. Search still filters, and ticks survive it. The foot:
-  റദ്ദാക്കുക and a danger "2 സാധനങ്ങൾ നീക്കുക" (off at none).
+  റദ്ദാക്കുക and a danger "2 എണ്ണം നീക്കുക" (off at none; short enough for one line at 320 px).
 - **Confirmation:** a small centred dialog: "2 സാധനങ്ങൾ നീക്കണോ?", the names as chips (up to 6, then
   "+N"), "ഷെൽഫിലും തിരച്ചിലിലും വിലപ്പട്ടികയിലും ഇനി കാണില്ല. കടയിലെ എല്ലാ ഫോണിൽ നിന്നും മാറും (or ഈ
   ഫോണിൽ നിന്ന് മാറും, logged out). ഇതുവരെയുള്ള ബില്ലുകളെ ബാധിക്കില്ല.", വേണ്ട and നീക്കുക.
