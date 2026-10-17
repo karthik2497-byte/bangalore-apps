@@ -24,8 +24,8 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 **fixed permanently at first Play publish** — get them right before submitting.
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
-      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-11,
-      after the Thraasu add-in-steps deploy (`main` at `8d1466e`): PASS — 8 apps, CSPs applied,
+      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-17,
+      after the Thraasu bills and remove-items deploy (`main` at `c6fcf2c`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
@@ -97,9 +97,14 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       category's head row or in an empty search; a name the list already has is refused (spelling forgiven),
       similar ones are only shown. Since 2026-10-17 (`5e06726`) it goes in steps so nothing scrolls above a
       keyboard: name (letters), category (only from search; taps), price (number pad). Added items sync to all the shop's phones (D1 `items`, one per name, 1000
-      cap), survive a `catalog` re-import, and are removed from the price list (✕, undo). `shop-admin.mjs list`
+      cap) and survive a `catalog` re-import. `shop-admin.mjs list`
       counts them (`added`); folding them into the shop's sheet is still by hand. Not built: renaming (remove
       and add again), new categories, a stock count at add.
+      **Any item comes off the price list** (live 2026-10-17, `3f2c801`, option A on
+      https://claude.ai/artifact/Y86cJdu28pyaeHgdNTM7kr): no ✕ on rows; the foot's സാധനങ്ങൾ നീക്കുക turns prices
+      into ticks, one confirmation, undo. An added item is deleted; a list item is hidden (`thraasu_hidden`,
+      D1 `hidden`: every phone of the shop, and a `catalog` re-import keeps it off). Not built: a list of
+      removed items to put back (undo only; deleting its D1 `hidden` row brings one back).
       Open: a shop must log in once on each phone.
 - [ ] **Thraasu stock goes down as bills are sold (live 2026-10-10, `1561c60`).** A bill counts once
       printed, shared or closed (പുതിയ ബിൽ); later edits move stock by the difference. Counts show in
@@ -107,6 +112,10 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       NANMA 8_thraasu/tools/catalogs/NANMA.json`; re-running it is a stocktake that replaces all).
       Open: restocking from the phone; loose vegetables/bananas have no count in the sheet. **No
       Nanma phone had logged in as of the deploy** (0 sessions), so nothing at the shop syncs yet.
+- [ ] **Thraasu keeps each phone's bills of today and yesterday** (live 2026-10-17, `0a6dc51`): 12-hour time
+      (`17 Oct 2026 · 2:16 PM`), numbers from 0001 each morning, ബില്ലുകൾ in the bill head (or an empty bill's
+      bar) to see them by day and print or share one again. Not synced: a shop with two phones sees each
+      phone's own bills; syncing them needs the server to keep whole bills, not only stock counts.
 - [ ] **Thraasu carries Nanma Store's real list**: 433 items (template public, real list on the server). **27 sheet rows
       are held back until the shop clarifies them**, each with its sheet row and reason in
       **`8_thraasu/NANMA-IMPORT-NOTES.md`**: all UK/Hyza coconut oil and Milma ghee rows (prices
@@ -130,7 +139,7 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       no Kannada TTS at all — but not accent. A native speaker should review all 108
       phrases (is ನೇರೆ ಹೋಗಿ idiomatic?) and re-record; replacements are a drop-in under
       the same filenames, then re-run the tool for the manifest.
-- [ ] **Thraasu Malayalam is unreviewed.** The add-item copy (2026-10-11, steps 2026-10-17) is listed in its spec. The UI copy and the 459 product names (Nanma Store) were written
+- [ ] **Thraasu Malayalam is unreviewed.** The add-item copy (2026-10-11, steps 2026-10-17) and the bills sheet and remove-mode copy (2026-10-17) are listed in their specs. The UI copy and the 459 product names (Nanma Store) were written
       by the build agent. A native speaker should read every label in `8_thraasu/index.html`
       and every `ml` field in `products.json`. Thraasu also needs a `privacy.html` before Play.
 - [ ] **CardGuard Play Billing**: create the `cardguard_premium_yearly` product in
@@ -168,6 +177,11 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 - [ ] **LingoLocal `clip.play()` under a real user gesture** — not verifiable in
       automation (the tab stays `visibilityState: hidden` and Chrome blocks media
       there). Decode is proven end to end; one tap on a real device closes it.
+- [ ] **Home-screen launch fix on a real phone** (2026-10-17, all 8 apps): a phone that installed an app before
+      the fix still runs the old worker for one launch, which can fail once; one refresh installs the fix, and from
+      then on the icon should open first time. Confirm on Karthik's iPhone and one Android phone.
+- [ ] **Thraasu bills sheet and remove mode on a real phone** (2026-10-17): ബില്ലുകൾ, a kept bill's print and
+      share, and ticking items in the price list one-handed; proven in headless Chrome only.
 - [ ] **Thraasu sheets with a real keyboard** (2026-10-11, `966fa2b`; add in steps 2026-10-17, `5e06726`): sheets
       fit above the keyboard via `visualViewport`, proven in a Chrome simulation only. Once on an iPhone and once
       on an Android phone, add an item from a category: the name step shows the title, name box and Next above
