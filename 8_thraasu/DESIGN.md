@@ -318,6 +318,14 @@ A native `<dialog>`; no drag grip. Header: the brass balance drawing beside the 
 
 **The One Settle Rule.** The beam settle (760ms: dip to -7deg, swing past level to 3.2deg, rest) is the single authored motion moment, replayed each time the valid quantity changes. Everything else is functional feedback: press scale, bar bump, sheet rise (260ms), bill slide (280ms), toast. All share `--ease` and collapse under `prefers-reduced-motion`.
 
+### Add sheet ("പുതിയ സാധനം")
+A native `<dialog>` in steps, one job each, so nothing scrolls in the strip a keyboard leaves. Head: back (from step 2), the step title in display type, close.
+- **Name (letter keyboard):** a 58px field. Matches show as compact rows (52px, 36px pan). A same name gets a chilli field, a chilli hint and the match on a chilli wash. A new name gets a leaf tick line.
+- **Category (no keyboard, from search only):** two columns of tiles in each category's tint; a tap moves on.
+- **Price (number pad):** the category as a tinted pill with a pencil, a 48px amount over a field-coloured underline that turns leaf on focus, and the unit toggle under it.
+
+The footer's full-width primary reads അടുത്തത് (with a chevron), then പട്ടികയിൽ ചേർക്കുക.
+
 ### Toast
 Ink pill-ish bar above the bill bar with a brass-gold undo action, sliding up 16px.
 

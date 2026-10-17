@@ -5,6 +5,12 @@ const SAMPLE = readFileSync(new URL('../fixtures/thraasu-sample.json', import.me
 const narrow = t => t.send('Emulation.setDeviceMetricsOverride', { width: 412, height: 915, deviceScaleFactor: 2, mobile: true });
 const wideView = t => t.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
 const ready = t => t.evaluate(async () => { for (let i = 0; i < 50 && !document.querySelector('.cat'); i++) await new Promise(r => setTimeout(r, 100)); });
+// A trusted Enter key, as the phone keyboard sends it: a synthetic keydown never submits a form.
+const enter = async t => {
+  await t.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r' });
+  await t.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+  await t.sleep(50);
+};
 
 export default async (t) => {
   await t.send('Emulation.setFocusEmulationEnabled', { enabled: true });   // headless has no window focus: no focus events without this
@@ -308,31 +314,67 @@ export default async (t) => {
   t.check('a rate typed in the sheet can be kept as the shop price', pr.keep0 && pr.keep1 && pr.kept.join() === '5200,5200,false', pr);
   t.check('receipt says sample prices only while a billed line used one', pr.metaMixed === 2 && pr.metaOwn === 1, pr);
 
-  // Adding an item: the category's add button and an empty search open one sheet; a name the list
-  // has is refused, similar ones are only shown; a new item joins the end of its category, the
-  // Malayalam name shows large, it survives a reload, and the price list removes it (with undo).
-  const ad = await t.evaluate(async () => {
+  // Adding an item, one job per step: the name (letter keyboard), the category (only from search), the
+  // price (number pad). A name the list has is refused and similar ones only shown; from a category the
+  // keyboard's Enter goes from the name straight to the price, and Enter there adds. The new item joins
+  // the end of its category, the Malayalam name shows large, it survives a reload, and the price list
+  // removes it (with undo).
+  const ad1 = await t.evaluate(() => {
     const $ = id => document.getElementById(id);
     const type = (id, v) => { $(id).value = v; $(id).dispatchEvent(new Event('input', { bubbles: true })); };
+    const shown = () => ['Name', 'Cat', 'Price'].filter(s => !$('addStep' + s).hidden).join();
     const r = {};
     bill = freshBill(1); saveBill(); renderBill(); hideToast();
     $('q').value = ''; cat = null; renderShelf();
     openCat('veg');
     r.head = [document.querySelector('.cat-head h2')?.textContent, Math.round($('addHere').getBoundingClientRect().height)];
     $('addHere').click();
-    r.open = [addEl.open, document.activeElement === $('addName'), document.querySelector('#addCats [aria-pressed="true"]')?.dataset.cat, adding.unit, $('addSave').disabled, $('addDetails').hidden];
+    r.open = [addEl.open, document.activeElement === $('addName'), shown(), adding.cat, adding.unit, $('addSave').disabled, $('addSave').textContent, $('addBack').hidden];
     type('addName', 'Thakkali');
-    r.same = [$('addHint').hidden, $('addDetails').hidden, [...$('foundList').children].map(b => b.dataset.open + (b.classList.contains('same') ? '!' : '')).join(), $('addSave').disabled, $('foundHead').textContent];
+    r.same = [$('addHint').hidden, $('addOk').hidden, [...$('foundList').children].map(b => b.dataset.open + (b.classList.contains('same') ? '!' : '')).join(), $('addSave').disabled, $('foundHead').textContent];
+    $('addForm').requestSubmit();
+    r.stuck = shown();
     $('foundList').querySelector('[data-open="tomato"]').click();
     r.opened = [addEl.open, $('sheet').open, $('sheetName').textContent];
     $('sheet').close();
     $('addHere').click();
     type('addName', 'tomato sauce');
-    r.similar = [$('addHint').hidden, $('foundList').firstElementChild?.dataset.open, $('addDetails').hidden, $('addSave').disabled];
-    document.querySelector('#addUnit [data-unit="pc"]').click();
+    r.similar = [$('addHint').hidden, $('addOk').hidden, $('foundList').children.length, $('foundList').firstElementChild?.dataset.open, $('addSave').disabled];
+    $('addName').focus();
+    return r;
+  });
+  t.check('a category shows its count and a 48 px add button above the grid', ad1.head.join() === '16 ഇനങ്ങൾ,48' || (ad1.head[0] === '16 ഇനങ്ങൾ' && ad1.head[1] >= 48), ad1.head);
+  t.check('the add sheet opens on the name step, focused, with the category and its usual unit picked', ad1.open.join() === 'true,true,Name,veg,kg,true,അടുത്തത്,true', ad1.open);
+  t.check('a name the list has is refused and offered instead (Thakkali = tomato); Next goes nowhere', ad1.same.join('|') === 'false|true|tomato!|true|ഇതേ പേര്' && ad1.stuck === 'Name', [ad1.same, ad1.stuck]);
+  t.check('tapping the offered item opens its quantity sheet', ad1.opened.join() === 'false,true,തക്കാളി', ad1.opened);
+  t.check('a similar name is shown (3 at most) with a tick, and does not block', ad1.similar[0] === true && ad1.similar[1] === false && ad1.similar[2] >= 1 && ad1.similar[2] <= 3 && ad1.similar[3] === 'tomato' && ad1.similar[4] === false, ad1.similar);
+  await enter(t);   // the keyboard's Enter on the name: the category is known, so on to the price
+  const ad2 = await t.evaluate(() => {
+    const $ = id => document.getElementById(id);
+    const type = (id, v) => { $(id).value = v; $(id).dispatchEvent(new Event('input', { bubbles: true })); };
+    const shown = () => ['Name', 'Cat', 'Price'].filter(s => !$('addStep' + s).hidden).join();
+    const r = {};
+    r.price = [shown(), document.activeElement === $('addRate'), $('addTitle').textContent, $('addCatNow').dataset.cat, $('addSave').textContent, $('addSave').disabled, $('addBack').hidden];
+    const pc = document.querySelector('#addUnit [data-unit="pc"]'), md = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+    pc.dispatchEvent(md); pc.click();
     type('addRate', '30');
-    r.ready = [$('addSave').disabled, $('addPer').textContent];
-    $('addSave').click();
+    r.ready = [md.defaultPrevented, document.activeElement === $('addRate'), $('addSave').disabled, $('addPer').textContent];
+    $('addBack').click();
+    r.back = [shown(), document.activeElement === $('addName'), $('addName').value];
+    $('addForm').requestSubmit();
+    r.forward = [shown(), $('addRate').value, adding.unit];
+    $('addRate').focus();
+    return r;
+  });
+  t.check("the keyboard's Enter on the name goes straight to the price, on the number pad", ad2.price.join() === 'Price,true,tomato sauce,veg,പട്ടികയിൽ ചേർക്കുക,true,false', ad2.price);
+  t.check('a unit tap keeps the focus on the price; with a price Add is on', ad2.ready.join() === 'true,true,false,ഒന്നിന്', ad2.ready);
+  t.check('back returns to the name; Next keeps the price and unit', ad2.back.join() === 'Name,true,tomato sauce' && ad2.forward.join() === 'Price,30,pc', [ad2.back, ad2.forward]);
+  await enter(t);   // Enter on the price adds
+  const ad = await t.evaluate(() => {
+    const $ = id => document.getElementById(id);
+    const type = (id, v) => { $(id).value = v; $(id).dispatchEvent(new Event('input', { bubbles: true })); };
+    const shown = () => ['Name', 'Cat', 'Price'].filter(s => !$('addStep' + s).hidden).join();
+    const r = {};
     const id = Object.keys(shopItems)[0], x = shopItems[id] || {};
     r.saved = [addEl.open, /^u[A-Za-z0-9]{10}$/.test(id), [x.cat, x.ml, x.unit, x.rate].join(), $('toastMsg').textContent];
     const tile = document.querySelector(`.prod[data-pid="${id}"]`);
@@ -341,15 +383,28 @@ export default async (t) => {
     r.undone = [Object.keys(shopItems).length, !!document.querySelector(`.prod[data-pid="${id}"]`)];
     $('q').value = 'qwxy'; renderShelf();
     $('addFound').click();
-    r.fromSearch = [$('addName').value, !!document.querySelector('#addCats [aria-pressed="true"]'), adding.unit];
-    type('addName', 'Tomato sauce'); type('addEn', 'ടൊമാറ്റോ സോസ്'); type('addRate', '45');
-    r.noCat = $('addSave').disabled;
-    document.querySelector('#addCats [data-cat="veg"]').click();
-    r.withCat = [$('addSave').disabled, adding.unit];
+    r.fromSearch = [$('addName').value, adding.cat, shown()];
+    type('addName', 'Tomato sauce');
+    $('addEnOpen').click();
+    r.enOpen = [$('addEnField').hidden, $('addEnOpen').hidden, document.activeElement === $('addEn')];
+    type('addEn', 'ടൊമാറ്റോ സോസ്');
+    $('addForm').requestSubmit();
+    r.cat = [shown(), document.activeElement === $('addTitle'), $('addTitle').textContent, $('addSub').textContent, $('addCats').children.length === cats.length, !!$('addCats').querySelector('[aria-pressed="true"]'), $('addFoot').hidden];
+    $('addCats').querySelector('[data-cat="veg"]').click();
+    r.picked = [shown(), document.activeElement === $('addRate'), adding.cat, adding.unit, $('addTitle').textContent];
+    $('addCatNow').click();
+    r.change = [shown(), $('addCats').querySelector('[aria-pressed="true"]')?.dataset.cat];
+    $('addCats').querySelector('[data-cat="fruit"]').click();
+    r.changed = [shown(), adding.cat, adding.steps.join()];
+    const esc = new Event('cancel', { cancelable: true });
+    addEl.dispatchEvent(esc);
+    r.escBack = [esc.defaultPrevented, addEl.open, shown()];
+    $('addCats').querySelector('[data-cat="veg"]').click();
     document.querySelector('#addUnit [data-unit="pc"]').click();
+    type('addRate', '45');
     $('addSave').click();
     const id2 = Object.keys(shopItems)[0];
-    r.ml = [shopItems[id2]?.ml, shopItems[id2]?.en, $('q').value, !!document.querySelector(`#shelf .row[data-pid="${id2}"]`)];
+    r.ml = [shopItems[id2]?.ml, shopItems[id2]?.en, shopItems[id2]?.cat, $('q').value, !!document.querySelector(`#shelf .row[data-pid="${id2}"]`)];
     $('q').value = ''; renderShelf(); openCat('veg');
     $('addHere').click(); type('addName', 'tomatosauce');
     r.again = [$('addHint').hidden, $('addSave').disabled];
@@ -366,18 +421,16 @@ export default async (t) => {
     pricesEl.close(); hideToast();
     return { ...r, id2 };
   });
-  t.check('a category shows its count and a 48 px add button above the grid', ad.head.join() === '16 ഇനങ്ങൾ,48' || (ad.head[0] === '16 ഇനങ്ങൾ' && ad.head[1] >= 48), ad.head);
-  t.check('the add sheet opens on the name, with the category and its usual unit picked', ad.open.join() === 'true,true,veg,kg,true,true', ad.open);
-  t.check('a name the list has is refused and offered instead (Thakkali = tomato)', ad.same.join('|') === 'false|true|tomato!|true|ഇതേ പേര്', ad.same);
-  t.check('tapping the offered item opens its quantity sheet', ad.opened.join() === 'false,true,തക്കാളി', ad.opened);
-  t.check('a similar name is shown but does not block', ad.similar.join() === 'true,tomato,false,true', ad.similar);
-  t.check('with unit and price set, Add is on', ad.ready.join() === 'false,ഒന്നിന്', ad.ready);
-  t.check('saved: a new u-id item, toast says so', ad.saved.join('|') === 'false|true|veg,tomato sauce,pc,30|tomato sauce ചേർത്തു', ad.saved);
+  t.check('Enter on the price saves: a new u-id item, toast says so', ad.saved.join('|') === 'false|true|veg,tomato sauce,pc,30|tomato sauce ചേർത്തു', ad.saved);
   t.check('the new tile ends its category, outlined, and the count goes up', ad.tile.join() === 'true,true,true,17 ഇനങ്ങൾ', ad.tile);
   t.check('undo on the toast takes the new item away', ad.undone.join() === '0,false', ad.undone);
-  t.check('an empty search offers the add with the typed name and no category', ad.fromSearch.join() === 'qwxy,false,', ad.fromSearch);
-  t.check('Add waits for a category; picking one sets its usual unit', ad.noCat && ad.withCat.join() === 'false,kg', [ad.noCat, ad.withCat]);
-  t.check('the Malayalam name shows large; from search the new item is the result', ad.ml.join() === 'ടൊമാറ്റോ സോസ്,Tomato sauce,ടൊമാറ്റോ സോസ്,true', ad.ml);
+  t.check('an empty search offers the add with the typed name and no category', ad.fromSearch.join() === 'qwxy,,Name', ad.fromSearch);
+  t.check('+ മറ്റൊരു പേര് opens the second name on the same step, focused', ad.enOpen.join() === 'false,true,true', ad.enOpen);
+  t.check('from search Next asks for the category: keyboard down, every category, no button', ad.cat.join() === 'Cat,true,ഏത് വിഭാഗം?,ടൊമാറ്റോ സോസ്,true,false,true', ad.cat);
+  t.check('a category tap moves on to the price with that category’s usual unit', ad.picked.join() === 'Price,true,veg,kg,ടൊമാറ്റോ സോസ്', ad.picked);
+  t.check('the category chip changes it and comes back to the price', ad.change.join() === 'Cat,veg' && ad.changed.join('|') === 'Price|fruit|name,cat,price', [ad.change, ad.changed]);
+  t.check('Esc / Android back goes a step back before it closes', ad.escBack.join() === 'true,true,Cat', ad.escBack);
+  t.check('the Malayalam name shows large; from search the new item is the result', ad.ml.join() === 'ടൊമാറ്റോ സോസ്,Tomato sauce,veg,ടൊമാറ്റോ സോസ്,true', ad.ml);
   t.check('the same name typed differently is refused next time', ad.again.join() === 'false,true', ad.again);
   t.check('the price list marks an added item and gives it ✕, not reset', ad.row.join() === 'നിങ്ങൾ ചേർത്തത്,true,false', ad.row);
   t.check("an added item's price is its own rate, not a list override", ad.rate.join() === '50,5000,false', ad.rate);
@@ -579,7 +632,7 @@ export default async (t) => {
     }
     return null;
   });
-  t.check('service worker precached thraasu-v11', sw === 'thraasu-v11', sw);
+  t.check('service worker precached thraasu-v12', sw === 'thraasu-v12', sw);
 
   // ---- The shop's real list, products.json as served (the fixture stub comes off): it loads
   // whole, every photo loads under the CSP, a product without a photo offers the camera, and a
@@ -637,14 +690,15 @@ export default async (t) => {
       const inside = el => { const b = el.getBoundingClientRect(); return b.top >= -0.5 && b.left >= -0.5 && b.bottom <= innerHeight + 0.5 && b.right <= innerWidth + 0.5; };
       const measure = async (name, dlg) => {
         await wait(320);
-        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
+        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button, .add-head button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
         if (!inside(dlg)) bad.push(name);
         if (dlg.scrollWidth > dlg.clientWidth + 1 || document.documentElement.scrollWidth > innerWidth + 1) bad.push(name + ':wide');
         dlg.close(); await wait(50);
       };
       cat = null; renderShelf(); openCat('veg');
-      $('addHere').click(); $('addName').value = 'tomato sauce'; $('addName').dispatchEvent(new Event('input', { bubbles: true }));
-      await measure('add', $('addSheet'));
+      openAdd('tomato sauce', 'veg'); await measure('add name', addEl);
+      openAdd('tomato sauce', 'veg'); $('addForm').requestSubmit(); await measure('add price', addEl);
+      openAdd('tomato sauce', null); $('addForm').requestSubmit(); await measure('add category', addEl);
       document.querySelector('.prod').click(); await measure('qty', $('sheet'));
       openPrices(); await measure('prices', $('prices'));
       $('acctBtn').click(); await measure('shop', $('shopSheet'));
@@ -656,7 +710,8 @@ export default async (t) => {
 
   // iPhone: the keyboard covers the page instead of shrinking it. innerHeight stays 844 while the visual
   // viewport drops to 343 px (Karthik's iPhone in Firefox Focus), at the top or panned 120 px down. Every
-  // sheet sits inside that strip, and a price box focused low in the add sheet is scrolled back into view.
+  // sheet (and both add steps that type) sits inside that strip, and the box being typed in is scrolled
+  // back into view when its sheet shrinks (the lowest price box in view in the price list).
   await t.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
   await t.sleep(150);
   for (const top of [0, 120]) {
@@ -670,17 +725,19 @@ export default async (t) => {
       const inside = el => { const b = el.getBoundingClientRect(); return b.top >= top - 0.5 && b.bottom <= top + H + 0.5 && b.left >= -0.5 && b.right <= innerWidth + 0.5; };
       const measure = async (name, dlg) => {
         kb(true); await wait(320);
-        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button, .prices-head button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
+        for (const b of dlg.querySelectorAll('.sheet-foot button, .sheet-head button, .prices-head button, .add-head button')) if (b.offsetParent && !inside(b)) bad.push(name + ':' + (b.id || b.textContent.trim()));
         if (!inside(dlg)) bad.push(name);
         dlg.close(); kb(false); await wait(50);
       };
       cat = null; renderShelf(); openCat('veg');
-      $('addHere').click(); $('addName').value = 'tomato sauce'; $('addName').dispatchEvent(new Event('input', { bubbles: true }));
-      $('addRate').focus(); kb(true); await wait(200);
-      const body = document.querySelector('.add-body').getBoundingClientRect(), rate = $('addRate').getBoundingClientRect();
-      if (!(inside($('addRate')) && rate.top >= body.top - 0.5 && rate.bottom <= body.bottom + 0.5)) bad.push('add:addRate hidden');
-      kb(false);
-      await measure('add', $('addSheet'));
+      openAdd('tomato sauce', 'veg'); await measure('add name', addEl);
+      openAdd('tomato sauce', 'veg'); $('addForm').requestSubmit(); await measure('add price', addEl);
+      openPrices(); await wait(320);
+      const list = $('priceList'), low = [...list.querySelectorAll('input')].filter(i => i.getBoundingClientRect().bottom <= list.getBoundingClientRect().bottom).pop();
+      low.focus(); kb(true); await wait(200);
+      const lr = list.getBoundingClientRect(), ir = low.getBoundingClientRect();
+      if (!(inside(low) && ir.top >= lr.top - 0.5 && ir.bottom <= lr.bottom + 0.5)) bad.push('prices:typed box hidden');
+      pricesEl.close(); kb(false); await wait(50);
       document.querySelector('.prod').click(); await measure('qty', $('sheet'));
       openPrices(); await measure('prices', $('prices'));
       $('acctBtn').click(); await measure('shop', $('shopSheet'));

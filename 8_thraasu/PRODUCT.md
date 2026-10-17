@@ -40,6 +40,8 @@ phone can already reach.
   or customers in v1 (deliberately deferred, not forgotten).
 - A shop adds items from the phone (category head row, or an empty search). Every add starts as a search
   of the whole list, and a name the list has cannot be added again (`sameName` in `bill-core.js`).
+  It goes in steps so nothing scrolls above a keyboard: the name (letters), the category (only from
+  search; taps), the price (number pad). From a category it is name, Enter, price, Enter.
   Added items live beside the list (`thraasu_items`, D1 `items`) and join the end of their category.
 - localStorage keys prefixed `thraasu_`; Cache Storage prefixed `thraasu-` (shared origin).
 

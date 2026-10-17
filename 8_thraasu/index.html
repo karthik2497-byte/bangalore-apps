@@ -425,34 +425,54 @@ button:disabled { cursor: default; }
 }
 .add-pill:active { transform: scale(.97); }
 .add-pill svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }
-.add-body { display: grid; gap: 14px; min-height: 0; overflow-y: auto; padding: 0 16px 16px; }
-.add-body .hint { margin: -8px 0 0; }
+/* One job per step: the name (letter keyboard), the category (no keyboard; only from search), the price
+   (number pad). Each fits in the strip a keyboard leaves, so nothing has to scroll there. */
+.add:has(input:focus) { --sheet-max: calc(var(--vvh, 100dvh) - 8px); }   /* typing: the whole strip above the keyboard, not 92% of it */
+.add-head { display: flex; align-items: center; gap: 4px; padding: 8px 8px 4px 4px; }
+.add-head #addBack[hidden] + .add-titles { padding-left: 12px; }
+.add-titles { flex: 1; min-width: 0; }
+.add-titles h2 { font-size: 23px; font-weight: 720; line-height: 1.2; overflow-wrap: anywhere; }
+.add-titles h2:focus { outline: none; }   /* the category step lands here so the keyboard goes down; not a control */
+.add-titles p { font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.icon-btn svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.add-body { display: grid; gap: 12px; min-height: 0; overflow-y: auto; padding: 0 16px 14px; }
+.field-row { display: flex; align-items: center; justify-content: space-between; min-height: 22px; }
+.link-btn { min-height: 44px; margin: -11px -6px; padding: 0 6px; border: 0; background: none; color: var(--leaf-deep); font-size: 14px; font-weight: 650; }
 .field.big input { height: 58px; font-size: 21px; font-weight: 650; }
 .field input.bad { border-color: var(--chilli); box-shadow: 0 0 0 3px var(--chilli-wash); }
 .field small { font-weight: 450; }
+.field .hint { margin: 2px 0 0; }
+.ok { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--leaf-deep); }
+.ok svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .found { display: grid; gap: 6px; }
 .found h3 { font-size: 14px; font-weight: 600; color: var(--ink-2); }
-.found .row { min-height: 58px; padding: 7px 12px; }
-.found .row .pan { width: 38px; height: 38px; font-size: 20px; }
+.found .row { min-height: 52px; padding: 6px 12px; }
+.found .row .pan { width: 36px; height: 36px; font-size: 19px; }
 .found .row .names b { font-size: 16px; }
 .found .go { flex: none; color: var(--ink-2); font-size: 20px; }
 .row.same { background: var(--chilli-wash); }
 .row.same .go { color: var(--chilli); font-size: 15px; font-weight: 650; }
-.details { display: grid; gap: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-.cats { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px; scrollbar-width: none; }
-.cat-chip {
-  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 14px;
-  border: 1.5px solid var(--line); border-radius: 999px; background: var(--slip); font-size: 15px; font-weight: 600;
+.cat-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-bottom: env(safe-area-inset-bottom); }
+.cat-tile {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; border: 2px solid transparent;
+  border-radius: var(--r); background: var(--tint); color: var(--tint-ink); font-size: 15.5px; font-weight: 650;
+  line-height: 1.2; text-align: left; transition: transform 160ms var(--ease);
 }
-.cat-chip[aria-pressed="true"] { border-color: var(--tint-ink); background: var(--tint); color: var(--tint-ink); }
-.unit-price { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
-#addUnit button { width: auto; min-width: 54px; height: 52px; padding: 0 10px; }
-.money { display: flex; align-items: center; gap: 6px; font-size: 16px; color: var(--ink-2); }
-.money input {
-  width: 92px; height: 52px; padding: 0 10px; border: 1.5px solid var(--field); border-radius: 12px;
-  background: var(--slip); text-align: right; font-size: 19px; font-weight: 680; color: var(--ink);
+.cat-tile .emo { flex: none; font-size: 22px; }
+.cat-tile[aria-pressed="true"] { border-color: var(--tint-ink); }
+.cat-tile:active { transform: scale(.97); }
+.add-price { justify-items: center; gap: 14px; padding-top: 6px; padding-bottom: 20px; }
+.add-pill .emo { font-size: 20px; }
+.amount { display: grid; justify-items: center; gap: 2px; font-size: 14px; font-weight: 560; color: var(--ink-2); }
+.amount-row { display: flex; align-items: baseline; gap: 8px; font-size: 20px; font-weight: 600; }
+.amount-row > span:first-child { font-size: 28px; }
+#addRate {
+  width: 4.6ch; height: 64px; padding: 0; border: 0; border-bottom: 2.5px solid var(--field); border-radius: 0;
+  background: none; font-size: 48px; font-weight: 720; text-align: center; color: var(--ink);
 }
-.money input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
+#addRate:focus { outline: none; border-bottom-color: var(--leaf); }
+#addUnit button { width: auto; min-width: 58px; height: 52px; padding: 0 12px; }
+.add .sheet-foot .primary { width: 100%; font-size: 17px; }
 .price .drop { width: 48px; color: var(--chilli); font-size: 17px; }
 .price .names small.added { color: var(--leaf-deep); font-weight: 560; }
 .prod.fresh { border-color: var(--leaf); outline: 2px solid var(--leaf); outline-offset: -2px; }
@@ -638,24 +658,33 @@ button:disabled { cursor: default; }
 
 <dialog class="sheet add" id="addSheet" aria-labelledby="addTitle">
   <form id="addForm" novalidate>
-    <div class="prices-head">
-      <h2 id="addTitle">പുതിയ സാധനം</h2>
+    <div class="add-head">
+      <button class="icon-btn" id="addBack" type="button" aria-label="പിന്നോട്ട്" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+      <div class="add-titles"><h2 id="addTitle" tabindex="-1">പുതിയ സാധനം</h2><p id="addSub" hidden></p></div>
       <button class="icon-btn" id="addClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
     </div>
-    <div class="add-body">
-      <label class="field big">പേര്<input id="addName" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-describedby="addHint" autofocus></label>
-      <p class="hint" id="addHint" role="alert" hidden>ഈ പേരിൽ ഒരു സാധനം ഇതിനകം ഉണ്ട്. പുതിയത് ചേർക്കാനാവില്ല.</p>
-      <section class="found" id="found" aria-labelledby="foundHead" hidden><h3 id="foundHead"></h3><div class="results" id="foundList"></div></section>
-      <div class="details" id="addDetails" hidden>
-        <div class="field"><span id="addCatLabel">വിഭാഗം</span><div class="cats" id="addCats" role="group" aria-labelledby="addCatLabel"></div></div>
-        <div class="unit-price">
-          <div class="field"><span id="addUnitLabel">അളവ്</span><div class="seg" id="addUnit" role="group" aria-labelledby="addUnitLabel"><button type="button" data-unit="kg">kg</button><button type="button" data-unit="l">L</button><button type="button" data-unit="pc">എണ്ണം</button></div></div>
-          <label class="field"><span>വില</span><span class="money">₹<input id="addRate" inputmode="decimal" autocomplete="off" enterkeyhint="done"><span id="addPer"></span></span></label>
-        </div>
-        <label class="field"><span>മറ്റൊരു പേര് <small>(തിരയാൻ സഹായിക്കും, വേണമെങ്കിൽ)</small></span><input id="addEn" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></label>
+    <div class="add-body" id="addStepName">
+      <div class="field big">
+        <div class="field-row"><label for="addName">പേര്</label><button class="link-btn" id="addEnOpen" type="button">+ മറ്റൊരു പേര്</button></div>
+        <input id="addName" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-describedby="addHint addOk" autofocus>
+        <p class="hint" id="addHint" role="alert" hidden>ഈ പേരിൽ ഒരു സാധനം ഇതിനകം ഉണ്ട്. പുതിയത് ചേർക്കാനാവില്ല.</p>
+        <p class="ok" id="addOk" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>ഈ പേര് പട്ടികയിൽ ഇല്ല</p>
       </div>
+      <label class="field" id="addEnField" hidden><span>മറ്റൊരു പേര് <small>(തിരയാൻ സഹായിക്കും)</small></span><input id="addEn" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="next"></label>
+      <section class="found" id="found" aria-labelledby="foundHead" hidden><h3 id="foundHead"></h3><div class="results" id="foundList"></div></section>
     </div>
-    <div class="sheet-foot"><div class="sheet-btns"><button class="btn primary" id="addSave" type="submit" disabled>പട്ടികയിൽ ചേർക്കുക</button></div></div>
+    <div class="add-body" id="addStepCat" hidden>
+      <div class="cat-pick" id="addCats" role="group" aria-labelledby="addTitle"></div>
+    </div>
+    <div class="add-body add-price" id="addStepPrice" hidden>
+      <button class="add-pill" id="addCatNow" type="button"></button>
+      <div class="amount">
+        <label for="addRate">വില</label>
+        <div class="amount-row"><span>₹</span><input id="addRate" inputmode="decimal" autocomplete="off" enterkeyhint="done"><span id="addPer"></span></div>
+      </div>
+      <div class="seg" id="addUnit" role="group" aria-label="അളവ്"><button type="button" data-unit="kg">kg</button><button type="button" data-unit="l">L</button><button type="button" data-unit="pc">എണ്ണം</button></div>
+    </div>
+    <div class="sheet-foot" id="addFoot"><button class="btn primary" id="addSave" type="submit" disabled></button></div>
   </form>
 </dialog>
 
@@ -1454,54 +1483,82 @@ function showBill(on) {
   if (!on && was) $('billBar').focus({ preventScroll: true });
 }
 
-// ---------- adding an item: the name first, searched against the whole list ----------
-// A name the list already has (sameName: spelling, spaces and case forgiven) cannot be added; similar
-// ones are listed so the owner can open one instead. Category, unit and price appear once the name is new.
+// ---------- adding an item: one job per step ----------
+// 1 The name, on the letter keyboard. A name the list already has (sameName: spelling, spaces and case
+//   forgiven) cannot be added; similar ones are listed so the owner can open one instead.
+// 2 The category, with no keyboard: only when the sheet was opened from search. A tap moves on.
+// 3 The price, on the number pad, with the unit beside it.
+// From a category, Enter on the name goes straight to the price: the keyboard switches from letters to
+// numbers without closing, and no step has to scroll in the strip a keyboard leaves.
 const addEl = $('addSheet');
 const ID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const hasMalayalam = s => /[ഀ-ൿ]/.test(s);
-let adding = null;            // { cat, unit, unitSet } while the add sheet is open
+const NEXT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
+const PENCIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>';
+let adding = null;            // { cat, unit, unitSet, steps } while the add sheet is open; the last step is the one shown
+const addStep = () => adding.steps[adding.steps.length - 1];
 // The unit most of a category's items are sold in: a new vegetable goes per kg, a new biscuit per piece.
 function unitFor(c) {
   const n = { kg: 0, l: 0, pc: 0 };
   for (const p of products) if (p.cat === c) n[p.unit]++;
   return Object.keys(n).reduce((a, b) => n[b] > n[a] ? b : a, 'pc');
 }
+// The two names as saved: [large, small]. The one in Malayalam letters is shown large.
+function addNames() {
+  const a = $('addName').value.trim(), b = $('addEn').value.trim();
+  return !hasMalayalam(a) && hasMalayalam(b) ? [b, a] : [a, b];
+}
 function openAdd(name, c) {
-  adding = { cat: c && catById.has(c) ? c : null, unit: null, unitSet: false };
+  adding = { cat: c && catById.has(c) ? c : null, unit: null, unitSet: false, steps: ['name'] };
   if (adding.cat) adding.unit = unitFor(adding.cat);
   $('addName').value = name; $('addEn').value = ''; $('addRate').value = '';
-  $('addDetails').hidden = true;
-  $('addCats').innerHTML = cats.map(x => `<button class="cat-chip" type="button" data-cat="${esc(x.id)}" aria-pressed="false"><span class="emo" aria-hidden="true">${esc(x.icon || '')}</span>${esc(x.ml)}</button>`).join('');
-  renderAdd();
+  $('addEnField').hidden = true;
+  $('addCats').innerHTML = cats.map(x => `<button class="cat-tile" type="button" data-cat="${esc(x.id)}" aria-pressed="false"><span class="emo" aria-hidden="true">${esc(x.icon || '')}</span>${esc(x.ml)}</button>`).join('');
+  showStep();
   addEl.showModal();
+}
+// Forward to step s, or back one without it, and put the keyboard where that step needs it: letters for the
+// name, numbers for the price, none for the category (its title takes the focus).
+function goStep(s) {
+  if (s) adding.steps.push(s); else adding.steps.pop();
+  showStep();
+  const now = addStep();
+  $(now === 'name' ? 'addName' : now === 'price' ? 'addRate' : 'addTitle').focus();
+}
+function showStep() {
+  const s = addStep(), ml = addNames()[0], c = catById.get(adding.cat);
+  $('addStepName').hidden = s !== 'name'; $('addStepCat').hidden = s !== 'cat'; $('addStepPrice').hidden = s !== 'price';
+  $('addBack').hidden = s === 'name'; $('addFoot').hidden = s === 'cat';
+  $('addTitle').textContent = s === 'name' ? 'പുതിയ സാധനം' : s === 'cat' ? 'ഏത് വിഭാഗം?' : ml;
+  $('addSub').textContent = ml; $('addSub').hidden = s !== 'cat';
+  for (const b of $('addCats').children) b.setAttribute('aria-pressed', String(b.dataset.cat === adding.cat));
+  if (c) {
+    $('addCatNow').dataset.cat = c.id;
+    $('addCatNow').setAttribute('aria-label', `${c.ml} · വിഭാഗം മാറ്റുക`);
+    $('addCatNow').innerHTML = `<span class="emo" aria-hidden="true">${esc(c.icon || '')}</span>${esc(c.ml)}${PENCIL}`;
+  }
+  $('addSave').innerHTML = s === 'name' ? `അടുത്തത്${NEXT}` : 'പട്ടികയിൽ ചേർക്കുക';
+  renderAdd();
 }
 function renderAdd() {
   const name = $('addName').value.trim(), en = $('addEn').value.trim();
   const sameN = name ? sameName(products, name) : null, sameE = !sameN && en ? sameName(products, en) : null, same = sameN || sameE;
-  const found = same ? [same] : name ? similar(products, name) : [];
+  const found = same ? [same] : name ? similar(products, name, 3) : [], fresh = !!name && !same;
   $('addName').classList.toggle('bad', !!sameN);
   $('addEn').classList.toggle('bad', !!sameE);
-  $('addHint').hidden = !same;
+  $('addHint').hidden = !same; $('addOk').hidden = !fresh;
+  $('addEnOpen').hidden = !$('addEnField').hidden;
   $('found').hidden = !found.length;
   $('foundHead').textContent = same ? 'ഇതേ പേര്' : 'ഇതിനകം ഉള്ളവ · ഇതാണെങ്കിൽ തൊടുക';
   $('foundList').innerHTML = found.map(p => `<button class="row${p === same ? ' same' : ''}" type="button" data-cat="${esc(p.cat)}" data-open="${esc(p.id)}">${pan(p)}` +
     `<span class="names"><b>${esc(p.ml)}</b><small>${esc([p.en, catById.get(p.cat)?.ml, rateLabel(p.rate, p.unit)].filter(Boolean).join(' · '))}</small></span>` +
     `<span class="go">${p === same ? 'തുറക്കുക ›' : '›'}</span></button>`).join('');
-  const show = !!name && !sameN, shown = !$('addDetails').hidden;
-  $('addDetails').hidden = !show;
-  for (const b of $('addCats').children) b.setAttribute('aria-pressed', String(b.dataset.cat === adding.cat));
   for (const b of $('addUnit').children) b.setAttribute('aria-pressed', String(b.dataset.unit === adding.unit));
   $('addPer').textContent = adding.unit ? perUnit(adding.unit) : '';
-  $('addSave').disabled = !show || !!same || !adding.cat || !adding.unit || !(parseMoney($('addRate').value) > 0);
-  const strip = $('addCats'), chip = strip.querySelector('[aria-pressed="true"]');
-  if (show && !shown && chip) strip.scrollLeft = chip.offsetLeft - strip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2;
+  $('addSave').disabled = !fresh || (addStep() === 'price' && !(adding.cat && adding.unit && parseMoney($('addRate').value) > 0));
 }
 function saveAdd() {
-  renderAdd();
-  if ($('addSave').disabled) return;
-  const a = $('addName').value.trim(), b = $('addEn').value.trim();
-  const [ml, en] = !hasMalayalam(a) && hasMalayalam(b) ? [b, a] : [a, b];   // the Malayalam name shows large
+  const [ml, en] = addNames();
   const item = cleanItem({ cat: adding.cat, ml, en, unit: adding.unit, rate: parseMoney($('addRate').value) / 100, icon: catById.get(adding.cat)?.icon || '' });
   if (!item) return;
   const id = 'u' + [...crypto.getRandomValues(new Uint8Array(10))].map(x => ID_CHARS[x % 62]).join('');
@@ -1629,13 +1686,17 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 $('addName').addEventListener('input', renderAdd);
 $('addEn').addEventListener('input', renderAdd);
 $('addRate').addEventListener('input', renderAdd);
+// A tap on these must not take the focus from the box being typed in, or the keyboard drops and comes back.
+for (const id of ['addEnOpen', 'addUnit']) $(id).addEventListener('mousedown', e => e.preventDefault());
+$('addEnOpen').addEventListener('click', () => { $('addEnField').hidden = false; renderAdd(); $('addEn').focus(); });
 $('addCats').addEventListener('click', e => {
   const b = e.target.closest('[data-cat]');
   if (!b) return;
   adding.cat = b.dataset.cat;
   if (!adding.unitSet) adding.unit = unitFor(adding.cat);
-  renderAdd();
+  if (adding.steps.includes('price')) goStep(); else goStep('price');   // back to the price it was changed from, or on to it
 });
+$('addCatNow').addEventListener('click', () => goStep('cat'));
 $('addUnit').addEventListener('click', e => {
   const b = e.target.closest('[data-unit]');
   if (b) { adding.unit = b.dataset.unit; adding.unitSet = true; renderAdd(); }
@@ -1646,8 +1707,17 @@ $('foundList').addEventListener('click', e => {
   addEl.close();
   openSheet(asItem(p), !!$('q').value.trim());
 });
-$('addForm').addEventListener('submit', e => { e.preventDefault(); saveAdd(); });
+// Enter on the keyboard submits too: on the name it moves on, on the price it adds.
+$('addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  renderAdd();
+  if ($('addSave').disabled) return;
+  if (addStep() === 'name') goStep(adding.cat ? 'price' : 'cat');
+  else saveAdd();
+});
+$('addBack').addEventListener('click', () => goStep());
 $('addClose').addEventListener('click', () => addEl.close());
+addEl.addEventListener('cancel', e => { if (adding.steps.length > 1) { e.preventDefault(); goStep(); } });   // Esc or Android back: a step back first
 addEl.addEventListener('click', e => { if (e.target === addEl) addEl.close(); });
 
 $('pricesClose').addEventListener('click', () => pricesEl.close());

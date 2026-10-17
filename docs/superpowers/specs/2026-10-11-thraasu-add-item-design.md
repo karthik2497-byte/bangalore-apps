@@ -11,25 +11,31 @@ name the list already has cannot be added.
     run to 76 items, and the top-left tile is where billing taps land.
   - Counter search with no result: under the existing message, a ghost button **+ പുതിയ സാധനമായി ചേർക്കുക**.
     It opens the sheet with the typed text as the name.
-- **Add sheet** (a bottom sheet, like the price list):
-  - Title പുതിയ സാധനം, then the name box (പേര്) with focus.
-  - **Matches as you type** ("ഇതിനകം ഉള്ളവ · ഇതാണെങ്കിൽ തൊടുക"):
-    - At most 4 items from all categories: the hits for the whole name, then for each word of 3 or more
-      letters, with no repeats.
-    - Each row shows the item, its English name and category, and a ›.
-    - Tapping a row closes the sheet and opens that item's quantity sheet.
-  - **Same name, so blocked:**
-    - The name box turns chilli and the hint reads "ഈ പേരിൽ ഒരു സാധനം ഇതിനകം ഉണ്ട്. പുതിയത് ചേർക്കാനാവില്ല."
-    - The matching item shows alone under "ഇതേ പേര്", on a chilli wash, with "തുറക്കുക ›".
-    - The details stay hidden and the Add button is disabled.
-  - **New name:** the details appear below a divider, in this order:
-    - **വിഭാഗം:** a row of category chips that scrolls sideways. The category is pre-picked when the sheet
-      opens from a category; from search, the owner must pick one.
-    - **അളവ്:** kg / L / എണ്ണം. The default is the unit most items in the chosen category use.
-    - **വില:** ₹ and the unit word, as elsewhere. It must be a valid amount above 0 (`parseMoney`).
-    - **മറ്റൊരു പേര്** (optional, "തിരയാൻ സഹായിക്കും"). It is checked for duplicates the same way.
-  - Footer: **പട്ടികയിൽ ചേർക്കുക**, enabled only when the name is new, a category is picked and the price
-    is valid.
+- **Add sheet** (a bottom sheet, like the price list), one job per step. Revised 2026-10-17 (option A on
+  https://claude.ai/artifact/Nx27m8E4By8p4FV51P5Fnz): the first version was one form, and with the keyboard
+  up its category, unit and price had to scroll in the strip above it.
+  1. **Name, on the letter keyboard.** Title പുതിയ സാധനം, then the name box (പേര്) with focus. On its label
+     row, **+ മറ്റൊരു പേര്** opens the optional second name below it ("തിരയാൻ സഹായിക്കും"), on the same keyboard.
+     The second name is checked for duplicates the same way.
+     - **Matches as you type** ("ഇതിനകം ഉള്ളവ · ഇതാണെങ്കിൽ തൊടുക"): at most 3 items from all categories, the
+       hits for the whole name, then for each word of 3 or more letters, with no repeats. Each row shows the
+       item, its English name, category and price, and a ›. Tapping a row closes the sheet and opens that
+       item's quantity sheet.
+     - **Same name, so blocked:** the name box turns chilli and the hint reads "ഈ പേരിൽ ഒരു സാധനം ഇതിനകം ഉണ്ട്.
+       പുതിയത് ചേർക്കാനാവില്ല." The matching item shows alone under "ഇതേ പേര്", on a chilli wash, with
+       "തുറക്കുക ›". Next is off, and Enter goes nowhere.
+     - **New name:** a leaf tick line "ഈ പേര് പട്ടികയിൽ ഇല്ല", and **അടുത്തത് ›** (Next) in the footer. The
+       keyboard's Enter does the same.
+  2. **Category, with no keyboard**, only when it is not known yet (opened from search). Title ഏത് വിഭാഗം?
+     with the name under it; every category as a tile in its own tint, two columns. A tap picks it and moves
+     on, so there is no footer.
+  3. **Price, on the number pad.** Title: the name. The category as a tinted chip with ✎ ("വിഭാഗം മാറ്റുക"),
+     which goes to step 2 and comes back. **വില**: a large ₹ amount and the unit word (`perUnit`); it must be a
+     valid amount above 0 (`parseMoney`). Under it kg / L / എണ്ണം, by default the unit most items in the
+     category use; a tap on it keeps the number pad up. Footer **പട്ടികയിൽ ചേർക്കുക**; Enter adds too.
+  - From a category, Enter on the name goes straight to step 3: the keyboard switches from letters to
+    numbers without closing.
+  - ‹ (പിന്നോട്ട്), Esc and the Android back gesture go back one step; ✕ and a tap outside close the sheet.
 - **Saved:**
   - The sheet closes and a toast shows "<name> ചേർത്തു".
   - Opened from a category: the grid scrolls to the new tile, at the end of its category, and outlines
@@ -98,8 +104,9 @@ shop's sheet with `shop-admin.mjs catalog` keeps them.
 
 ## Copy (Malayalam, to be proofread with the rest)
 പുതിയ സാധനം · പുതിയ സാധനമായി ചേർക്കുക · ഇതിനകം ഉള്ളവ · ഇതാണെങ്കിൽ തൊടുക · ഇതേ പേര് · തുറക്കുക ·
-ഈ പേരിൽ ഒരു സാധനം ഇതിനകം ഉണ്ട്. പുതിയത് ചേർക്കാനാവില്ല. · വിഭാഗം · അളവ് · വില · മറ്റൊരു പേര് ·
-തിരയാൻ സഹായിക്കും · പട്ടികയിൽ ചേർക്കുക · ചേർത്തു · നിങ്ങൾ ചേർത്തത് · ഇതിനകം ഉണ്ട് · N ഇനങ്ങൾ
+ഈ പേരിൽ ഒരു സാധനം ഇതിനകം ഉണ്ട്. പുതിയത് ചേർക്കാനാവില്ല. · ഈ പേര് പട്ടികയിൽ ഇല്ല · അടുത്തത് · ഏത് വിഭാഗം? ·
+വിഭാഗം മാറ്റുക · പിന്നോട്ട് · അളവ് · വില · + മറ്റൊരു പേര് · തിരയാൻ സഹായിക്കും · പട്ടികയിൽ ചേർക്കുക · ചേർത്തു ·
+നിങ്ങൾ ചേർത്തത് · ഇതിനകം ഉണ്ട് · N ഇനങ്ങൾ
 
 ## Tests
 - **`test-bill.mjs`:**
@@ -112,10 +119,16 @@ shop's sheet with `shop-admin.mjs catalog` keeps them.
   - Drop removes the item's price and photo.
   - `items_at` in state, and `GET items`.
 - **Browser (`scripts/browser/tests/thraasu`):**
-  - The category button opens the sheet with the category picked.
+  - The category button opens the sheet on the name step with the category picked.
   - A search with no result offers the add, with the name filled in.
-  - Thakkali is blocked and the tomato row opens tomato.
-  - A similar name is shown but doesn't block.
+  - Thakkali is blocked (Next and Enter go nowhere) and the tomato row opens tomato.
+  - A similar name is shown (3 at most) with the tick, but doesn't block.
+  - A trusted Enter key on the name goes straight to the price, focused; a unit tap keeps that focus; back
+    returns to the name; a trusted Enter on the price adds.
+  - From search, Next shows every category with the keyboard down; a tap moves on with its usual unit; the
+    ✎ chip changes it and comes back; Esc goes back a step before it closes.
+  - Every step fits the sizes in the sheet-fit checks, and the name and price steps fit the 343 px strip
+    of the iPhone-keyboard simulation.
   - Add, then reload, and the item is still there; from search it shows as the result.
   - The price list ✕ removes the item and undo restores it.
   - Changing an added item's price changes its rate.
