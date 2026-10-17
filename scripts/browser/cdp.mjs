@@ -30,7 +30,12 @@ ws.onmessage = ev => {
   if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.rej(new Error(m.error.message)) : p.res(m.result); }
   else listeners.forEach(l => l(m));
 };
-const send = (method, params = {}) => new Promise((res, rej) => { const id = nextId++; pending.set(id, { res, rej }); ws.send(JSON.stringify({ id, method, params })); });
+// Every command is answered or fails by name: one reply that never came hung a run for 28 minutes.
+const send = (method, params = {}) => new Promise((res, rej) => {
+  const id = nextId++, to = setTimeout(() => { pending.delete(id); rej(new Error(`no answer to ${method} in 60 s`)); }, 60000);
+  pending.set(id, { res: v => { clearTimeout(to); res(v); }, rej: e => { clearTimeout(to); rej(e); } });
+  ws.send(JSON.stringify({ id, method, params }));
+});
 const once = (method, ms = 15000) => new Promise((res, rej) => {
   const to = setTimeout(() => { listeners.delete(l); rej(new Error('timeout waiting for ' + method)); }, ms);
   const l = m => { if (m.method === method) { clearTimeout(to); listeners.delete(l); res(m.params); } };
