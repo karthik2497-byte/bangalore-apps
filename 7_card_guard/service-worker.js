@@ -1,6 +1,6 @@
 importScripts('./reminder-core.js');
 
-const CACHE_NAME = 'cardguard-v3';
+const CACHE_NAME = 'cardguard-v4';
 // The page mirrors its state here so this worker can decide what is due while
 // the app is closed. Kept in its own cache so the activate purge never eats it.
 const STATE_CACHE = 'cardguard-state';
@@ -26,10 +26,15 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Pages 308-redirects x/index.html to x/ and x.html to x, so those precached entries are redirects, and a
+// page load answered with one fails (net::ERR_FAILED): every home-screen launch did, until 2026-10-17.
+const plain = r => r && r.redirected ? r.blob().then(b => new Response(b, { status: r.status, statusText: r.statusText, headers: r.headers })) : r;
+
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.open(CACHE_NAME)
       .then(cache => cache.match(event.request))
+      .then(plain)
       .then(hit => hit || fetch(event.request))
   );
 });
