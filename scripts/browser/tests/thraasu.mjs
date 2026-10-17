@@ -211,7 +211,7 @@ export default async (t) => {
     let titleAtPrint = null;
     window.print = () => { titleAtPrint = document.title; dispatchEvent(new Event('beforeprint')); dispatchEvent(new Event('afterprint')); };   // as Chrome does
     document.getElementById('printBtn').click();
-    return { titleAtPrint, receipt: document.getElementById('receipt').textContent };
+    return { titleAtPrint, receipt: document.getElementById('receipt').textContent, day: new Date().toLocaleDateString('en-CA') };
   });
   await t.send('Emulation.setEmulatedMedia', { media: 'print' });
   const pm = await t.evaluate(() => ({
@@ -220,7 +220,7 @@ export default async (t) => {
     bill: getComputedStyle(document.getElementById('bill')).display,
   }));
   await t.send('Emulation.setEmulatedMedia', { media: '' });
-  t.check('print names the PDF Thraasu-Bill-0001', p.titleAtPrint === 'Thraasu-Bill-0001', p.titleAtPrint);
+  t.check('print names the PDF Thraasu-Bill-<date>-0001', p.titleAtPrint === `Thraasu-Bill-${p.day}-0001`, p.titleAtPrint);
   t.check('receipt has shop, sample label, lines, discount, total', /ഗീത സ്റ്റോഴ്സ്/.test(p.receipt) && /വെളിച്ചെണ്ണ/.test(p.receipt) && /കിഴിവ്−₹20.00/.test(p.receipt) && /ആകെ₹250/.test(p.receipt) && /sample prices/.test(p.receipt), p.receipt.slice(0, 200));
   t.check('print media shows only the receipt', pm.receipt === 'block' && pm.counter === 'none' && pm.bill === 'none', pm);
 
@@ -237,7 +237,7 @@ export default async (t) => {
     const f = shared[0], img = await createImageBitmap(f);
     return { prints, n: shared.length, name: f.name, type: f.type, w: img.width, h: img.height };
   });
-  t.check('Share sends a 576 px PNG named after the bill, without printing', sh.n === 1 && sh.prints === 0 && sh.name === 'Thraasu-Bill-0001.png' && sh.type === 'image/png' && sh.w === 576 && sh.h > 400, sh);
+  t.check('Share sends a 576 px PNG named after the bill, without printing', sh.n === 1 && sh.prints === 0 && sh.name === `Thraasu-Bill-${p.day}-0001.png` && sh.type === 'image/png' && sh.w === 576 && sh.h > 400, sh);
 
   // Remove + undo, new bill + undo.
   const u = await t.evaluate(() => {
@@ -257,6 +257,75 @@ export default async (t) => {
   t.check('undo restores it', u.undone === 3, u.undone);
   t.check('new bill: empty, number 0002', u.fresh[0] === 0 && u.fresh[1] === '0002', u.fresh);
   t.check('undo brings bill 0001 back', u.back[0] === 3 && u.back[1] === '0001', u.back);
+
+  // Kept bills (2026-10-17): every sold bill of today and yesterday stays on this phone; the number goes
+  // back to 0001 each morning; a bill's one time is its first item's, in 12-hour time with AM/PM.
+  const kb = await t.evaluate(() => {
+    const $ = id => document.getElementById(id), r = { saved: localStorage.getItem('thraasu_bill') };
+    const at = (h, m, back) => { const d = new Date(); d.setDate(d.getDate() - back); d.setHours(h, m, 0, 0); return d.toISOString(); };
+    r.meta = [$('billNo').textContent, $('billDate').textContent, $('billTime').textContent];
+    r.receipt = $('receipt').querySelector('.meta').textContent;
+    r.kept = JSON.parse(localStorage.getItem('thraasu_bills')).map(b => [b.no, b.lines.length, Object.keys(b.lines[0]).sort().join()]);
+    newBill();                                               // 0001 is sold; the next one waits empty, as if since last night
+    bill.no = 41; bill.started = at(21, 0, 1);
+    openSheet(asItem(byId.get('onion'))); setQty(2000); commit();
+    r.second = [billNo(bill.no), bill.started > kept[0].started];
+    newBill();                                               // 0002 sold by പുതിയ ബിൽ
+    r.third = [billNo(bill.no), kept.map(b => b.no)];
+    localStorage.setItem('thraasu_bills', JSON.stringify([...kept,     // yesterday's, and one from three days ago
+      { id: 'y1', no: 9, started: at(20, 31, 1), discount: 0, lines: [{ ml: 'പഞ്ചസാര', qty: 2000, unit: 'kg', rate: 5900 }] },
+      { id: 'old', no: 3, started: at(10, 0, 3), discount: 0, lines: [{ ml: 'പാൽ', qty: 2, unit: 'pc', rate: 2800 }] }]));
+    return r;
+  });
+  t.check('the bill shows its number, date and 12-hour time', kb.meta[0] === '0001' && /^\d{1,2} [A-Z][a-z]{2} \d{4}$/.test(kb.meta[1]) && /^\d{1,2}:\d{2} [AP]M$/.test(kb.meta[2]), kb.meta);
+  t.check('the receipt has the same number, date and time', kb.receipt === `ബിൽ നം. 0001 · ${kb.meta[1]} · ${kb.meta[2]}`, kb.receipt);
+  t.check('a sold bill is kept with its receipt fields only', JSON.stringify(kb.kept) === '[[1,3,"ml,qty,rate,sample,unit"]]', kb.kept);
+  t.check('the next bill is 0002, timed from its first item', kb.second[0] === '0002' && kb.second[1], kb.second);
+  t.check('പുതിയ ബിൽ keeps 0002 and starts 0003', kb.third[0] === '0003' && JSON.stringify(kb.third[1]) === '[2,1]', kb.third);
+
+  await t.reload(); await ready(t);
+  const kl = await t.evaluate(() => {
+    const $ = id => document.getElementById(id), r = {};
+    r.stored = JSON.parse(localStorage.getItem('thraasu_bills')).map(b => b.id);
+    r.bar = [$('billBar').disabled, $('billBar').classList.contains('empty'), $('bbGo').textContent];
+    $('billBar').click();                                    // an empty bill: the bar opens the kept bills
+    r.open = billsEl.open;
+    r.days = [...$('billsList').querySelectorAll('.day h3')].map(h => h.textContent);
+    r.rows = [...$('billsList').querySelectorAll('.past-row')].map(b => b.textContent);
+    const first = $('billsList').querySelector('.past-row');
+    first.click();                                           // the newest, 0002
+    r.past = [$('billsTitle').textContent, $('billsSub').textContent, $('pastSlip').querySelector('.meta').textContent, $('pastView').hidden, $('billsList').hidden];
+    let title = null; window.print = () => { title = document.title; };
+    $('pastPrint').click();
+    r.print = [title, $('receipt').querySelector('.meta').textContent];
+    r.counter = [bill.no, bill.lines.length, bill.sold];     // printing a kept bill leaves the counter's alone
+    billsEl.dispatchEvent(new Event('cancel', { cancelable: true }));   // Esc or Android back: the list again
+    r.back = [$('billsList').hidden, billsEl.open, document.activeElement === $('billsList').querySelector('.past-row')];
+    $('billsClose').click();
+    $('billsBtn').click(); r.door = billsEl.open;
+    r.sizes = [$('billsBtn'), $('billsList').querySelector('.past-row'), $('billsClose')].map(el => Math.round(el.getBoundingClientRect().height));
+    billsEl.close();
+    return r;
+  });
+  const today = kl.days[0] || '';
+  t.check('kept: today\'s two and yesterday\'s one, the three-day-old bill dropped', JSON.stringify(kl.stored.slice(2)) === '["y1"]' && kl.stored.length === 3, kl.stored);
+  t.check('an empty bill\'s bar opens the kept bills', !kl.bar[0] && kl.bar[1] && kl.bar[2] === 'ബില്ലുകൾ' && kl.open, [kl.bar, kl.open]);
+  t.check('one heading per day, with its count and total', kl.days.length === 2 && /^ഇന്ന് · \d{1,2} [A-Z][a-z]{2}2 ബില്ലുകൾ · ₹/.test(today) && /^ഇന്നലെ · \d{1,2} [A-Z][a-z]{2}1 ബിൽ · ₹118$/.test(kl.days[1]), kl.days);
+  t.check('a row: number, time, items, total; newest first', kl.rows.length === 3 && /^നം\. 0002\d{1,2}:\d{2} [AP]M · 1 ഇനം₹/.test(kl.rows[0]) && /^നം\. 0001/.test(kl.rows[1]) && kl.rows[2] === 'നം. 00098:31 PM · 1 ഇനം₹118', kl.rows);
+  t.check('a row opens that bill as it prints', kl.past[0] === 'ബിൽ നം. 0002' && /^ഇന്ന് · \d{1,2}:\d{2} [AP]M · 1 ഇനം$/.test(kl.past[1]) && /^ബിൽ നം\. 0002 · /.test(kl.past[2]) && !kl.past[3] && kl.past[4], kl.past);
+  t.check('printing a kept bill prints it, named by its date', kl.print[0] === `Thraasu-Bill-${p.day}-0002` && kl.print[1] === kl.past[2], kl.print);
+  t.check('the counter\'s bill is untouched', JSON.stringify(kl.counter) === '[3,0,false]', kl.counter);
+  t.check('back returns to the list, on the row it left', !kl.back[0] && kl.back[1] && kl.back[2], kl.back);
+  t.check('the bill head\'s ബില്ലുകൾ opens it too; both ≥48 px', kl.door && kl.sizes.every(v => v >= 48), [kl.door, kl.sizes]);
+
+  // The next morning: today's bills are yesterday's, and the empty bill starts again at 0001.
+  await t.evaluate(() => localStorage.setItem('thraasu_bills', JSON.stringify(JSON.parse(localStorage.getItem('thraasu_bills'))
+    .filter(b => b.id !== 'y1').map(b => { const d = new Date(b.started); d.setDate(d.getDate() - 1); return { ...b, started: d.toISOString() }; }))));
+  await t.reload(); await ready(t);
+  const mo = await t.evaluate(() => ({ no: document.getElementById('billNo').textContent, kept: kept.length, next: nextNo() }));
+  t.check('the next morning the number starts again at 0001', mo.no === '0001' && mo.kept === 2 && mo.next === 1, mo);
+  await t.evaluate(s => { localStorage.setItem('thraasu_bill', s); localStorage.removeItem('thraasu_bills'); }, kb.saved);   // bill 0001 again, for what follows
+  await t.reload(); await ready(t);
 
   // Wide screens: the bill is a side column, no bar.
   await wideView(t); await t.sleep(200);
@@ -704,6 +773,9 @@ export default async (t) => {
       openPrices(); await measure('prices', $('prices'));
       $('acctBtn').click(); await measure('shop', $('shopSheet'));
       $('acctBtn').click(); $('signupOpen').click(); await measure('signup', $('shopSheet'));
+      if (!kept.length) keep({ id: 'fit', no: 1, started: new Date().toISOString(), discount: 0, lines: [{ ml: 'ഉപ്പ്', qty: 1, unit: 'pc', rate: 2000 }] });
+      openBills(); await measure('bills', billsEl);
+      openBills(); showPast(kept[0].id); await measure('kept bill', billsEl);
       return bad;
     });
     t.check(`every sheet and its buttons fit a ${w}x${h} screen`, out.length === 0, out);

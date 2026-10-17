@@ -311,7 +311,10 @@ A tall sheet (same sheet shell, `min(92dvh, 820px)`): title and an "n/459 … �
 In the quantity sheet, after the rate field is edited away from the shelf price: a 48px checkbox row in leaf-deep, "ഈ നിരക്ക് എന്റെ വിലയായി സൂക്ഷിക്കുക", checked by default.
 
 ### Bill bar
-Fixed at the bottom on narrow screens: leaf, 18px radius, item count over the live total (750 / 23px) and a translucent "view bill" pill. Empty, it turns to slip white with ink-2 text and the lift shadow. Adding an item bumps it (scale 1.035, 280ms).
+Fixed at the bottom on narrow screens: leaf, 18px radius, item count over the live total (750 / 23px) and a translucent "view bill" pill. Empty, it turns to slip white with ink-2 text and the lift shadow; when the phone has kept bills its pill reads ബില്ലുകൾ on paper and opens them. Adding an item bumps it (scale 1.035, 280ms).
+
+### Bill head and kept bills ("ബില്ലുകൾ")
+The bill's number, date and 12-hour time (`17 Oct 2026 · 2:16 PM`) sit centred in the slip under the shop name (14px ink-2; number and time in ink at 650), the line the print starts with. The head holds the title and, at the right, the bills door: a 48px slip-white pill with a divider edge and a leaf-deep receipt icon. It opens a tall sheet (the price list's shell) of the phone's sold bills of today and yesterday: a sticky heading per day (ഇന്ന് or ഇന്നലെ with the short date in ink-2, the count and total in leaf-deep), then 64px rows (നം. 0006 over the time and item count, the total in leaf-deep, a chevron). A row swaps in that bill's receipt on a white torn-edge slip over paper-2, with print (primary) and share (ghost) in the footer; ‹, Esc and Android back return to the list.
 
 ### Quantity sheet
 A native `<dialog>`; no drag grip. Header: the brass balance drawing beside the product name (with "സ്റ്റോക്ക് 25 kg" under the English name for a counted item) and an editable rate. Body: preset chips, then a custom quantity row with the unit toggle. Footer on paper: the computed line and amount in display type, then a danger remove button (only when editing a line already on the bill) and a full-width primary.

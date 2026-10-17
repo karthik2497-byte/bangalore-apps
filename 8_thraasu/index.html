@@ -205,8 +205,9 @@ button:disabled { cursor: default; }
   display: inline-flex; align-items: center; gap: 2px; margin-left: auto; padding: 11px 10px 11px 16px;
   border-radius: 12px; background: rgba(255, 255, 255, .16); font-weight: 650;
 }
-.bill-bar:disabled { background: var(--slip); color: var(--ink-2); border: 1px solid var(--line); box-shadow: var(--lift); }
-.bill-bar:disabled .bb-go, .bill-bar:disabled .bb-total { display: none; }
+.bill-bar:disabled, .bill-bar.empty { background: var(--slip); color: var(--ink-2); border: 1px solid var(--line); box-shadow: var(--lift); }
+.bill-bar:disabled .bb-go, .bill-bar.empty .bb-total { display: none; }
+.bill-bar.empty .bb-go { background: var(--paper); color: var(--ink); }   /* an empty bill: the way to the kept bills */
 .bill-bar.bump { animation: bump 280ms var(--ease); }
 @keyframes bump { 40% { transform: scale(1.035); } }
 
@@ -224,8 +225,16 @@ button:disabled { cursor: default; }
 }
 .bill-close { display: grid; place-items: center; width: 48px; height: 48px; margin-left: -8px; border: 0; border-radius: 12px; background: none; }
 .bill-head h2 { font-size: 21px; font-weight: 720; outline-offset: 4px; }
-.bill-meta { margin-left: auto; text-align: right; font-size: 13px; line-height: 1.35; color: var(--ink-2); }
-.bill-meta b { display: block; font-size: 14px; color: var(--ink); font-weight: 650; }
+/* The door to the last two days' bills. */
+.bills-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; margin-left: auto; padding: 0 16px 0 12px;
+  border: 1.5px solid var(--line); border-radius: 999px; background: var(--slip); font-size: 16px; font-weight: 650;
+}
+.bills-btn:hover { border-color: var(--ink-2); }
+.bills-btn svg { width: 20px; height: 20px; stroke: var(--leaf-deep); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Number, date and time sit in the slip under the shop name, as the print has them. */
+.bill-meta { margin: 9px 0 2px; text-align: center; font-size: 14px; line-height: 1.35; color: var(--ink-2); }
+.bill-meta b { color: var(--ink); font-weight: 650; }
 
 .slip {
   position: relative; margin: 2px var(--gutter) 0; padding: 14px 16px 18px;
@@ -385,6 +394,38 @@ button:disabled { cursor: default; }
 .price-in input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-wash); }
 .price.mine .price-in input { border-color: var(--leaf); background: var(--leaf-wash); color: var(--leaf-deep); }
 .price-in > span:last-child { min-width: 3.2em; }
+
+/* ---------- the kept bills: today and yesterday ---------- */
+.bills-titles { flex: 1; min-width: 0; }
+.bills-list { flex: 1; overflow-y: auto; padding: 0 16px calc(16px + env(safe-area-inset-bottom)); }
+.day h3 {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding: 12px 0 6px; background: var(--slip); font-size: 15px; font-weight: 680;
+}
+.day h3 small { font-size: inherit; font-weight: 500; color: var(--ink-2); }
+.day h3 b { font-weight: inherit; color: var(--leaf-deep); }
+.day ol { list-style: none; padding: 0; }
+.day .none { padding: 12px 0 18px; color: var(--ink-2); }
+.past-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px 0;
+  border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left;
+}
+.past-row .names { flex: 1; }
+.past-row .names b { font-size: 16.5px; font-weight: 650; }
+.past-row .amt { font-size: 17.5px; font-weight: 700; color: var(--leaf-deep); }
+.past-row svg { flex: none; width: 20px; height: 20px; stroke: var(--ink-2); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.past { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.past-body { flex: 1; overflow-y: auto; padding: 14px 8px 24px; background: var(--paper-2); }
+.past-slip h1 { font-size: 21px; font-weight: 720; text-align: center; }
+.past-slip .meta { text-align: center; font-size: 14px; }
+.past-slip hr { margin: 10px 0; border: 0; border-top: 1.5px dashed var(--ink); }
+.past-slip table { width: 100%; border-collapse: collapse; }
+.past-slip td { padding: 4px 0; vertical-align: top; }
+.past-slip td + td { padding-left: 10px; text-align: right; white-space: nowrap; font-weight: 650; }
+.past-slip .sub { font-size: 13px; color: var(--ink-2); }
+.past-slip .grand td { padding-top: 6px; font-size: 21px; font-weight: 760; }
+.past-slip .thanks { text-align: center; }
+.past-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .price .reset { flex: none; width: 48px; color: var(--leaf-deep); font-size: 20px; }
 .price-none { padding: 24px 0; color: var(--ink-2); text-align: center; }
 
@@ -558,7 +599,7 @@ button:disabled { cursor: default; }
 
   <button class="bill-bar" id="billBar" type="button" disabled>
     <span class="bb-sum"><span class="bb-count" id="bbCount">ബില്ലിൽ ഒന്നുമില്ല</span><span class="bb-total" id="bbTotal"></span></span>
-    <span class="bb-go">ബിൽ കാണുക <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>
+    <span class="bb-go"><span id="bbGo">ബിൽ കാണുക</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>
   </button>
 </div>
 
@@ -566,10 +607,11 @@ button:disabled { cursor: default; }
   <div class="bill-head">
     <button class="bill-close only-narrow" id="billClose" type="button" aria-label="തിരികെ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
     <h2 id="billTitle" tabindex="-1">ബിൽ</h2>
-    <p class="bill-meta"><b>നം. <span id="billNo"></span></b><span id="billDate"></span></p>
+    <button class="bills-btn" id="billsBtn" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5z"/><path d="M9.5 8h5M9.5 12h5M9.5 16h3"/></svg>ബില്ലുകൾ</button>
   </div>
   <div class="slip">
     <label class="shop"><span class="vh">കടയുടെ പേര്</span><input id="shopName" maxlength="60" placeholder="കടയുടെ പേര് ചേർക്കുക" autocomplete="organization"></label>
+    <p class="bill-meta">ബിൽ നം. <b id="billNo"></b> · <span id="billDate"></span> · <b id="billTime"></b></p>
     <ol class="lines" id="billLines"></ol>
     <div class="empty" id="billEmpty">
       <svg viewBox="0 0 120 92" aria-hidden="true">
@@ -654,6 +696,22 @@ button:disabled { cursor: default; }
     <input id="pq" type="search" placeholder="തിരയുക… thakkali" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
   </div>
   <ol class="price-list" id="priceList"></ol>
+</dialog>
+
+<dialog class="sheet prices" id="billsSheet" aria-labelledby="billsTitle">
+  <div class="prices-head">
+    <button class="icon-btn" id="billsBack" type="button" aria-label="ബില്ലുകൾ" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+    <div class="bills-titles"><h2 id="billsTitle" tabindex="-1" autofocus>ബില്ലുകൾ</h2><p id="billsSub"></p></div>
+    <button class="icon-btn" id="billsClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
+  </div>
+  <div class="bills-list" id="billsList"></div>
+  <div class="past" id="pastView" hidden>
+    <div class="past-body" id="pastBody"><div class="slip past-slip" id="pastSlip"></div></div>
+    <div class="sheet-foot past-btns">
+      <button class="btn primary" id="pastPrint" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>പ്രിന്റ് / PDF</button>
+      <button class="btn ghost" id="pastShare" type="button" aria-label="ബിൽ ചിത്രമായി ഷെയർ ചെയ്യുക"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>ഷെയർ</button>
+    </div>
+  </div>
 </dialog>
 
 <dialog class="sheet add" id="addSheet" aria-labelledby="addTitle">
@@ -746,6 +804,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Every key and cache on this origin is shared with the other tinkerhouse apps: prefix everything.
 const BILL_KEY = 'thraasu_bill', SHOP_KEY = 'thraasu_shop', PRICES_KEY = 'thraasu_prices';
+const KEPT_KEY = 'thraasu_bills';      // the sold bills of today and yesterday, newest first
 const SESSION_KEY = 'thraasu_session', OUTBOX_KEY = 'thraasu_outbox', SYNCED_KEY = 'thraasu_synced', CATALOG_KEY = 'thraasu_catalog';
 const SIGNUP_KEY = 'thraasu_signup';   // { code, name } of a shop asked for on this phone, until it logs in
 const ITEMS_KEY = 'thraasu_items';     // { id: item } the shop added on its phones (cleanItem in bill-core.js)
@@ -765,7 +824,12 @@ let samplePrices = false;   // products.json says its rates are placeholders
 
 // ---------- small formatters ----------
 const billNo = n => String(n).padStart(4, '0');
-const fmtDate = d => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+// 17 Oct 2026 · 2:16 PM: 12-hour with capital AM/PM, whatever the phone's clock setting.
+const fmtDay = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const fmtTime = d => new Date(d).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase();
+const fmtDate = d => `${fmtDay(d)} · ${fmtTime(d)}`;
+const dayKey = d => new Date(d).toLocaleDateString('en-CA');              // 2026-10-17, by the phone's calendar
+const billName = b => `Thraasu-Bill-${dayKey(b.started)}-${billNo(b.no)}`;   // numbers restart daily: the date keeps files apart
 const signed = p => (p > 0 ? '+' : p < 0 ? '−' : '') + fmtMoney(Math.abs(p));
 const countLabel = n => `${n} ${n === 1 ? 'ഇനം' : 'ഇനങ്ങൾ'}`;
 const perUnit = unit => unit === 'pc' ? 'ഒന്നിന്' : `/ ${UNITS[unit].big}`;
@@ -788,8 +852,7 @@ function loadBill() {
   try {
     const b = JSON.parse(localStorage.getItem(BILL_KEY));
     if (b && Number.isInteger(b.no) && b.no > 0 && Array.isArray(b.lines)) {
-      b.lines = b.lines.filter(l => l && typeof l.pid === 'string' && typeof l.ml === 'string' && Object.hasOwn(UNITS, l.unit) &&
-        Number.isInteger(l.qty) && l.qty > 0 && Number.isInteger(l.rate) && l.rate > 0);
+      b.lines = b.lines.filter(l => okLine(l) && typeof l.pid === 'string');
       b.lines.forEach(l => { l.img = safeImg(l.img); });
       b.discount = Number.isInteger(b.discount) && b.discount > 0 ? b.discount : 0;
       if (isNaN(new Date(b.started))) b.started = new Date().toISOString();
@@ -800,13 +863,47 @@ function loadBill() {
   } catch {}
   return freshBill(1);
 }
+function okLine(l) {
+  return !!l && typeof l.ml === 'string' && Object.hasOwn(UNITS, l.unit) && Number.isInteger(l.qty) && l.qty > 0 && Number.isInteger(l.rate) && l.rate > 0;
+}
 // A failed write (private mode, full storage) keeps the bill in memory; nothing is lost mid-sale.
 // A sold bill goes to the shop again on every change, and the server moves stock by the difference.
+// It is also kept on this phone, for the bills sheet.
 function saveBill() {
   try { localStorage.setItem(BILL_KEY, JSON.stringify(bill)); } catch {}
-  if (bill.sold) queue('sale', bill.id, Object.fromEntries(bill.lines.map(l => [l.pid, l.qty])));
+  if (bill.sold) { queue('sale', bill.id, Object.fromEntries(bill.lines.map(l => [l.pid, l.qty]))); keep(bill); }
 }
 function markSold() { if (!bill.sold) { bill.sold = true; saveBill(); } }
+
+// ---------- the kept bills: today's and yesterday's ----------
+// Each sold bill on this phone, with what its receipt needs. Not synced: the server keeps sales as stock only.
+// ponytail: localStorage, at most 1000 bills; IndexedDB if a shop ever bills more than that in two days.
+function keepDays() { const y = new Date(); y.setDate(y.getDate() - 1); return [dayKey(new Date()), dayKey(y)]; }
+function loadKept() {
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(KEPT_KEY)); } catch {}
+  if (!Array.isArray(raw)) return [];
+  const days = keepDays(), list = raw.filter(b => b && typeof b.id === 'string' && Number.isInteger(b.no) && b.no > 0 &&
+    typeof b.started === 'string' && days.includes(dayKey(b.started)) && Array.isArray(b.lines) && b.lines.length && b.lines.every(okLine))
+    .map(b => ({ ...b, discount: Number.isInteger(b.discount) && b.discount > 0 ? b.discount : 0 }));
+  if (list.length < raw.length) try { localStorage.setItem(KEPT_KEY, JSON.stringify(list)); } catch {}   // older than yesterday: gone
+  return list;
+}
+// Saved again on every change once sold; a bill with no lines left goes, and so does one older than yesterday.
+function keep(b) {
+  const days = keepDays();
+  kept = kept.filter(x => x.id !== b.id && days.includes(dayKey(x.started)));
+  if (b.lines.length && days.includes(dayKey(b.started)))
+    kept.push({ id: b.id, no: b.no, started: b.started, discount: b.discount, lines: b.lines.map(({ ml, qty, unit, rate, sample }) => ({ ml, qty, unit, rate, sample })) });
+  kept.sort((x, y) => new Date(y.started) - new Date(x.started));
+  kept.length = Math.min(kept.length, 1000);
+  try { localStorage.setItem(KEPT_KEY, JSON.stringify(kept)); } catch {}
+}
+// The number goes back to 0001 every morning.
+const nextNo = () => 1 + Math.max(0, ...kept.filter(b => dayKey(b.started) === dayKey(new Date())).map(b => b.no));
+// An empty bill takes today's next number, and the moment its first item goes on is its time.
+function restamp() { if (!bill.lines.length && !bill.sold) { bill.no = nextNo(); bill.started = new Date().toISOString(); } }
+let kept = loadKept();
 
 // ---------- price list ----------
 async function loadCatalog() {
@@ -1328,6 +1425,7 @@ function commit() {
   const line = { pid: item.pid, cat: item.cat, ml: item.ml, en: item.en, icon: item.icon, img: item.img, unit: item.unit, rate, qty,
     sample: samplePrices && !!p && !p.mine && rate === p.base };
   const i = bill.lines.findIndex(l => l.pid === item.pid);
+  restamp();                                             // the first item: the bill's number and time
   if (i >= 0) bill.lines[i] = line; else bill.lines.push(line);
   undo = null; hideToast();
   saveBill();
@@ -1347,10 +1445,12 @@ function bump() {
 
 // ---------- bill ----------
 function renderBill() {
+  restamp();
   const t = totals(bill.lines, bill.discount);
   const n = bill.lines.length;
   $('billNo').textContent = billNo(bill.no);
-  $('billDate').textContent = fmtDate(bill.started);
+  $('billDate').textContent = fmtDay(bill.started);
+  $('billTime').textContent = fmtTime(bill.started);
   $('billLines').innerHTML = bill.lines.map((l, i) => `<li class="line" data-cat="${esc(l.cat || '')}"><button class="line-main" type="button" data-edit="${i}">${pan(l)}<span class="line-name"><b>${esc(l.ml)}</b><small>${esc(lineDesc(l.qty, l.rate, l.unit))}</small></span><span class="line-amt">${fmtMoney(lineAmount(l.rate, l.qty, l.unit))}</span></button><button class="line-x" type="button" data-remove="${i}" aria-label="${esc(l.ml)} നീക്കം ചെയ്യുക">✕</button></li>`).join('');
   $('billEmpty').hidden = n > 0;
   $('sums').hidden = n === 0;
@@ -1359,29 +1459,33 @@ function renderBill() {
   $('sumTotal').textContent = fmtMoney(t.total, true);
   if (document.activeElement !== $('discount')) $('discount').value = t.discount ? String(t.discount / 100) : '';
   $('printBtn').disabled = $('shareBtn').disabled = $('newBill').disabled = n === 0;
-  $('billBar').disabled = n === 0;
+  $('billBar').disabled = n === 0 && !kept.length;       // empty, it opens the kept bills
+  $('billBar').classList.toggle('empty', n === 0);
+  $('bbGo').textContent = n ? 'ബിൽ കാണുക' : 'ബില്ലുകൾ';
   $('bbCount').textContent = n ? countLabel(n) : 'ബില്ലിൽ ഒന്നുമില്ല';
   $('bbTotal').textContent = n ? fmtMoney(t.total, true) : '';
 }
-// One receipt, two renderings: #receipt (print media) and receiptCanvas() (shared image).
-function receiptData() {
-  const t = totals(bill.lines, bill.discount);
+// One receipt, three renderings: #receipt (print media), receiptCanvas() (shared image) and a kept bill's slip.
+// b: the bill on the counter, or a kept one.
+function receiptData(b = bill) {
+  const t = totals(b.lines, b.discount);
   return {
     shop: $('shopName').value.trim(),
     // a line saved before the flag existed counts as sample: the label is the safe side
-    meta: [`ബിൽ നം. ${billNo(bill.no)} · ${fmtDate(new Date())}`]
-      .concat(samplePrices && bill.lines.some(l => l.sample !== false) ? ['മാതൃകാ വിലകൾ · sample prices'] : []),
-    items: bill.lines.map(l => [l.ml, lineDesc(l.qty, l.rate, l.unit), fmtMoney(lineAmount(l.rate, l.qty, l.unit))]),
+    meta: [`ബിൽ നം. ${billNo(b.no)} · ${fmtDate(b.started)}`]
+      .concat(samplePrices && b.lines.some(l => l.sample !== false) ? ['മാതൃകാ വിലകൾ · sample prices'] : []),
+    items: b.lines.map(l => [l.ml, lineDesc(l.qty, l.rate, l.unit), fmtMoney(lineAmount(l.rate, l.qty, l.unit))]),
     sums: [['തുക', fmtMoney(t.subtotal)]]
       .concat(t.discount ? [['കിഴിവ്', '−' + fmtMoney(t.discount)]] : [], t.roundOff ? [['റൗണ്ട് ഓഫ്', signed(t.roundOff)]] : []),
     total: ['ആകെ', fmtMoney(t.total, true)],
     thanks: 'നന്ദി, വീണ്ടും വരിക!',
   };
 }
-function renderReceipt() {
-  const r = receiptData();
-  const row = (a, b, cls = '') => `<tr${cls ? ` class="${cls}"` : ''}><td>${a}</td><td>${b}</td></tr>`;
-  $('receipt').innerHTML = (r.shop ? `<h1>${esc(r.shop)}</h1>` : '') +
+function renderReceipt(b = bill) { $('receipt').innerHTML = receiptHTML(b); }
+function receiptHTML(b) {
+  const r = receiptData(b);
+  const row = (a, v, cls = '') => `<tr${cls ? ` class="${cls}"` : ''}><td>${a}</td><td>${v}</td></tr>`;
+  return (r.shop ? `<h1>${esc(r.shop)}</h1>` : '') +
     r.meta.map(m => `<p class="meta">${esc(m)}</p>`).join('') + '<hr><table>' +
     r.items.map(([name, desc, amt]) => row(`${esc(name)}<div class="sub">${esc(desc)}</div>`, amt)).join('') +
     `</table><hr><table>${r.sums.map(([k, v]) => row(k, v)).join('')}` +
@@ -1390,8 +1494,8 @@ function renderReceipt() {
 // The same receipt as an image, 576 px wide: the printable width of an 80 mm thermal roll
 // at 203 dpi, so it also prints 1:1 through RawBT. fillText's maxWidth squeezes long text
 // rather than overflowing.
-function receiptCanvas() {
-  const r = receiptData(), W = 576, P = 28, ff = getComputedStyle(document.body).fontFamily;
+function receiptCanvas(b = bill) {
+  const r = receiptData(b), W = 576, P = 28, ff = getComputedStyle(document.body).fontFamily;
   const c = document.createElement('canvas'), g = c.getContext('2d');
   const pass = draw => {
     let y = P;
@@ -1426,10 +1530,10 @@ function receiptCanvas() {
 // in-app browsers on iPhone) still reach a printer this way: the share sheet offers Print,
 // WhatsApp and Files. Synchronous to the tap (toDataURL, not toBlob), so the share keeps
 // its user activation.
-function shareBill() {
-  markSold();
-  renderReceipt();
-  const name = `Thraasu-Bill-${billNo(bill.no)}.png`, url = receiptCanvas().toDataURL('image/png');
+function shareBill(b = bill) {
+  if (b === bill) markSold();
+  renderReceipt(b);
+  const name = billName(b) + '.png', url = receiptCanvas(b).toDataURL('image/png');
   const file = new File([Uint8Array.from(atob(url.split(',')[1]), ch => ch.charCodeAt(0))], name, { type: 'image/png' });
   if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], title: name }).catch(() => {});
   const a = document.createElement('a');                // no file sharing (desktop): save the image
@@ -1450,15 +1554,15 @@ function newBill() {
   markSold();
   const was = JSON.stringify(bill);
   undo = () => restoreBill(was);
-  bill = freshBill(bill.no + 1);
+  bill = freshBill(nextNo());
   saveBill(); renderBill(); renderShelf();
   toast(`പുതിയ ബിൽ നം. ${billNo(bill.no)}`);
 }
-function printBill() {
-  markSold();
-  renderReceipt();                                       // stamps the print time
+function printBill(b = bill) {
+  if (b === bill) markSold();
+  renderReceipt(b);
   const title = document.title;
-  document.title = `Thraasu-Bill-${billNo(bill.no)}`;   // Save as PDF names the file from this
+  document.title = billName(b);                          // Save as PDF names the file from this
   addEventListener('afterprint', () => { document.title = title; }, { once: true });
   window.print();
 }
@@ -1481,6 +1585,47 @@ function showBill(on) {
   document.body.classList.toggle('bill-open', on);
   if (on && !was) $('billTitle').focus({ preventScroll: true });
   if (!on && was) $('billBar').focus({ preventScroll: true });
+}
+
+// ---------- the bills sheet: today's and yesterday's, and one of them to print or share again ----------
+const billsEl = $('billsSheet');
+let past = null;                // the kept bill on show, or null for the list
+function openBills() {
+  showPast(null);
+  billsEl.showModal();
+  $('billsList').scrollTop = 0;
+}
+function renderBills() {
+  const sum = list => list.reduce((s, b) => s + totals(b.lines, b.discount).total, 0);
+  $('billsList').innerHTML = keepDays().map((k, i) => {
+    const list = kept.filter(b => dayKey(b.started) === k);
+    if (i && !list.length) return '';
+    const date = new Date(k + 'T12:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return `<section class="day"><h3><span>${i ? 'ഇന്നലെ' : 'ഇന്ന്'} <small>· ${date}</small></span>` + (list.length
+      ? `<b>${list.length} ${list.length === 1 ? 'ബിൽ' : 'ബില്ലുകൾ'} · ${fmtMoney(sum(list), true)}</b></h3><ol>` + list.map(b =>
+        `<li><button class="past-row" type="button" data-bill="${esc(b.id)}"><span class="names"><b>നം. ${billNo(b.no)}</b><small>${fmtTime(b.started)} · ${countLabel(b.lines.length)}</small></span>` +
+        `<span class="amt">${fmtMoney(totals(b.lines, b.discount).total, true)}</span>${NEXT}</button></li>`).join('') + '</ol>'
+      : '</h3><p class="none">ഇന്ന് ബില്ലുകളൊന്നുമില്ല</p>') + '</section>';
+  }).join('');
+}
+// One kept bill in place of the list (id), or the list again (null).
+function showPast(id) {
+  const was = past;
+  past = (id && kept.find(b => b.id === id)) || null;
+  $('billsList').hidden = !!past;
+  $('pastView').hidden = $('billsBack').hidden = !past;
+  $('billsTitle').textContent = past ? `ബിൽ നം. ${billNo(past.no)}` : 'ബില്ലുകൾ';
+  $('billsSub').textContent = past
+    ? `${dayKey(past.started) === dayKey(new Date()) ? 'ഇന്ന്' : 'ഇന്നലെ'} · ${fmtTime(past.started)} · ${countLabel(past.lines.length)}`
+    : 'ഇന്നും ഇന്നലെയും · ഈ ഫോണിൽ';
+  if (past) {
+    $('pastSlip').innerHTML = receiptHTML(past);
+    $('pastBody').scrollTop = 0;
+    $('billsTitle').focus({ preventScroll: true });
+  } else {
+    renderBills();
+    if (was) $('billsList').querySelector(`[data-bill="${CSS.escape(was.id)}"]`)?.focus();
+  }
 }
 
 // ---------- adding an item: one job per step ----------
@@ -1740,7 +1885,16 @@ $('priceList').addEventListener('click', e => {
   $('priceList').querySelector(`[data-pid="${CSS.escape(row.dataset.pid)}"] input`)?.focus();
 });
 
-$('billBar').addEventListener('click', openBill);
+$('billBar').addEventListener('click', () => bill.lines.length ? openBill() : openBills());
+$('billsBtn').addEventListener('click', openBills);
+$('billsClose').addEventListener('click', () => billsEl.close());
+$('billsBack').addEventListener('click', () => showPast(null));
+billsEl.addEventListener('cancel', e => { if (past) { e.preventDefault(); showPast(null); } });   // Esc or Android back: the list first
+billsEl.addEventListener('click', e => { if (e.target === billsEl) billsEl.close(); });
+billsEl.addEventListener('close', () => { past = null; });
+$('billsList').addEventListener('click', e => { const b = e.target.closest('[data-bill]'); if (b) showPast(b.dataset.bill); });
+$('pastPrint').addEventListener('click', () => past && printBill(past));
+$('pastShare').addEventListener('click', () => past && shareBill(past));
 $('billClose').addEventListener('click', closeBill);
 $('addMore').addEventListener('click', closeBill);
 $('billLines').addEventListener('click', e => {
@@ -1761,8 +1915,8 @@ $('shopName').addEventListener('input', () => {
   try { localStorage.setItem(SHOP_KEY, $('shopName').value); } catch {}
   if ($('shopName').value.trim()) queue('name', $('shopName').value.trim());
 });
-$('printBtn').addEventListener('click', printBill);
-$('shareBtn').addEventListener('click', shareBill);
+$('printBtn').addEventListener('click', () => printBill());
+$('shareBtn').addEventListener('click', () => shareBill());
 $('homeBtn').addEventListener('click', goHome);
 $('newBill').addEventListener('click', newBill);
 $('toastUndo').addEventListener('click', () => {
@@ -1771,7 +1925,7 @@ $('toastUndo').addEventListener('click', () => {
   if (u) u();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && $('bill').classList.contains('open') && !sheetEl.open) closeBill();
+  if (e.key === 'Escape' && $('bill').classList.contains('open') && !document.querySelector('dialog[open]')) closeBill();   // Esc in a sheet closes the sheet only
 });
 // iOS ignores interactive-widget=resizes-content: its keyboard covers the page instead of shrinking it, so a
 // sheet kept its full height and its top (title, name box) went off screen. Sit open sheets on the keyboard
@@ -1794,6 +1948,7 @@ addEventListener('popstate', () => {
   if (addEl.open) addEl.close();
   if (pricesEl.open) pricesEl.close();
   if (shopEl.open) shopEl.close();
+  if (billsEl.open) billsEl.close();
   cat = s.cat || null;
   showBill(s.layer === 'bill');
   renderShelf();
