@@ -25,7 +25,7 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
       effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-11,
-      after the Thraasu iPhone-keyboard fix (`main` at `966fa2b`): PASS — 8 apps, CSPs applied,
+      after the Thraasu add-in-steps deploy (`main` at `8d1466e`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
@@ -95,7 +95,8 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       requests wait at once; 25 MB of photos per shop; sold bills kept 60 days.
       **Shops add their own items from the phone** (live 2026-10-11, `93a0f63`): + പുതിയ സാധനം in a
       category's head row or in an empty search; a name the list already has is refused (spelling forgiven),
-      similar ones are only shown. Added items sync to all the shop's phones (D1 `items`, one per name, 1000
+      similar ones are only shown. Since 2026-10-17 (`5e06726`) it goes in steps so nothing scrolls above a
+      keyboard: name (letters), category (only from search; taps), price (number pad). Added items sync to all the shop's phones (D1 `items`, one per name, 1000
       cap), survive a `catalog` re-import, and are removed from the price list (✕, undo). `shop-admin.mjs list`
       counts them (`added`); folding them into the shop's sheet is still by hand. Not built: renaming (remove
       and add again), new categories, a stock count at add.
@@ -129,7 +130,7 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       no Kannada TTS at all — but not accent. A native speaker should review all 108
       phrases (is ನೇರೆ ಹೋಗಿ idiomatic?) and re-record; replacements are a drop-in under
       the same filenames, then re-run the tool for the manifest.
-- [ ] **Thraasu Malayalam is unreviewed.** The add-item copy (2026-10-11) is listed in its spec. The UI copy and the 459 product names (Nanma Store) were written
+- [ ] **Thraasu Malayalam is unreviewed.** The add-item copy (2026-10-11, steps 2026-10-17) is listed in its spec. The UI copy and the 459 product names (Nanma Store) were written
       by the build agent. A native speaker should read every label in `8_thraasu/index.html`
       and every `ml` field in `products.json`. Thraasu also needs a `privacy.html` before Play.
 - [ ] **CardGuard Play Billing**: create the `cardguard_premium_yearly` product in
@@ -167,9 +168,11 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 - [ ] **LingoLocal `clip.play()` under a real user gesture** — not verifiable in
       automation (the tab stays `visibilityState: hidden` and Chrome blocks media
       there). Decode is proven end to end; one tap on a real device closes it.
-- [ ] **Thraasu sheets with a real keyboard** (2026-10-11, `966fa2b`): sheets fit above the keyboard via
-      `visualViewport`, proven in a Chrome simulation only. Open the add sheet with the keyboard up once on an
-      iPhone and once on an Android phone: title, name box and Add button visible, the middle scrolls.
+- [ ] **Thraasu sheets with a real keyboard** (2026-10-11, `966fa2b`; add in steps 2026-10-17, `5e06726`): sheets
+      fit above the keyboard via `visualViewport`, proven in a Chrome simulation only. Once on an iPhone and once
+      on an Android phone, add an item from a category: the name step shows the title, name box and Next above
+      the keyboard; Enter switches to the number pad on the price step without closing; on the iPhone the
+      number pad's ✓ leaves the Add button visible.
 - [ ] **Thraasu printing on a real phone.** `window.print()` is proven to fire with the PDF
       title `Thraasu-Bill-NNNN`, and print media is proven to show only the receipt. Not proven:
       Android's dialog itself, a Wi-Fi printer, and a 58 mm Bluetooth printer through RawBT.
