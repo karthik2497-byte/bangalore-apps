@@ -64,9 +64,9 @@ DELETE FROM sessions WHERE shop = ${q(code)};`);
   console.log(`${code}: stock set for ${counted.length} products; bills lower it from here`);
 } else if (cmd === 'remove') {
   needCode();
-  d1(['shops WHERE code', 'sessions WHERE shop', 'prices WHERE shop', 'photos WHERE shop', 'catalog_parts WHERE shop', 'stock WHERE shop', 'sales WHERE shop', 'items WHERE shop', 'hidden WHERE shop']
+  d1(['shops WHERE code', 'sessions WHERE shop', 'prices WHERE shop', 'photos WHERE shop', 'catalog_parts WHERE shop', 'stock WHERE shop', 'sales WHERE shop', 'items WHERE shop', 'hidden WHERE shop', 'bills WHERE shop']
     .map(w => `DELETE FROM ${w} = ${q(code)};`).join('\n'));
-  console.log(`${code} removed with its prices, photos, list, added and removed items, stock, sales and sessions`);
+  console.log(`${code} removed with its prices, photos, list, added and removed items, stock, sales, bills and sessions`);
 } else if (cmd === 'requests') {
   const rows = d1read("SELECT code, name, mobile, datetime(created / 1000, 'unixepoch', '+330 minutes') AS asked_ist FROM shops WHERE status = 'pending' ORDER BY created");
   rows.length ? console.table(rows) : console.log('no requests waiting');

@@ -11,11 +11,11 @@ import assert from 'node:assert/strict';
 
 const APP = dirname(fileURLToPath(import.meta.url));
 const core = vm.runInNewContext(readFileSync(join(APP, 'bill-core.js'), 'utf8') +
-  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg, cleanPrices, cleanBackup, nameKey, sameName, similar, cleanItem })');
+  '\n;({ UNITS, lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, totals, search, validProducts, autoSmall, safeImg, cleanPrices, cleanBackup, nameKey, sameName, similar, cleanItem, cleanBill, PAY_KINDS })');
 // Objects made inside the vm realm have its prototypes, which deepStrictEqual rejects: copy them out.
 const plain = f => (...args) => JSON.parse(JSON.stringify(f(...args)));
 const { lineAmount, parseQty, parseMoney, fmtQty, fmtMoney, autoSmall, safeImg } = core;
-const [totals, search, validProducts, cleanPrices, cleanBackup, sameName, similar, cleanItem] = [core.totals, core.search, core.validProducts, core.cleanPrices, core.cleanBackup, core.sameName, core.similar, core.cleanItem].map(plain);
+const [totals, search, validProducts, cleanPrices, cleanBackup, sameName, similar, cleanItem, cleanBill] = [core.totals, core.search, core.validProducts, core.cleanPrices, core.cleanBackup, core.sameName, core.similar, core.cleanItem, core.cleanBill].map(plain);
 const { nameKey } = core;
 const data = JSON.parse(readFileSync(join(APP, 'products.json'), 'utf8'));
 // Search behaviour is pinned on the frozen sample list; the shop's list is checked as data below.
@@ -208,6 +208,22 @@ t('an added item is checked like a backup entry', () => {
     { ...ok, rate: 1e7 }, { ...ok, rate: '5' }, { ...ok, cat: 'a b' }]) assert.equal(cleanItem(bad), null, JSON.stringify(bad));
   const b = cleanBackup({ app: 'thraasu', kind: 'backup', items: { uAAAAAAAAAA: ok, 'bad id!': ok, uBBBBBBBBBB: { ...ok, unit: 'x' } } });
   assert.deepEqual(Object.keys(b.items), ['uAAAAAAAAAA']);
+});
+
+t('a kept bill keeps its receipt fields and payment; anything else is refused', () => {
+  const ok = { id: 'b-1', no: 7, started: '2026-10-24T05:12:00.000Z', discount: 500, pay: 'upi', sold: true,
+    lines: [{ pid: 'tomato', ml: 'തക്കാളി', qty: 500, unit: 'kg', rate: 4000, sample: false, img: 'img/t.webp' }, { ml: 'പാൽ', qty: 2, unit: 'pc', rate: 2800 }] };
+  assert.deepEqual(cleanBill(ok), { id: 'b-1', no: 7, started: '2026-10-24T05:12:00.000Z', discount: 500, pay: 'upi',
+    lines: [{ ml: 'തക്കാളി', qty: 500, unit: 'kg', rate: 4000, sample: false }, { ml: 'പാൽ', qty: 2, unit: 'pc', rate: 2800, sample: true }] });
+  assert.equal(cleanBill({ ...ok, pay: 'card' }).pay, null);           // unknown kind, or kept before payments
+  assert.equal(cleanBill({ ...ok, discount: -1 }).discount, 0);
+  assert.deepEqual(cleanBill({ ...ok, lines: [] }).lines, []);         // every line taken off: a removal, still a bill
+  assert.equal(cleanBill({ ...ok, lines: [{ ...ok.lines[0], ml: 'x'.repeat(130) }] }).lines[0].ml.length, 120);
+  for (const bad of [null, 'x', { ...ok, id: 'a b' }, { ...ok, no: 0 }, { ...ok, no: 1.5 }, { ...ok, started: 'soon' },
+    { ...ok, lines: 'x' }, { ...ok, lines: Array(301).fill(ok.lines[1]) }, { ...ok, lines: [{ ...ok.lines[0], qty: 0 }] },
+    { ...ok, lines: [{ ...ok.lines[0], unit: 'g' }] }, { ...ok, lines: [{ ...ok.lines[0], rate: 1e9 }] }, { ...ok, lines: [{ ...ok.lines[0], ml: ' ' }] }])
+    assert.equal(cleanBill(bad), null, JSON.stringify(bad).slice(0, 80));
+  assert.deepEqual([...core.PAY_KINDS], ['cash', 'upi', 'credit']);
 });
 
 console.log(`OK: ${n} checks passed (thraasu bill-core)`);

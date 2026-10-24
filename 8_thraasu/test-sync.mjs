@@ -54,7 +54,7 @@ await t('login: wrong PIN and unknown code answer alike; the right PIN gets a to
 });
 
 await t('every other route needs a session', async () => {
-  for (const [m, p] of [['GET', 'state'], ['POST', 'prices'], ['POST', 'sales'], ['PUT', 'photo'], ['GET', 'catalog'], ['PUT', 'shop'], ['POST', 'items'], ['GET', 'items']]) {
+  for (const [m, p] of [['GET', 'state'], ['POST', 'prices'], ['POST', 'sales'], ['PUT', 'photo'], ['GET', 'catalog'], ['PUT', 'shop'], ['POST', 'items'], ['GET', 'items'], ['POST', 'bills'], ['GET', 'bills']]) {
     assert.equal((await call(m, p)).status, 401, p);
     assert.equal((await call(m, p, { token: 'f'.repeat(64) })).status, 401, p + ' with a made-up token');
   }
@@ -291,6 +291,48 @@ await t('hidden: items a shop took off its list reach every phone; junk ignored;
   assert.equal((await call('POST', 'hidden', { token, body: { hide: many } })).status, 413);
   assert.deepEqual((await call('GET', 'state', { token })).data.hidden, ['tomato']);
   assert.equal((await call('POST', 'hidden', { body: { hide: ['x'] } })).status, 401);
+});
+
+await t('bills: every phone of the shop gets them, only what changed since; junk refused; old ones go; per shop', async () => {
+  const login = async code => (await call('POST', 'login', { body: code === 'OTHER' ? { code, pin: '1111' } : { code, pin: '482913' } })).data.token;
+  const a = await login('NANMA'), b = await login('NANMA');
+  const now = new Date().toISOString(), old = new Date(Date.now() - 4 * 864e5).toISOString();
+  const bill = (id, no, pay, lines = [{ ml: 'തക്കാളി', qty: 500, unit: 'kg', rate: 4000, sample: false }]) => ({ id, no, started: now, discount: 0, pay, lines });
+  const send = (token, bills) => call('POST', 'bills', { token, body: { bills } });
+  const pull = async (token, since = 0) => (await call('GET', 'bills?since=' + since, { token })).data;
+  const state = async token => (await call('GET', 'state', { token })).data.bills;
+  assert.equal(await state(b), null);                                            // nothing sold yet
+  assert.equal((await send(a, { k1: bill('k1', 1, 'cash'), k2: bill('k2', 2, 'upi') })).status, 200);
+  const first = await pull(b);
+  assert.deepEqual(first.bills.map(x => [x.id, x.bill.no, x.bill.pay]), [['k1', 1, 'cash'], ['k2', 2, 'upi']]);
+  assert.equal(await state(b), first.at, 'state names the counter GET bills answered with');
+  await send(b, { k1: bill('k1', 1, 'credit') });                                 // the payment changed on another phone
+  const next = await pull(a, first.at);
+  assert.deepEqual(next.bills.map(x => [x.id, x.bill.pay]), [['k1', 'credit']], 'only what changed since');
+  await send(a, { k2: bill('k2', 2, 'upi', []) });                                // every line taken off
+  assert.deepEqual((await pull(b, next.at)).bills.map(x => [x.id, x.bill.lines.length]), [['k2', 0]]);
+  const realNow = Date.now, t0 = realNow();                                       // two writes in one millisecond still move it
+  Date.now = () => t0;
+  try {
+    await send(a, { k1: bill('k1', 1, 'cash') });
+    const s1 = await state(a);
+    await send(a, { k1: bill('k1', 1, 'upi') });
+    assert.ok(await state(a) > s1, 'bills_at moves on every write');
+  } finally { Date.now = realNow; }
+  await send(a, { 'bad id!': bill('bad id!', 3, 'cash'), k3: bill('k4', 3, 'cash'), k5: { ...bill('k5', 5, 'card'), sold: true }, k6: { ...bill('k6', 6, 'cash'), started: old } });
+  const got = Object.fromEntries((await pull(b)).bills.map(x => [x.id, x.bill]));
+  assert.deepEqual(Object.keys(got).sort(), ['k1', 'k2', 'k5'], 'a bad id, a body for another id and a bill over 3 days old are refused');
+  assert.deepEqual([got.k5.pay, 'sold' in got.k5], [null, false]);
+  const many = Object.fromEntries(Array.from({ length: 51 }, (_, i) => ['m' + i, bill('m' + i, i + 1, 'cash')]));
+  assert.equal((await send(a, many)).status, 413);
+  delete many.m50; db.queries = 0;
+  assert.equal((await send(a, many)).status, 200);
+  assert.ok(db.queries <= 5, `50 bills used ${db.queries} queries`);
+  raw.prepare("INSERT INTO bills (shop, id, body, started, at) VALUES ('NANMA', 'stale', '{}', ?, 1)").run(Date.now() - 4 * 864e5);
+  assert.ok(!(await pull(b)).bills.some(x => x.id === 'stale'), 'never handed out');
+  await send(a, { k1: bill('k1', 1, 'cash') });
+  assert.equal(raw.prepare("SELECT COUNT(*) AS n FROM bills WHERE id = 'stale'").get().n, 0, 'deleted on the next write');
+  assert.deepEqual((await pull(await login('OTHER'))).bills, [], "another shop's bills are its own");
 });
 
 await t('unknown routes are a JSON 404', async () => {

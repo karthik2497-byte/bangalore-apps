@@ -113,6 +113,27 @@ function cleanItem(x) {
   return { cat: x.cat, ml, en, unit: x.unit, rate: Math.round(x.rate * 100) / 100, icon: typeof x.icon === 'string' ? x.icon.slice(0, 16) : '' };
 }
 
+// How a bill was paid: cash, UPI, or credit (paid later). A bill is sold only with one; a bill kept before
+// payments existed has none (null).
+const PAY_KINDS = ['cash', 'upi', 'credit'];
+
+// A sold bill as the bills sheet keeps it, on the phone and on the shop's server (functions/api/thraasu keeps
+// the same rules): what its receipt needs and how it was paid. No lines is a bill whose lines were all taken
+// off, sent so the shop's other phones drop it too. Null for anything that is not a bill.
+function cleanBill(b) {
+  if (!b || typeof b !== 'object' || typeof b.id !== 'string' || !/^[\w-]{1,40}$/.test(b.id) || !Number.isInteger(b.no) ||
+    b.no < 1 || b.no > 1e6 || typeof b.started !== 'string' || !Number.isFinite(Date.parse(b.started)) ||
+    !Array.isArray(b.lines) || b.lines.length > 300) return null;
+  const lines = [];
+  for (const l of b.lines) {
+    if (!l || typeof l.ml !== 'string' || !l.ml.trim() || !Object.hasOwn(UNITS, l.unit) || !Number.isInteger(l.qty) ||
+      l.qty < 1 || l.qty > MAX_QTY || !Number.isInteger(l.rate) || l.rate < 1 || l.rate >= 1e9) return null;
+    lines.push({ ml: l.ml.slice(0, 120), qty: l.qty, unit: l.unit, rate: l.rate, sample: l.sample !== false });
+  }
+  return { id: b.id, no: b.no, started: b.started, discount: Number.isInteger(b.discount) && b.discount > 0 && b.discount < 1e9 ? b.discount : 0,
+    pay: PAY_KINDS.includes(b.pay) ? b.pay : null, lines };
+}
+
 // A counter types grams as "250" and kilos as "1.5". On the kg / L side a whole number
 // of 50 or more is almost always grams, so the box switches sides unless the toggle was
 // set by hand. ponytail: one fixed threshold; a 50 kg sack needs the toggle. Per-item

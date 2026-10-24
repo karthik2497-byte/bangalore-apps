@@ -36,9 +36,10 @@ phone can already reach.
   its own list, prices and photos from the sync API on the same origin (Pages Function + D1).
 - Units: kg (priced per kg), L (per litre), pc (per piece). Money in integer paise.
 - Local first: the bill, prices and photos save on the phone at once and sync when online; a backup
-  file (share to WhatsApp/Drive) carries prices and photos without an account. Each phone keeps its sold
-  bills of today and yesterday (numbered from 0001 each morning) to view, print or share again; they are
-  not synced. No GST or customers in v1 (deliberately deferred, not forgotten).
+  file (share to WhatsApp/Drive) carries prices and photos without an account. A shop's sold bills of
+  today and yesterday (one number series from 0001 each morning) show on every logged-in phone of the shop
+  (D1 `bills`) to view, print or share again, filtered by how each was paid: cash, UPI or credit, picked on the
+  bill before it can be printed, shared or closed. Logged out, a phone keeps its own. No GST or customers in v1 (deliberately deferred, not forgotten).
 - A shop adds items from the phone (category head row, or an empty search). Every add starts as a search
   of the whole list, and a name the list has cannot be added again (`sameName` in `bill-core.js`).
   It goes in steps so nothing scrolls above a keyboard: the name (letters), the category (only from

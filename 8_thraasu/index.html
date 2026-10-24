@@ -28,6 +28,7 @@ FORM: Operate-mode counter tool; the user-approved direction (pinned 2026-10-10,
   --leaf: #1E6B3A; --leaf-deep: #154F2A; --leaf-wash: #E2EEE0;
   --brass: #B8862B; --brass-ink: #7A5610; --brass-wash: #F4E8C9;
   --chilli: #B3301F; --chilli-wash: #F8E0DA;
+  --upi: #34367A; --upi-wash: #E1E1F2;   /* UPI's ink and wash: the stationery sack pair */
   --tint: var(--brass-wash); --tint-ink: var(--brass-ink);
   --r: 14px; --gutter: 16px;
   --font: 'Anek Malayalam', 'Noto Sans Malayalam', system-ui, sans-serif;
@@ -282,6 +283,26 @@ button:disabled { cursor: default; }
 .grand { margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--ink); }
 .grand dt { font-size: 19px; font-weight: 720; color: var(--ink); }
 .grand dd { font-size: 32px; font-weight: 760; line-height: 1.1; color: var(--leaf-deep); }
+/* How the bill was paid. Each kind keeps one colour wherever it shows: leaf for cash, the stationery sack's
+   indigo for UPI, brass for credit (paid later); chilli only when a bill is finished without one. */
+.pay-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin-top: 14px; }
+.pay-label { font-size: 15.5px; color: var(--ink-2); }
+.pay-seg { flex: 1 1 228px; max-width: 290px; display: flex; overflow: hidden; border: 1.5px solid var(--field); border-radius: var(--r); }
+.pay-seg button {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 48px; padding: 0 6px;
+  border: 0; background: var(--slip); font-size: 15.5px; font-weight: 650;
+}
+.pay-seg button + button { border-left: 1.5px solid var(--field); }
+.pay-seg svg, .pay-filter svg, .pay-tag svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pay-seg [data-pay="cash"], .pay-filter [data-pay="cash"], .pay-tag[data-pay="cash"] { color: var(--leaf-deep); }
+.pay-seg [data-pay="upi"], .pay-filter [data-pay="upi"], .pay-tag[data-pay="upi"] { color: var(--upi); }
+.pay-seg [data-pay="credit"], .pay-filter [data-pay="credit"], .pay-tag[data-pay="credit"] { color: var(--brass-ink); }
+.pay-seg [aria-pressed="true"], .pay-filter [aria-pressed="true"] { color: #fff; }
+.pay-seg [aria-pressed="true"][data-pay="cash"], .pay-filter [aria-pressed="true"][data-pay="cash"] { background: var(--leaf); }
+.pay-seg [aria-pressed="true"][data-pay="upi"], .pay-filter [aria-pressed="true"][data-pay="upi"] { background: var(--upi); }
+.pay-seg [aria-pressed="true"][data-pay="credit"], .pay-filter [aria-pressed="true"][data-pay="credit"] { background: var(--brass-ink); }
+.pay-row.need .pay-seg { border-color: var(--chilli); box-shadow: 0 0 0 3px var(--chilli-wash); }
+.pay-need { flex-basis: 100%; text-align: right; font-size: 14px; font-weight: 600; color: var(--chilli); }
 
 .bill-actions {
   position: sticky; bottom: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto;
@@ -426,6 +447,28 @@ button:disabled { cursor: default; }
 .past-slip .grand td { padding-top: 6px; font-size: 21px; font-weight: 760; }
 .past-slip .thanks { text-align: center; }
 .past-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.past-btns .pay-row { grid-column: 1 / -1; margin-top: 0; }
+.pay-note { grid-column: 1 / -1; margin-top: -4px; font-size: 13px; color: var(--ink-2); }
+/* The bills sheet's chips: every bill, or one kind of payment. Four across; at 320 px the words alone. */
+.pay-filter { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 2px 16px 10px; border-bottom: 1px solid var(--line); }
+.pay-filter button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 0; min-height: 48px; padding: 0 4px;
+  border: 1.5px solid var(--field); border-radius: 12px; background: var(--slip); font-size: 15.5px; font-weight: 650;
+}
+.pay-filter [aria-pressed="true"] { border-color: transparent; }
+.pay-filter [aria-pressed="true"][data-pay=""] { background: var(--ink); }
+@media (max-width: 340px) {                    /* 320 px: a row's time and count stay on one line beside a ₹1,000+ total */
+  .pay-filter svg, .pay-tag svg { display: none; }
+  .past-row { gap: 8px; }
+  .pay-tag { padding: 0 7px; }
+}
+.pay-tag { display: inline-flex; align-items: center; gap: 4px; flex: none; height: 26px; padding: 0 9px 0 7px; border-radius: 999px; font-size: 13px; font-weight: 650; white-space: nowrap; }
+.pay-tag svg { width: 14px; height: 14px; }
+.pay-tag[data-pay="cash"] { background: var(--leaf-wash); }
+.pay-tag[data-pay="upi"] { background: var(--upi-wash); }
+.pay-tag[data-pay="credit"] { background: var(--brass-wash); }
+.bills-list[data-pay="upi"] .day h3 b { color: var(--upi); }
+.bills-list[data-pay="credit"] .day h3 b { color: var(--brass-ink); }
 .price .reset { flex: none; width: 48px; color: var(--leaf-deep); font-size: 20px; }
 .price-none { padding: 24px 0; color: var(--ink-2); text-align: center; }
 
@@ -657,6 +700,11 @@ button:disabled { cursor: default; }
       <div><dt>റൗണ്ട് ഓഫ്</dt><dd id="sumRound"></dd></div>
       <div class="grand"><dt>ആകെ</dt><dd id="sumTotal"></dd></div>
     </dl>
+    <div class="pay-row" id="payRow" hidden>
+      <span class="pay-label" id="payLabel">പണം</span>
+      <div class="pay-seg" id="paySeg" role="group" aria-labelledby="payLabel" aria-describedby="payNeed"></div>
+      <p class="pay-need" id="payNeed" role="alert" hidden>ആദ്യം പണം തിരഞ്ഞെടുക്കൂ</p>
+    </div>
   </div>
   <div class="bill-actions">
     <button class="btn ghost only-narrow" id="addMore" type="button" aria-label="സാധനം ചേർക്കുക"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>ചേർക്കുക</button>
@@ -749,10 +797,16 @@ button:disabled { cursor: default; }
     <div class="bills-titles"><h2 id="billsTitle" tabindex="-1" autofocus>ബില്ലുകൾ</h2><p id="billsSub"></p></div>
     <button class="icon-btn" id="billsClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
   </div>
+  <div class="pay-filter" id="payFilter" role="group" aria-label="പണം അനുസരിച്ച്"></div>
   <div class="bills-list" id="billsList"></div>
   <div class="past" id="pastView" hidden>
     <div class="past-body" id="pastBody"><div class="slip past-slip" id="pastSlip"></div></div>
     <div class="sheet-foot past-btns">
+      <div class="pay-row">
+        <span class="pay-label" id="pastPayLabel">പണം</span>
+        <div class="pay-seg" id="pastPay" role="group" aria-labelledby="pastPayLabel"></div>
+      </div>
+      <p class="pay-note" id="pastPayNote" hidden>മാറ്റിയാൽ കടയിലെ എല്ലാ ഫോണിലും മാറും</p>
       <button class="btn primary" id="pastPrint" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 18H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>പ്രിന്റ് / PDF</button>
       <button class="btn ghost" id="pastShare" type="button" aria-label="ബിൽ ചിത്രമായി ഷെയർ ചെയ്യുക"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>ഷെയർ</button>
     </div>
@@ -888,12 +942,25 @@ const srcOf = x => photos.get(x.pid || x.id) || (safeImg(x.img) ? './' + safeImg
 const shot = cls => x => { const src = srcOf(x); return `<span class="${cls} emo" aria-hidden="true">${esc(x.icon || '')}${src ? `<img src="${esc(src)}" alt="" loading="lazy">` : ''}</span>`; };
 const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.8h7l1.8 2.8h3.2v10.8h-17z"/><circle cx="12" cy="13.6" r="3.4"/></svg>';
 const PLUS = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+// How a bill was paid (PAY_KINDS in bill-core.js), in words and drawn: a banknote, a scan frame, a ledger.
+const PAY_LABEL = { cash: 'ക്യാഷ്', upi: 'UPI', credit: 'കടം' };
+const PAY_ICON = {
+  cash: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9.5h.01M18 14.5h.01"/></svg>',
+  upi: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5V6a2 2 0 0 1 2-2h2.5M15.5 4H18a2 2 0 0 1 2 2v2.5M20 15.5V18a2 2 0 0 1-2 2h-2.5M8.5 20H6a2 2 0 0 1-2-2v-2.5"/><path d="M8 12h8"/></svg>',
+  credit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h12v17H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z"/><path d="M4 18.5a2 2 0 0 1 2-2h12"/><path d="M8.5 8h6M8.5 11.5h4"/></svg>',
+};
+const payWord = k => k === 'upi' ? '<span lang="en">UPI</span>' : PAY_LABEL[k];
+// The segments of a payment toggle, or the bills sheet's chips (all: എല്ലാം first).
+const payButtons = all => (all ? ['', ...PAY_KINDS] : PAY_KINDS).map(k =>
+  `<button type="button" data-pay="${k}" aria-pressed="false">${k ? PAY_ICON[k] + payWord(k) : 'എല്ലാം'}</button>`).join('');
+const payTag = k => k ? `<span class="pay-tag" data-pay="${k}">${PAY_ICON[k]}${payWord(k)}</span>` : '';
 const pan = shot('pan'), photo = shot('ph');   // round pan in rows and the bill; across the top of a tile
 const lineOf = pid => bill.lines.find(l => l.pid === pid);
 
 // ---------- persistence ----------
-// `id` names the bill to the shop's server across phones; `sold` once it is printed, shared or closed.
-function freshBill(no) { return { no, id: crypto.randomUUID(), started: new Date().toISOString(), lines: [], discount: 0, sold: false }; }
+// `id` names the bill to the shop's server across phones; `sold` once it is printed, shared or closed, which
+// needs `pay`: how it was paid, picked on the bill.
+function freshBill(no) { return { no, id: crypto.randomUUID(), started: new Date().toISOString(), lines: [], discount: 0, sold: false, pay: null }; }
 function loadBill() {
   try {
     const b = JSON.parse(localStorage.getItem(BILL_KEY));
@@ -904,6 +971,7 @@ function loadBill() {
       if (isNaN(new Date(b.started))) b.started = new Date().toISOString();
       if (typeof b.id !== 'string' || !/^[\w-]{1,40}$/.test(b.id)) b.id = crypto.randomUUID();
       b.sold = b.sold === true;
+      b.pay = PAY_KINDS.includes(b.pay) ? b.pay : null;
       return b;
     }
   } catch {}
@@ -914,38 +982,39 @@ function okLine(l) {
 }
 // A failed write (private mode, full storage) keeps the bill in memory; nothing is lost mid-sale.
 // A sold bill goes to the shop again on every change, and the server moves stock by the difference.
-// It is also kept on this phone, for the bills sheet.
+// It is also kept for the bills sheet, and sent so every phone of the shop has it.
 function saveBill() {
   try { localStorage.setItem(BILL_KEY, JSON.stringify(bill)); } catch {}
-  if (bill.sold) { queue('sale', bill.id, Object.fromEntries(bill.lines.map(l => [l.pid, l.qty]))); keep(bill); }
+  if (bill.sold) { queue('sale', bill.id, Object.fromEntries(bill.lines.map(l => [l.pid, l.qty]))); keep(bill); queue('bill', bill.id, keptForm(bill)); }
 }
 function markSold() { if (!bill.sold) { bill.sold = true; saveBill(); } }
 
 // ---------- the kept bills: today's and yesterday's ----------
-// Each sold bill on this phone, with what its receipt needs. Not synced: the server keeps sales as stock only.
+// Each sold bill of the shop with what its receipt needs (cleanBill in bill-core.js): this phone's, and once
+// logged in every other phone's too, from the shop's server.
 // ponytail: localStorage, at most 1000 bills; IndexedDB if a shop ever bills more than that in two days.
 function keepDays() { const y = new Date(); y.setDate(y.getDate() - 1); return [dayKey(new Date()), dayKey(y)]; }
 function loadKept() {
   let raw = null;
   try { raw = JSON.parse(localStorage.getItem(KEPT_KEY)); } catch {}
   if (!Array.isArray(raw)) return [];
-  const days = keepDays(), list = raw.filter(b => b && typeof b.id === 'string' && Number.isInteger(b.no) && b.no > 0 &&
-    typeof b.started === 'string' && days.includes(dayKey(b.started)) && Array.isArray(b.lines) && b.lines.length && b.lines.every(okLine))
-    .map(b => ({ ...b, discount: Number.isInteger(b.discount) && b.discount > 0 ? b.discount : 0 }));
+  const days = keepDays(), list = raw.map(b => cleanBill(b)).filter(b => b && b.lines.length && days.includes(dayKey(b.started)));
   if (list.length < raw.length) try { localStorage.setItem(KEPT_KEY, JSON.stringify(list)); } catch {}   // older than yesterday: gone
   return list;
 }
+// What a sold bill keeps and sends: its receipt fields and how it was paid.
+const keptForm = b => ({ id: b.id, no: b.no, started: b.started, discount: b.discount, pay: b.pay ?? null,
+  lines: b.lines.map(({ ml, qty, unit, rate, sample }) => ({ ml, qty, unit, rate, sample })) });
 // Saved again on every change once sold; a bill with no lines left goes, and so does one older than yesterday.
 function keep(b) {
-  const days = keepDays();
+  const days = keepDays(), k = cleanBill(keptForm(b));
   kept = kept.filter(x => x.id !== b.id && days.includes(dayKey(x.started)));
-  if (b.lines.length && days.includes(dayKey(b.started)))
-    kept.push({ id: b.id, no: b.no, started: b.started, discount: b.discount, lines: b.lines.map(({ ml, qty, unit, rate, sample }) => ({ ml, qty, unit, rate, sample })) });
+  if (k && k.lines.length && days.includes(dayKey(k.started))) kept.push(k);
   kept.sort((x, y) => new Date(y.started) - new Date(x.started));
   kept.length = Math.min(kept.length, 1000);
   try { localStorage.setItem(KEPT_KEY, JSON.stringify(kept)); } catch {}
 }
-// The number goes back to 0001 every morning.
+// The number goes back to 0001 every morning: one series for the shop, since kept holds every phone's bills.
 const nextNo = () => 1 + Math.max(0, ...kept.filter(b => dayKey(b.started) === dayKey(new Date())).map(b => b.no));
 // An empty bill takes today's next number, and the moment its first item goes on is its time.
 function restamp() { if (!bill.lines.length && !bill.sold) { bill.no = nextNo(); bill.started = new Date().toISOString(); } }
@@ -1133,7 +1202,7 @@ async function setPhoto(id, file) {
 // ponytail: two phones changing the same price offline: whichever syncs last wins.
 const readJSON = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 const writeJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {}, items: {}, hide: {} });
+const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {}, items: {}, hide: {}, bills: {} });
 let account = readJSON(SESSION_KEY);                 // { token, code, name } once logged in
 let signingUp = false;                               // the sign-up form is showing in the shop sheet
 let outbox = { ...freshOutbox(), ...readJSON(OUTBOX_KEY) };
@@ -1154,7 +1223,7 @@ function setItem(id, item) {
   buildProducts(); renderShelf();
 }
 let syncing = null, syncError = '', syncTimer = 0;
-const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length + Object.keys(outbox.items).length + Object.keys(outbox.hide).length;
+const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length + Object.keys(outbox.items).length + Object.keys(outbox.hide).length + Object.keys(outbox.bills).length;
 // Stock on hand: the shop's count at the last sync, less this phone's bills not sent yet. null: not counted.
 function stockLeft(id) {
   if (!synced.stock || !Object.hasOwn(synced.stock, id)) return null;
@@ -1197,9 +1266,28 @@ function queue(kind, id, value) {
   if (kind === 'sale') outbox.sales[id] = value;
   if (kind === 'item') outbox.items[id] = value;
   if (kind === 'hide') outbox.hide[id] = value;   // true: off the list; false: back on it
+  if (kind === 'bill') outbox.bills[id] = value;  // a sold bill as kept (keptForm); no lines: emptied
   writeJSON(OUTBOX_KEY, outbox);
   renderSync();
   clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500);
+}
+// The shop's bills from its server, over this phone's: one with a change not yet sent stays as it is here, and
+// one with no lines was emptied on its phone and goes. The bill on the counter takes a payment changed on another
+// phone; an unfinished one whose number another phone's bill took meanwhile moves to the next free number.
+function mergeBills(list) {
+  if (!Array.isArray(list) || !list.length) return false;
+  const days = keepDays(), today = dayKey(new Date());
+  for (const x of list) {
+    const b = cleanBill(x && x.bill);
+    if (!b || b.id !== x.id || outbox.bills[b.id]) continue;
+    kept = kept.filter(k => k.id !== b.id);
+    if (b.lines.length && days.includes(dayKey(b.started))) kept.push(b);
+    if (b.id === bill.id && bill.sold && b.pay) bill.pay = b.pay;
+  }
+  kept = kept.filter(k => days.includes(dayKey(k.started))).sort((p, q) => new Date(q.started) - new Date(p.started)).slice(0, 1000);
+  if (!bill.sold && bill.lines.length && dayKey(bill.started) === today && kept.some(k => k.no === bill.no && dayKey(k.started) === today)) bill.no = nextNo();
+  writeJSON(KEPT_KEY, kept); writeJSON(BILL_KEY, bill);
+  return true;
 }
 function sync() {
   if (!account) return Promise.resolve();
@@ -1260,6 +1348,17 @@ function sync() {
         for (const k in sales) if (outbox.sales[k] === sales[k]) delete outbox.sales[k];   // unless changed meanwhile
         writeJSON(OUTBOX_KEY, outbox);
       }
+      // Bills this phone kept before it ever pulled the shop's (it logged in just now, or kept them before bills
+      // were shared) go up first, so the shop's other phones get them too.
+      if (!('bills' in synced) && kept.length) { for (const b of kept) outbox.bills[b.id] ??= keptForm(b); writeJSON(OUTBOX_KEY, outbox); }
+      const billIds = Object.keys(outbox.bills);
+      for (let i = 0; i < billIds.length; i += 50) {
+        const sent = Object.fromEntries(billIds.slice(i, i + 50).map(k => [k, outbox.bills[k]]));
+        const r = await api('bills', { method: 'POST', body: JSON.stringify({ bills: sent }) });
+        if (!r.ok) throw new Error(r.status);
+        for (const k in sent) if (outbox.bills[k] === sent[k]) delete outbox.bills[k];   // unless changed meanwhile
+        writeJSON(OUTBOX_KEY, outbox);
+      }
       const r = await api('state');
       if (!r.ok) throw new Error(r.status);
       const st = await r.json();
@@ -1282,6 +1381,14 @@ function sync() {
         writeJSON(HIDDEN_KEY, [...hidden]);
         if ([...hidden].sort().join() !== was) itemsChanged = true;
       }
+      let billsAt = st.bills ?? null, billsChanged = false;
+      if (billsAt !== (synced.bills ?? null)) {          // bills sold or changed on any phone of the shop
+        const g = await api('bills?since=' + (synced.bills || 0));
+        if (!g.ok) throw new Error(g.status);
+        const got = await g.json();
+        billsChanged = mergeBills(got.bills);
+        billsAt = got.at ?? billsAt;
+      }
       const want = Object.keys(st.photos).filter(id => !(synced.photos[id] >= st.photos[id]) && !outbox.photos.includes(id));
       for (let i = 0; i < want.length; i += 30) {
         const g = await api('photos?ids=' + want.slice(i, i + 30).join(','));
@@ -1295,10 +1402,11 @@ function sync() {
       if (!$('shopName').value.trim() && st.shop.name) { $('shopName').value = st.shop.name; try { localStorage.setItem(SHOP_KEY, st.shop.name); } catch {} }
       account = { ...account, name: st.shop.name }; writeJSON(SESSION_KEY, account);
       const listChanged = st.catalog !== (synced.catalog ?? null);
-      synced = { ...synced, at: Date.now(), catalog: st.catalog, items: st.items ?? null, stock: st.stock || {} };
+      synced = { ...synced, at: Date.now(), catalog: st.catalog, items: st.items ?? null, stock: st.stock || {}, bills: billsAt };
       writeJSON(SYNCED_KEY, synced);
       if (listChanged) await loadCatalog(); else if (itemsChanged) buildProducts(); else applyPrices();
       renderShelf(); renderBill(); if (pricesEl.open) renderPrices();
+      if (billsChanged) refreshBills();
       syncError = '';
     } catch { syncError = navigator.onLine === false ? 'offline' : 'server'; }
     syncing = null;
@@ -1320,7 +1428,7 @@ async function login(code, pin) {
   for (const [id, v] of Object.entries(mine)) queue('price', id, v);
   for (const id of photos.keys()) queue('photo', id);
   for (const [id, x] of Object.entries(shopItems)) queue('item', id, x);
-  for (const id of hidden) queue('hide', id, true);
+  for (const id of hidden) queue('hide', id, true);   // its kept bills go up in the first sync ('bills' not in synced)
   await loadCatalog();
   await sync();
   return '';
@@ -1360,6 +1468,7 @@ function signOut(wipe) {
     photos.clear(); idb('readwrite', st => st.clear()).catch(() => {});
     shopItems = {}; writeJSON(ITEMS_KEY, null);
     hidden = new Set(); writeJSON(HIDDEN_KEY, null);
+    kept = []; writeJSON(KEPT_KEY, null);   // the shop's bills: on its server, and back on this phone at the next login
   }
   loadCatalog(); renderBill(); renderSync();
 }
@@ -1568,6 +1677,9 @@ function renderBill() {
   $('billLines').innerHTML = bill.lines.map((l, i) => `<li class="line" data-cat="${esc(l.cat || '')}"><button class="line-main" type="button" data-edit="${i}">${pan(l)}<span class="line-name"><b>${esc(l.ml)}</b><small>${esc(lineDesc(l.qty, l.rate, l.unit))}</small></span><span class="line-amt">${fmtMoney(lineAmount(l.rate, l.qty, l.unit))}</span></button><button class="line-x" type="button" data-remove="${i}" aria-label="${esc(l.ml)} നീക്കം ചെയ്യുക">✕</button></li>`).join('');
   $('billEmpty').hidden = n > 0;
   $('sums').hidden = n === 0;
+  $('payRow').hidden = n === 0;
+  for (const s of $('paySeg').children) s.setAttribute('aria-pressed', s.dataset.pay === bill.pay);
+  if (bill.pay || !n) { $('payRow').classList.remove('need'); $('payNeed').hidden = true; }
   $('sumSub').textContent = fmtMoney(t.subtotal);
   $('sumRound').textContent = signed(t.roundOff);
   $('sumTotal').textContent = fmtMoney(t.total, true);
@@ -1592,6 +1704,7 @@ function receiptData(b = bill) {
     sums: [['തുക', fmtMoney(t.subtotal)]]
       .concat(t.discount ? [['കിഴിവ്', '−' + fmtMoney(t.discount)]] : [], t.roundOff ? [['റൗണ്ട് ഓഫ്', signed(t.roundOff)]] : []),
     total: ['ആകെ', fmtMoney(t.total, true)],
+    pay: b.pay ? ['പണം', PAY_LABEL[b.pay]] : null,
     thanks: 'നന്ദി, വീണ്ടും വരിക!',
   };
 }
@@ -1603,7 +1716,7 @@ function receiptHTML(b) {
     r.meta.map(m => `<p class="meta">${esc(m)}</p>`).join('') + '<hr><table>' +
     r.items.map(([name, desc, amt]) => row(`${esc(name)}<div class="sub">${esc(desc)}</div>`, amt)).join('') +
     `</table><hr><table>${r.sums.map(([k, v]) => row(k, v)).join('')}` +
-    row(...r.total, 'grand') + `</table><hr><p class="thanks">${r.thanks}</p>`;
+    row(...r.total, 'grand') + (r.pay ? row(...r.pay) : '') + `</table><hr><p class="thanks">${r.thanks}</p>`;
 }
 // The same receipt as an image, 576 px wide: the printable width of an 80 mm thermal roll
 // at 203 dpi, so it also prints 1:1 through RawBT. fillText's maxWidth squeezes long text
@@ -1630,6 +1743,7 @@ function receiptCanvas(b = bill) {
     rule();
     r.sums.forEach(([k, v]) => row(k, v, 22, 500));
     row(...r.total, 32, 800);
+    if (r.pay) row(...r.pay, 22, 600);
     rule();
     center(r.thanks, 22, 500);
     return Math.ceil(y + P);
@@ -1644,8 +1758,16 @@ function receiptCanvas(b = bill) {
 // in-app browsers on iPhone) still reach a printer this way: the share sheet offers Print,
 // WhatsApp and Files. Synchronous to the tap (toDataURL, not toBlob), so the share keeps
 // its user activation.
+// A bill is finished only with its payment: print, share and പുതിയ ബിൽ wait for one, and say why.
+function needPay() {
+  if (bill.pay) return false;
+  $('payRow').classList.add('need'); $('payNeed').hidden = false;
+  $('payRow').scrollIntoView({ block: 'center' });
+  $('paySeg').firstElementChild.focus({ preventScroll: true });
+  return true;
+}
 function shareBill(b = bill) {
-  if (b === bill) markSold();
+  if (b === bill) { if (needPay()) return; markSold(); }
   renderReceipt(b);
   const name = billName(b) + '.png', url = receiptCanvas(b).toDataURL('image/png');
   const file = new File([Uint8Array.from(atob(url.split(',')[1]), ch => ch.charCodeAt(0))], name, { type: 'image/png' });
@@ -1664,7 +1786,7 @@ function removeLine(i) {
 }
 function restoreBill(was) { bill = JSON.parse(was); saveBill(); renderBill(); renderShelf(); }
 function newBill() {
-  if (!bill.lines.length) return;
+  if (!bill.lines.length || needPay()) return;
   markSold();
   const was = JSON.stringify(bill);
   undo = () => restoreBill(was);
@@ -1673,7 +1795,7 @@ function newBill() {
   toast(`പുതിയ ബിൽ നം. ${billNo(bill.no)}`);
 }
 function printBill(b = bill) {
-  if (b === bill) markSold();
+  if (b === bill) { if (needPay()) return; markSold(); }
   renderReceipt(b);
   const title = document.title;
   document.title = billName(b);                          // Save as PDF names the file from this
@@ -1704,42 +1826,70 @@ function showBill(on) {
 // ---------- the bills sheet: today's and yesterday's, and one of them to print or share again ----------
 const billsEl = $('billsSheet');
 let past = null;                // the kept bill on show, or null for the list
+let payFilter = '';             // the bills shown: '' every one, else one kind of payment
 function openBills() {
+  payFilter = '';
   showPast(null);
   billsEl.showModal();
   $('billsList').scrollTop = 0;
+  if (account) sync();          // what the shop's other phones sold meanwhile
 }
+// Each day's bills of the kind the chips pick; its heading counts and totals what it shows.
 function renderBills() {
-  const sum = list => list.reduce((s, b) => s + totals(b.lines, b.discount).total, 0);
+  const sum = list => list.reduce((s, b) => s + totals(b.lines, b.discount).total, 0), f = payFilter;
+  for (const c of $('payFilter').children) c.setAttribute('aria-pressed', c.dataset.pay === f);
+  $('billsList').dataset.pay = f;
   $('billsList').innerHTML = keepDays().map((k, i) => {
-    const list = kept.filter(b => dayKey(b.started) === k);
-    if (i && !list.length) return '';
-    const date = new Date(k + 'T12:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-    return `<section class="day"><h3><span>${i ? 'ഇന്നലെ' : 'ഇന്ന്'} <small>· ${date}</small></span>` + (list.length
+    const all = kept.filter(b => dayKey(b.started) === k), list = f ? all.filter(b => b.pay === f) : all;
+    if (i && !all.length) return '';
+    const day = i ? 'ഇന്നലെ' : 'ഇന്ന്', date = new Date(k + 'T12:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return `<section class="day"><h3><span>${day} <small>· ${date}</small></span>` + (list.length
       ? `<b>${list.length} ${list.length === 1 ? 'ബിൽ' : 'ബില്ലുകൾ'} · ${fmtMoney(sum(list), true)}</b></h3><ol>` + list.map(b =>
         `<li><button class="past-row" type="button" data-bill="${esc(b.id)}"><span class="names"><b>നം. ${billNo(b.no)}</b><small>${fmtTime(b.started)} · ${countLabel(b.lines.length)}</small></span>` +
-        `<span class="amt">${fmtMoney(totals(b.lines, b.discount).total, true)}</span>${NEXT}</button></li>`).join('') + '</ol>'
-      : '</h3><p class="none">ഇന്ന് ബില്ലുകളൊന്നുമില്ല</p>') + '</section>';
+        `${payTag(b.pay)}<span class="amt">${fmtMoney(totals(b.lines, b.discount).total, true)}</span>${NEXT}</button></li>`).join('') + '</ol>'
+      : `</h3><p class="none">${day} ${f ? PAY_LABEL[f] + ' ' : ''}ബില്ലുകളൊന്നുമില്ല</p>`) + '</section>';
   }).join('');
 }
 // One kept bill in place of the list (id), or the list again (null).
 function showPast(id) {
   const was = past;
   past = (id && kept.find(b => b.id === id)) || null;
-  $('billsList').hidden = !!past;
+  $('billsList').hidden = $('payFilter').hidden = !!past;
   $('pastView').hidden = $('billsBack').hidden = !past;
   $('billsTitle').textContent = past ? `ബിൽ നം. ${billNo(past.no)}` : 'ബില്ലുകൾ';
   $('billsSub').textContent = past
     ? `${dayKey(past.started) === dayKey(new Date()) ? 'ഇന്ന്' : 'ഇന്നലെ'} · ${fmtTime(past.started)} · ${countLabel(past.lines.length)}`
-    : 'ഇന്നും ഇന്നലെയും · ഈ ഫോണിൽ';
+    : `ഇന്നും ഇന്നലെയും · ${account ? 'കടയിലെ എല്ലാ ഫോണിലും' : 'ഈ ഫോണിൽ'}`;
   if (past) {
-    $('pastSlip').innerHTML = receiptHTML(past);
+    renderPast();
+    $('pastPayNote').hidden = !account;
     $('pastBody').scrollTop = 0;
     $('billsTitle').focus({ preventScroll: true });
   } else {
     renderBills();
     if (was) $('billsList').querySelector(`[data-bill="${CSS.escape(was.id)}"]`)?.focus();
   }
+}
+// The kept bill's slip and its payment toggle, redrawn in place so the focus stays where it is.
+function renderPast() {
+  $('pastSlip').innerHTML = receiptHTML(past);
+  for (const s of $('pastPay').children) s.setAttribute('aria-pressed', s.dataset.pay === past.pay);
+}
+// A payment changed from a kept bill's view: saved and sent like the bill itself. When it is the bill still on
+// the counter, that bill takes it (saveBill keeps and sends it).
+function setPastPay(kind) {
+  const id = past.id;
+  if (id === bill.id) { bill.pay = kind; saveBill(); renderBill(); }
+  else { past.pay = kind; keep(past); queue('bill', id, keptForm(past)); }
+  past = kept.find(b => b.id === id) || past;
+  renderPast();
+}
+// After a sync that brought bills: the list, or the bill on show while it is still kept.
+function refreshBills() {
+  if (!billsEl.open) return;
+  if (!past) return renderBills();
+  past = kept.find(b => b.id === past.id) || null;
+  if (past) renderPast(); else showPast(null);
 }
 
 // ---------- adding an item: one job per step ----------
@@ -2018,6 +2168,8 @@ billsEl.addEventListener('close', () => { past = null; });
 $('billsList').addEventListener('click', e => { const b = e.target.closest('[data-bill]'); if (b) showPast(b.dataset.bill); });
 $('pastPrint').addEventListener('click', () => past && printBill(past));
 $('pastShare').addEventListener('click', () => past && shareBill(past));
+$('pastPay').addEventListener('click', e => { const s = e.target.closest('[data-pay]'); if (s && past) setPastPay(s.dataset.pay); });
+$('payFilter').addEventListener('click', e => { const c = e.target.closest('[data-pay]'); if (c) { payFilter = c.dataset.pay; renderBills(); } });
 $('billClose').addEventListener('click', closeBill);
 $('addMore').addEventListener('click', closeBill);
 $('billLines').addEventListener('click', e => {
@@ -2042,6 +2194,7 @@ $('printBtn').addEventListener('click', () => printBill());
 $('shareBtn').addEventListener('click', () => shareBill());
 $('homeBtn').addEventListener('click', goHome);
 $('newBill').addEventListener('click', newBill);
+$('paySeg').addEventListener('click', e => { const s = e.target.closest('[data-pay]'); if (s) { bill.pay = s.dataset.pay; saveBill(); renderBill(); } });
 $('toastUndo').addEventListener('click', () => {
   const u = undo;
   undo = null; hideToast();
@@ -2090,6 +2243,8 @@ addEventListener('storage', e => {
 try { $('shopName').value = localStorage.getItem(SHOP_KEY) || ''; } catch {}
 cat = (history.state && history.state.cat) || null;
 history.replaceState({ cat }, '');                        // a reload never reopens the bill layer
+$('paySeg').innerHTML = $('pastPay').innerHTML = payButtons(false);
+$('payFilter').innerHTML = payButtons(true);
 renderBill();
 loadCatalog().then(() => account && sync());
 loadPhotos().then(() => { renderShelf(); renderBill(); });

@@ -177,7 +177,7 @@ export default async (t) => {
     const m = (k, el) => { const b = el.getBoundingClientRect(); out[k] = Math.min(Math.round(b.width), Math.round(b.height)); };
     $('q').value = 'x'; $('q').dispatchEvent(new Event('input')); m('clear', $('clearQ'));
     $('q').value = ''; $('q').dispatchEvent(new Event('input'));
-    m('lineX', document.querySelector('.line-x')); m('discount', $('discount')); m('newBill', $('newBill'));
+    m('lineX', document.querySelector('.line-x')); m('discount', $('discount')); m('newBill', $('newBill')); m('pay', $('paySeg').firstElementChild);
     m('billClose', $('billClose')); m('undo', $('toastUndo')); m('share', $('shareBtn')); m('home', $('homeBtn')); m('pill', $('samplePill'));
     if (!$('backBtn')) document.querySelector('.cat').click();   // a reload restores the open category
     m('back', $('backBtn'));
@@ -206,12 +206,21 @@ export default async (t) => {
   await t.sleep(300);
   t.check('Android back closes the bill layer', await t.evaluate(() => !document.getElementById('bill').classList.contains('open') && !document.getElementById('counter').inert));
 
-  // Print: the receipt alone, file named after the bill.
+  // Payment (2026-10-24): a bill is finished only with one. With none picked, print, share and പുതിയ ബിൽ wait:
+  // the row turns red, says so and takes the focus. Then print: the receipt alone, file named after the bill.
   const p = await t.evaluate(() => {
-    let titleAtPrint = null;
-    window.print = () => { titleAtPrint = document.title; dispatchEvent(new Event('beforeprint')); dispatchEvent(new Event('afterprint')); };   // as Chrome does
-    document.getElementById('printBtn').click();
-    return { titleAtPrint, receipt: document.getElementById('receipt').textContent, day: new Date().toLocaleDateString('en-CA') };
+    const $ = id => document.getElementById(id);
+    let titleAtPrint = null, prints = 0, shares = 0;
+    window.print = () => { prints++; titleAtPrint = document.title; dispatchEvent(new Event('beforeprint')); dispatchEvent(new Event('afterprint')); };   // as Chrome does
+    navigator.canShare = () => true; navigator.share = async () => { shares++; };
+    openBill();                                              // the buttons live in the bill layer
+    $('printBtn').click(); $('shareBtn').click(); $('newBill').click();
+    const need = [prints, shares, bill.sold, bill.lines.length, !$('payNeed').hidden, $('payRow').classList.contains('need'), document.activeElement?.dataset.pay];
+    $('paySeg').querySelector('[data-pay="upi"]').click();
+    const picked = [bill.pay, $('payNeed').hidden, $('payRow').classList.contains('need'), [...$('paySeg').children].map(s => s.getAttribute('aria-pressed')).join()];
+    $('printBtn').click();
+    closeBill();
+    return { need, picked, prints, titleAtPrint, receipt: $('receipt').textContent, day: new Date().toLocaleDateString('en-CA') };
   });
   await t.send('Emulation.setEmulatedMedia', { media: 'print' });
   const pm = await t.evaluate(() => ({
@@ -220,8 +229,10 @@ export default async (t) => {
     bill: getComputedStyle(document.getElementById('bill')).display,
   }));
   await t.send('Emulation.setEmulatedMedia', { media: '' });
+  t.check('no payment picked: print, share and പുതിയ ബിൽ wait, and the row asks for one', p.need.join() === '0,0,false,3,true,true,cash', p.need);
+  t.check('a payment picked clears the ask, and print goes ahead', p.picked.join() === 'upi,true,false,false,true,false' && p.prints === 1, [p.picked, p.prints]);
   t.check('print names the PDF Thraasu-Bill-<date>-0001', p.titleAtPrint === `Thraasu-Bill-${p.day}-0001`, p.titleAtPrint);
-  t.check('receipt has shop, sample label, lines, discount, total', /ഗീത സ്റ്റോഴ്സ്/.test(p.receipt) && /വെളിച്ചെണ്ണ/.test(p.receipt) && /കിഴിവ്−₹20.00/.test(p.receipt) && /ആകെ₹250/.test(p.receipt) && /sample prices/.test(p.receipt), p.receipt.slice(0, 200));
+  t.check('receipt has shop, sample label, lines, discount, total', /ഗീത സ്റ്റോഴ്സ്/.test(p.receipt) && /വെളിച്ചെണ്ണ/.test(p.receipt) && /കിഴിവ്−₹20.00/.test(p.receipt) && /ആകെ₹250/.test(p.receipt) && /പണംUPI/.test(p.receipt) && /sample prices/.test(p.receipt), p.receipt.slice(0, 200));
   t.check('print media shows only the receipt', pm.receipt === 'block' && pm.counter === 'none' && pm.bill === 'none', pm);
 
   // Share: the bill as a 576 px PNG through the share sheet (Print, WhatsApp, Files), the
@@ -270,8 +281,10 @@ export default async (t) => {
     bill.no = 41; bill.started = at(21, 0, 1);
     openSheet(asItem(byId.get('onion'))); setQty(2000); commit();
     r.second = [billNo(bill.no), bill.started > kept[0].started];
+    bill.pay = 'cash';
     newBill();                                               // 0002 sold by പുതിയ ബിൽ
     r.third = [billNo(bill.no), kept.map(b => b.no)];
+    r.pays = kept.map(b => b.pay);
     localStorage.setItem('thraasu_bills', JSON.stringify([...kept,     // yesterday's, and one from three days ago
       { id: 'y1', no: 9, started: at(20, 31, 1), discount: 0, lines: [{ ml: 'പഞ്ചസാര', qty: 2000, unit: 'kg', rate: 5900 }] },
       { id: 'old', no: 3, started: at(10, 0, 3), discount: 0, lines: [{ ml: 'പാൽ', qty: 2, unit: 'pc', rate: 2800 }] }]));
@@ -282,6 +295,7 @@ export default async (t) => {
   t.check('a sold bill is kept with its receipt fields only', JSON.stringify(kb.kept) === '[[1,3,"ml,qty,rate,sample,unit"]]', kb.kept);
   t.check('the next bill is 0002, timed from its first item', kb.second[0] === '0002' && kb.second[1], kb.second);
   t.check('പുതിയ ബിൽ keeps 0002 and starts 0003', kb.third[0] === '0003' && JSON.stringify(kb.third[1]) === '[2,1]', kb.third);
+  t.check('each kept bill keeps how it was paid', kb.pays.join() === 'cash,upi', kb.pays);
 
   await t.reload(); await ready(t);
   const kl = await t.evaluate(() => {
@@ -311,12 +325,49 @@ export default async (t) => {
   t.check('kept: today\'s two and yesterday\'s one, the three-day-old bill dropped', JSON.stringify(kl.stored.slice(2)) === '["y1"]' && kl.stored.length === 3, kl.stored);
   t.check('an empty bill\'s bar opens the kept bills', !kl.bar[0] && kl.bar[1] && kl.bar[2] === 'ബില്ലുകൾ' && kl.open, [kl.bar, kl.open]);
   t.check('one heading per day, with its count and total', kl.days.length === 2 && /^ഇന്ന് · \d{1,2} [A-Z][a-z]{2}2 ബില്ലുകൾ · ₹/.test(today) && /^ഇന്നലെ · \d{1,2} [A-Z][a-z]{2}1 ബിൽ · ₹118$/.test(kl.days[1]), kl.days);
-  t.check('a row: number, time, items, total; newest first', kl.rows.length === 3 && /^നം\. 0002\d{1,2}:\d{2} [AP]M · 1 ഇനം₹/.test(kl.rows[0]) && /^നം\. 0001/.test(kl.rows[1]) && kl.rows[2] === 'നം. 00098:31 PM · 1 ഇനം₹118', kl.rows);
+  t.check('a row: number, time, items, total; newest first', kl.rows.length === 3 && /^നം\. 0002\d{1,2}:\d{2} [AP]M · 1 ഇനംക്യാഷ്₹/.test(kl.rows[0]) && /^നം\. 0001/.test(kl.rows[1]) && kl.rows[2] === 'നം. 00098:31 PM · 1 ഇനം₹118', kl.rows);
   t.check('a row opens that bill as it prints', kl.past[0] === 'ബിൽ നം. 0002' && /^ഇന്ന് · \d{1,2}:\d{2} [AP]M · 1 ഇനം$/.test(kl.past[1]) && /^ബിൽ നം\. 0002 · /.test(kl.past[2]) && !kl.past[3] && kl.past[4], kl.past);
   t.check('printing a kept bill prints it, named by its date', kl.print[0] === `Thraasu-Bill-${p.day}-0002` && kl.print[1] === kl.past[2], kl.print);
   t.check('the counter\'s bill is untouched', JSON.stringify(kl.counter) === '[3,0,false]', kl.counter);
   t.check('back returns to the list, on the row it left', !kl.back[0] && kl.back[1] && kl.back[2], kl.back);
   t.check('the bill head\'s ബില്ലുകൾ opens it too; both ≥48 px', kl.door && kl.sizes.every(v => v >= 48), [kl.door, kl.sizes]);
+
+  // Payment in the bills sheet (2026-10-24): a chip per kind filters both days, each heading counting and totalling
+  // what it shows; every row says how it was paid; a kept bill shows its payment and can change it.
+  const pf = await t.evaluate(() => {
+    const $ = id => document.getElementById(id), r = {};
+    openBills();
+    const chip = k => $('payFilter').querySelector(`[data-pay="${k}"]`);
+    const view = () => [[...$('billsList').querySelectorAll('.past-row .names b')].map(b => b.textContent),
+      [...$('billsList').querySelectorAll('.day h3 b, .day .none')].map(e => e.textContent)];
+    r.sub = $('billsSub').textContent;
+    r.chips = [...$('payFilter').children].map(c => c.textContent + ':' + c.getAttribute('aria-pressed'));
+    r.tags = [...$('billsList').querySelectorAll('.past-row')].map(b => b.querySelector('.pay-tag')?.textContent || '-');
+    chip('upi').click(); r.upi = view();
+    chip('cash').click(); r.cash = view();
+    chip('credit').click(); r.credit = view();
+    chip('').click(); r.all = view()[0].length;
+    chip('upi').click(); billsEl.close(); openBills(); r.reset = $('payFilter').querySelector('[aria-pressed="true"]')?.dataset.pay;
+    r.sizes = [...$('payFilter').children].map(c => Math.round(c.getBoundingClientRect().height));
+    $('billsList').querySelector('.past-row').click();         // 0002, paid in cash
+    r.past = [$('pastPay').querySelector('[aria-pressed="true"]')?.dataset.pay, /പണംക്യാഷ്/.test($('pastSlip').textContent), $('payFilter').hidden, $('pastPayNote').hidden];
+    const seg = $('pastPay').querySelector('[data-pay="credit"]');
+    seg.focus(); seg.click();
+    r.changed = [kept.find(b => b.no === 2).pay, JSON.parse(localStorage.getItem('thraasu_bills')).find(b => b.no === 2).pay, /പണംകടം/.test($('pastSlip').textContent), document.activeElement === seg];
+    billsEl.dispatchEvent(new Event('cancel', { cancelable: true }));
+    r.tagAfter = $('billsList').querySelector('.past-row .pay-tag')?.textContent;
+    billsEl.close();
+    return r;
+  });
+  t.check("logged out, the bills are this phone's", pf.sub === 'ഇന്നും ഇന്നലെയും · ഈ ഫോണിൽ', pf.sub);
+  t.check('chips: എല്ലാം picked, then ക്യാഷ്, UPI, കടം; all ≥48 px', pf.chips.join() === 'എല്ലാം:true,ക്യാഷ്:false,UPI:false,കടം:false' && pf.sizes.every(v => v >= 48), [pf.chips, pf.sizes]);
+  t.check('each row says how it was paid; a bill kept before payments says nothing', pf.tags.join() === 'ക്യാഷ്,UPI,-', pf.tags);
+  t.check("UPI: only its bills, today's count and total, and yesterday has none of it", JSON.stringify(pf.upi) === JSON.stringify([['നം. 0001'], ['1 ബിൽ · ₹250', 'ഇന്നലെ UPI ബില്ലുകളൊന്നുമില്ല']]), pf.upi);
+  t.check('ക്യാഷ് and കടം filter the same way; എല്ലാം shows all three', pf.cash[0].join() === 'നം. 0002' && /^1 ബിൽ · ₹\d/.test(pf.cash[1][0]) && pf.cash[1][1] === 'ഇന്നലെ ക്യാഷ് ബില്ലുകളൊന്നുമില്ല' &&
+    JSON.stringify(pf.credit) === JSON.stringify([[], ['ഇന്ന് കടം ബില്ലുകളൊന്നുമില്ല', 'ഇന്നലെ കടം ബില്ലുകളൊന്നുമില്ല']]) && pf.all === 3, [pf.cash, pf.credit, pf.all]);
+  t.check('the sheet opens on എല്ലാം again', pf.reset === '', pf.reset);
+  t.check('a kept bill shows its payment on the slip and in its toggle; no chips there', pf.past.join() === 'cash,true,true,true', pf.past);
+  t.check('changing it saves at once, redraws the slip and keeps the focus', pf.changed.join() === 'credit,credit,true,true' && pf.tagAfter === 'കടം', [pf.changed, pf.tagAfter]);
 
   // The next morning: today's bills are yesterday's, and the empty bill starts again at 0001.
   await t.evaluate(() => localStorage.setItem('thraasu_bills', JSON.stringify(JSON.parse(localStorage.getItem('thraasu_bills'))
@@ -568,7 +619,7 @@ export default async (t) => {
   const sy = await t.evaluate(async () => {
     const $ = id => document.getElementById(id);
     const until = async ok => { for (let i = 0; i < 60 && !ok(); i++) await new Promise(r => setTimeout(r, 50)); };
-    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false, stock: { onion: 3000, tomato: 5000 }, sales: {}, items: {}, itemsAt: null, hidden: new Set(),
+    const server = { name: 'Nanma Store', prices: {}, photos: {}, token: null, fail: false, stock: { onion: 3000, tomato: 5000 }, sales: {}, items: {}, itemsAt: null, hidden: new Set(), bills: {}, billsAt: null,
       catalog: { sample: false, categories: [{ id: 'veg', ml: 'പച്ചക്കറി', en: 'Vegetables', icon: '🥬' }], products: [
         { id: 'tomato', cat: 'veg', ml: 'തക്കാളി', en: 'Tomato', icon: '🍅', unit: 'kg', rate: 44 },
         { id: 'onion', cat: 'veg', ml: 'സവാള', en: 'Onion', icon: '🧅', unit: 'kg', rate: 50 },
@@ -585,8 +636,13 @@ export default async (t) => {
       if (o.headers?.authorization !== 'Bearer ' + server.token) return res({ error: 'login' }, 401);
       if (m === 'GET catalog') return res(JSON.stringify(server.catalog));
       if (m === 'GET state') return res({ shop: { code: 'NANMA', name: server.name }, catalog: 1, prices: server.prices,
-        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])), stock: server.stock, items: server.itemsAt, hidden: [...server.hidden] });
+        photos: Object.fromEntries(Object.entries(server.photos).map(([k, v]) => [k, v.at])), stock: server.stock, items: server.itemsAt, hidden: [...server.hidden], bills: server.billsAt });
       if (m === 'POST hidden') { body.hide.forEach(id => server.hidden.add(id)); body.show.forEach(id => server.hidden.delete(id)); return res({ ok: true }); }
+      if (m === 'POST bills') { server.billsAt = Math.max((server.billsAt || 0) + 1, Date.now()); for (const [id, b] of Object.entries(body.bills)) server.bills[id] = { bill: b, at: server.billsAt }; return res({ ok: true }); }
+      if (m === 'GET bills') {
+        const since = Number(new URLSearchParams(qs).get('since')) || 0;
+        return res({ at: server.billsAt, bills: Object.entries(server.bills).filter(([, x]) => x.at > since).map(([id, x]) => ({ id, bill: x.bill })) });
+      }
       if (m === 'POST prices') { Object.assign(server.prices, body.set); body.clear.forEach(id => delete server.prices[id]); return res({ ok: true }); }
       if (m === 'POST sales') {
         for (const [k, items] of Object.entries(body.sales)) {
@@ -610,6 +666,7 @@ export default async (t) => {
       return res({ error: 'nf' }, 404);
     };
     const r = {};
+    const otherPhone = (id, b) => { server.billsAt = Math.max((server.billsAt || 0) + 1, Date.now()); server.bills[id] = { bill: b, at: server.billsAt }; };
     localStorage.removeItem('thraasu_prices'); mine = loadPrices(); applyPrices();
     r.btn = [$('acctBtn').dataset.state, Math.round($('acctBtn').getBoundingClientRect().height)];
     setMine(byId.get('tomato'), 4200);                     // set on the phone before logging in
@@ -645,12 +702,40 @@ export default async (t) => {
     openSheet(asItem(byId.get('onion'))); r.sheetStock = $('sheetStock').hidden ? '' : $('sheetStock').textContent;
     setQty(500); commit();
     r.unsold = [pending(), stockLeft('onion')];
+    newBill(); r.noPay = [bill.sold, bill.lines.length, pending()];   // no payment picked: the bill stays open
+    bill.pay = 'upi'; const soldId = bill.id;
     newBill(); r.queued = [stockLeft('onion'), pending()];
     await sync(); r.sold = [server.stock.onion, stockLeft('onion'), pending(), Object.keys(server.sales).length];
+    r.billUp = [server.bills[soldId]?.bill.pay, server.bills[soldId]?.bill.lines.length, kept.find(b => b.id === soldId)?.pay];
     $('toastUndo').click(); openSheet(asItem(byId.get('onion'))); setQty(1000); commit(); await sync();
     r.edited = server.stock.onion;
     removeLine(0); await sync();
     r.emptied = [server.stock.onion, server.stock.tomato, pending()];
+    r.billGone = [server.bills[soldId]?.bill.lines.length, kept.some(b => b.id === soldId)];
+    // Bills of the shop's other phones: one comes down and the number series follows it; a payment changed there
+    // reaches the counter's bill; a change made here offline wins once sent; an unfinished bill whose number
+    // another phone took moves on; a kept bill's view changes the counter's bill too.
+    otherPhone('other-1', { id: 'other-1', no: 5, started: new Date().toISOString(), discount: 0, pay: 'credit', lines: [{ ml: 'സവാള', qty: 1000, unit: 'kg', rate: 5000, sample: false }] });
+    await sync();
+    r.billDown = [kept.find(b => b.id === 'other-1')?.pay, nextNo()];
+    bill = freshBill(nextNo()); openSheet(asItem(byId.get('tomato'))); setQty(1000); commit(); bill.pay = 'cash'; markSold(); await sync();
+    const mineId = bill.id;
+    otherPhone(mineId, { ...server.bills[mineId].bill, pay: 'upi' });
+    await sync();
+    r.payDown = [bill.pay, kept.find(b => b.id === mineId)?.pay, pending()];
+    server.fail = true; bill.pay = 'credit'; saveBill(); await sync();
+    server.fail = false; otherPhone(mineId, { ...server.bills[mineId].bill, pay: 'cash' });
+    await sync();
+    r.localWins = [bill.pay, server.bills[mineId].bill.pay, kept.find(b => b.id === mineId)?.pay];
+    openBills(); r.subIn = $('billsSub').textContent;
+    showPast(mineId); $('pastPay').querySelector('[data-pay="upi"]').click();
+    r.pastCounter = [bill.pay, outbox.bills[mineId]?.pay, $('pastPayNote').hidden];
+    billsEl.close(); await sync(); await sync();          // the sync the sheet started, then the change
+    bill = freshBill(nextNo()); openSheet(asItem(byId.get('tomato'))); setQty(500); commit();   // unfinished
+    const n0 = bill.no;
+    otherPhone('taken', { id: 'taken', no: n0, started: new Date().toISOString(), discount: 0, pay: 'cash', lines: [{ ml: 'ഉപ്പ്', qty: 1, unit: 'pc', rate: 2000, sample: false }] });
+    await sync();
+    r.renumber = [n0, bill.no, bill.sold];
     openPrices(); r.row = $('priceList').querySelector('[data-pid="onion"] small')?.textContent; pricesEl.close();
     bill = freshBill(1); saveBill(); renderBill(); hideToast();
     server.fail = true; setMine(byId.get('onion'), 5600); await sync();
@@ -667,6 +752,7 @@ export default async (t) => {
     r.logout = await logout();
     await until(() => products.length > 10);   // the template list again
     r.out = [account, Object.keys(mine).length, photos.size, products.length, $('acctBtn').dataset.state, localStorage.getItem('thraasu_session')];
+    r.keptOut = [kept.length, localStorage.getItem('thraasu_bills')];
     await restoreBackup(JSON.stringify(backup));
     r.restored = [mine.onion, photos.has('onion'), byId.get('uOTHER00001')?.ml, [...hidden].join()];
     await restoreBackup('{"app":"other"}');
@@ -683,7 +769,15 @@ export default async (t) => {
   t.check("another phone's price and photo come down", sy.pull.join() === '9900,data:image/jpeg,9900', sy.pull);
   t.check('stock shows in the quantity sheet and the price list', sy.sheetStock === 'സ്റ്റോക്ക് 3 kg' && sy.row === 'പട്ടിക ₹50 · സ്റ്റോക്ക് 3 kg', [sy.sheetStock, sy.row]);
   t.check('an open bill is not sold: nothing goes to the shop', sy.unsold.join() === '0,3000', sy.unsold);
-  t.check('a closed bill lowers stock on the phone at once, on the server at sync', sy.queued.join() === '2500,1' && sy.sold.join() === '2500,2500,0,1', sy);
+  t.check('a closed bill lowers stock on the phone at once, on the server at sync', sy.queued.join() === '2500,2' && sy.sold.join() === '2500,2500,0,1', sy);
+  t.check('without a payment പുതിയ ബിൽ leaves the bill open', sy.noPay.join() === 'false,1,0', sy.noPay);
+  t.check('a sold bill reaches the shop with its payment', sy.billUp.join() === 'upi,1,upi', sy.billUp);
+  t.check('emptied after printing, the bill is removed there and here', sy.billGone.join() === '0,false', sy.billGone);
+  t.check("another phone's bill comes down, and the next number follows it", sy.billDown.join() === 'credit,6', sy.billDown);
+  t.check("a payment changed on another phone reaches the counter's bill", sy.payDown.join() === 'upi,upi,0', sy.payDown);
+  t.check('a change made offline wins over the server copy once sent', sy.localWins.join() === 'credit,credit,credit', sy.localWins);
+  t.check("logged in, the bills are the shop's; a kept bill's view changes the counter's bill", sy.subIn === 'ഇന്നും ഇന്നലെയും · കടയിലെ എല്ലാ ഫോണിലും' && sy.pastCounter.join() === 'upi,upi,false', [sy.subIn, sy.pastCounter]);
+  t.check('an unfinished bill whose number another phone took moves to the next', sy.renumber[1] === sy.renumber[0] + 1 && sy.renumber[2] === false, sy.renumber);
   t.check('an edit after closing moves stock by the difference; emptying the bill puts it back', sy.edited === 2000 && sy.emptied.join() === '3000,5000,0', sy);
   t.check('offline, the change waits on the phone', sy.offline.join() === '1,wait', sy.offline);
   t.check('logout refuses while a change is unsent', sy.blocked.join() === 'true,true', sy.blocked);
@@ -695,6 +789,7 @@ export default async (t) => {
   t.check("another phone's removal comes down, and so does its putting one back", sy.hideDown.join() === 'true,false,["tomato"]', sy.hideDown);
   t.check('backup file carries prices, photos, added and removed items', sy.backup.join() === 'thraasu,5600,true,true,true,shallot', sy.backup);
   t.check('logout leaves nothing of the shop on the phone', sy.logout === '' && sy.out.join() === ',0,0,68,out,', sy.out);
+  t.check("logout leaves none of the shop's bills on the phone", sy.keptOut.join() === '0,', sy.keptOut);
   t.check('a backup file restores; anything else is refused', sy.restored.join() === '5600,true,Kale,shallot' && sy.junk === 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല', sy);
 
   // Removing items (2026-10-17, option A): no ✕ on any row; one button at the foot turns the price boxes into

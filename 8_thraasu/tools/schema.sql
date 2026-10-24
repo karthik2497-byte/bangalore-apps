@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS shops (
   failed INTEGER NOT NULL DEFAULT 0, locked_until INTEGER NOT NULL DEFAULT 0,
   catalog_at INTEGER, created INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'active', mobile TEXT,  -- 'pending' from an app sign-up until approved; created = request time
-  items_at INTEGER                                     -- last change to the shop's added items
+  items_at INTEGER,                                    -- last change to the shop's added items
+  bills_at INTEGER                                     -- last change to the shop's bills: MAX(old + 1, now), so it always moves
 );
 CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, shop TEXT NOT NULL, created INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS prices (shop TEXT NOT NULL, id TEXT NOT NULL, paise INTEGER NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (shop, id));
@@ -26,3 +27,8 @@ CREATE TABLE IF NOT EXISTS items (shop TEXT NOT NULL, id TEXT NOT NULL, body TEX
 -- Items a shop took off its list on a phone (an item it added is deleted from items instead). The list
 -- itself is left alone, so a catalog re-import keeps them off; showing one again deletes its row.
 CREATE TABLE IF NOT EXISTS hidden (shop TEXT NOT NULL, id TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (shop, id));
+
+-- The shop's sold bills of the last three days, as every phone's bills sheet shows them (body: cleanBill JSON;
+-- no lines: removed on its phone). at: the shop's bills_at when written, so a phone pulls only what changed since.
+CREATE TABLE IF NOT EXISTS bills (shop TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, started INTEGER NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (shop, id));
+CREATE INDEX IF NOT EXISTS bills_at ON bills (shop, at);

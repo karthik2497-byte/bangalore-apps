@@ -5,7 +5,8 @@
 // operator (Worker workers/thraasu-mail, service binding MAILER) with a link to GET/POST review,
 // signed with the Pages secret REVIEW_KEY, to approve or reject it from the inbox. A shop's list, the items it adds, its prices and its photos are kept per shop; the
 // app works offline and pushes when it can. Last write wins per item. Bills lower the shop's
-// stock (POST sales). On the Free plan an invocation gets 50 D1 queries, so no route's query
+// stock (POST sales), and the last three days' sold bills are kept whole (POST/GET bills) so every phone
+// of the shop shows the same list. On the Free plan an invocation gets 50 D1 queries, so no route's query
 // count grows with its input: lists go in as one JSON parameter through json_each.
 // Pages does not apply _headers to Functions: every response sets its own headers.
 
@@ -15,6 +16,8 @@ const MAX_PHOTO = 300000, MAX_PHOTOS = 3000, MAX_PRICES = 5000, IDS_PER_GET = 30
 // D1 Free holds 500 MB per database: a shop's photos are capped in bytes, and sold bills are kept
 // only as long as a phone might send one again.
 const PHOTO_BYTES = 25e6, SALES_KEEP_MS = 60 * 864e5, PENDING_MAX = 20, MAX_ITEMS = 1000, MAX_HIDDEN = 2000;
+// Every phone of a shop shows its sold bills of today and yesterday: three days covers both, whatever the hour.
+const BILLS_KEEP_MS = 3 * 864e5, KEPT_PER_POST = 50;
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32: no 0/O or 1/I to misread over the phone
 const ID = /^[\w-]{1,40}$/, PHOTO = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
@@ -42,6 +45,22 @@ function cleanItem(x) {
   if (!ml || ml.length > 60 || en.length > 60 || typeof x.cat !== 'string' || !ID.test(x.cat) || !['kg', 'l', 'pc'].includes(x.unit) ||
     typeof x.rate !== 'number' || !(x.rate > 0 && x.rate < 1e7) || !key || key.length > 80) return null;
   return { key, body: JSON.stringify({ cat: x.cat, ml, en, unit: x.unit, rate: Math.round(x.rate * 100) / 100, icon: typeof x.icon === 'string' ? x.icon.slice(0, 16) : '' }) };
+}
+
+// A sold bill as every phone of the shop shows it: the same rules as cleanBill in 8_thraasu/bill-core.js, and its
+// body must name the id it is sent under. No lines is a bill whose lines were all taken off on its phone.
+const PAY_KINDS = ['cash', 'upi', 'credit'];
+function cleanBill(id, b) {
+  if (!ID.test(id) || !b || typeof b !== 'object' || b.id !== id || !Number.isInteger(b.no) || b.no < 1 || b.no > 1e6 ||
+    typeof b.started !== 'string' || !Number.isFinite(Date.parse(b.started)) || !Array.isArray(b.lines) || b.lines.length > 300) return null;
+  const lines = [];
+  for (const l of b.lines) {
+    if (!l || typeof l.ml !== 'string' || !l.ml.trim() || !['kg', 'l', 'pc'].includes(l.unit) || !Number.isInteger(l.qty) ||
+      l.qty < 1 || l.qty > 1e6 || !Number.isInteger(l.rate) || l.rate < 1 || l.rate >= 1e9) return null;
+    lines.push({ ml: l.ml.slice(0, 120), qty: l.qty, unit: l.unit, rate: l.rate, sample: l.sample !== false });
+  }
+  return { id, no: b.no, started: b.started, discount: Number.isInteger(b.discount) && b.discount > 0 && b.discount < 1e9 ? b.discount : 0,
+    pay: PAY_KINDS.includes(b.pay) ? b.pay : null, lines };
 }
 
 export async function pinHash(pin, salt) {
@@ -167,7 +186,7 @@ export async function handle(request, db, path, opts = {}) {
       return json({ ok: true });
     }
     case 'GET state': {
-      const s = await db.prepare('SELECT name, catalog_at, items_at FROM shops WHERE code = ?').bind(shop).first();
+      const s = await db.prepare('SELECT name, catalog_at, items_at, bills_at FROM shops WHERE code = ?').bind(shop).first();
       const prices = await db.prepare('SELECT id, paise FROM prices WHERE shop = ?').bind(shop).all();
       const photos = await db.prepare('SELECT id, at FROM photos WHERE shop = ?').bind(shop).all();
       const stock = await db.prepare('SELECT id, qty FROM stock WHERE shop = ?').bind(shop).all();
@@ -177,7 +196,7 @@ export async function handle(request, db, path, opts = {}) {
         prices: Object.fromEntries(prices.results.map(r => [r.id, r.paise])),
         photos: Object.fromEntries(photos.results.map(r => [r.id, r.at])),
         stock: Object.fromEntries(stock.results.map(r => [r.id, r.qty])),
-        hidden: hidden.results.map(r => r.id),
+        hidden: hidden.results.map(r => r.id), bills: s.bills_at ?? null,
       });
     }
     case 'POST hidden': {
@@ -233,6 +252,36 @@ export async function handle(request, db, path, opts = {}) {
           .bind(JSON.stringify(delta), shop),
       ]);
       return json({ ok: true });
+    }
+    case 'POST bills': {
+      // {bills: {id: bill}}: each sold bill, sent again on every change; last write wins per bill. Every write moves
+      // the shop's bills_at forward (MAX(old + 1, now): strictly, so equal always means unchanged) and stamps it on
+      // the rows, so GET bills?since= hands a phone only what changed after its last pull.
+      const b = await readJson(request), now = Date.now();
+      const all = Object.entries(b?.bills && typeof b.bills === 'object' ? b.bills : {});
+      if (all.length > KEPT_PER_POST) return json({ error: 'too many' }, 413);
+      const keep = {};
+      for (const [id, x] of all) {
+        const c = cleanBill(id, x), started = c && Date.parse(c.started);
+        if (c && started >= now - BILLS_KEEP_MS) keep[id] = { body: JSON.stringify(c), started };
+      }
+      if (!Object.keys(keep).length) return json({ ok: true });
+      await db.batch([
+        db.prepare('DELETE FROM bills WHERE shop = ? AND started < ?').bind(shop, now - BILLS_KEEP_MS),
+        db.prepare('UPDATE shops SET bills_at = MAX(COALESCE(bills_at, 0) + 1, ?) WHERE code = ?').bind(now, shop),
+        db.prepare("INSERT INTO bills (shop, id, body, started, at) SELECT ?, key, json_extract(value, '$.body'), json_extract(value, '$.started'), " +
+          '(SELECT bills_at FROM shops WHERE code = ?) FROM json_each(?) WHERE true ' +
+          'ON CONFLICT (shop, id) DO UPDATE SET body = excluded.body, started = excluded.started, at = excluded.at').bind(shop, shop, JSON.stringify(keep)),
+      ]);
+      return json({ ok: true });
+    }
+    case 'GET bills': {
+      // The counter before the rows: a write landing between the two comes again next time, never skipped.
+      const since = Number(new URL(request.url).searchParams.get('since')) || 0;
+      const at = await db.prepare('SELECT bills_at FROM shops WHERE code = ?').bind(shop).first('bills_at');
+      const r = await db.prepare('SELECT id, body FROM bills WHERE shop = ? AND at > ? AND started >= ? ORDER BY at, id')
+        .bind(shop, since, Date.now() - BILLS_KEEP_MS).all();
+      return json({ at: at ?? null, bills: r.results.map(x => ({ id: x.id, bill: JSON.parse(x.body) })) });
     }
     case 'PUT photo': {
       const b = await readJson(request);

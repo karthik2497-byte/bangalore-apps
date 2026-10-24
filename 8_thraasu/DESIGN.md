@@ -17,6 +17,8 @@ colors:
   brass-wash: "#F4E8C9"
   chilli: "#B3301F"
   chilli-wash: "#F8E0DA"
+  upi: "#34367A"
+  upi-wash: "#E1E1F2"
   sack-veg: "#E2EED9"
   sack-veg-ink: "#2E5E22"
   sack-fruit: "#FAEDBF"
@@ -190,7 +192,10 @@ A warm paper-and-brass neutral field with one leaf-green action colour, one chil
 - **Brass Wash** (brass-wash): sample-prices pill, quiet-button hover, fallback category tint.
 
 ### Tertiary
-- **Chilli** (chilli): removal and validation only: the per-line remove control, the danger button that removes a line from the quantity sheet, and the quantity hint under an invalid entry. **Chilli Wash** (chilli-wash) is their hover ground.
+- **Chilli** (chilli): removal and validation only: the per-line remove control, the danger button that removes a line from the quantity sheet, the quantity hint under an invalid entry, and the payment toggle of a bill finished without one. **Chilli Wash** (chilli-wash) is their hover ground.
+
+### Payment
+- **Cash** takes leaf, **UPI** the stationery sack's indigo (**upi** `#34367A` on **upi-wash** `#E1E1F2`, 8.3:1), **credit** (paid later) brass-ink on brass-wash: one pair per kind on the bill's toggle, the bills sheet's chips and each row's badge, always with the kind's word beside its icon.
 
 ### Neutral
 - **Bill-pad Paper** (paper): page ground, sticky header, sheet footer, theme colour.
@@ -316,7 +321,10 @@ In the quantity sheet, after the rate field is edited away from the shelf price:
 Fixed at the bottom on narrow screens: leaf, 18px radius, item count over the live total (750 / 23px) and a translucent "view bill" pill. Empty, it turns to slip white with ink-2 text and the lift shadow; when the phone has kept bills its pill reads ബില്ലുകൾ on paper and opens them. Adding an item bumps it (scale 1.035, 280ms).
 
 ### Bill head and kept bills ("ബില്ലുകൾ")
-The bill's number, date and 12-hour time (`17 Oct 2026 · 2:16 PM`) sit centred in the slip under the shop name (14px ink-2; number and time in ink at 650), the line the print starts with. The head holds the title and, at the right, the bills door: a 48px slip-white pill with a divider edge and a leaf-deep receipt icon. It opens a tall sheet (the price list's shell) of the phone's sold bills of today and yesterday: a sticky heading per day (ഇന്ന് or ഇന്നലെ with the short date in ink-2, the count and total in leaf-deep), then 64px rows (നം. 0006 over the time and item count, the total in leaf-deep, a chevron). A row swaps in that bill's receipt on a white torn-edge slip over paper-2, with print (primary) and share (ghost) in the footer; ‹, Esc and Android back return to the list.
+The bill's number, date and 12-hour time (`17 Oct 2026 · 2:16 PM`) sit centred in the slip under the shop name (14px ink-2; number and time in ink at 650), the line the print starts with. The head holds the title and, at the right, the bills door: a 48px slip-white pill with a divider edge and a leaf-deep receipt icon. It opens a tall sheet (the price list's shell) of the shop's sold bills of today and yesterday, from every logged-in phone of the shop ("ഇന്നും ഇന്നലെയും · കടയിലെ എല്ലാ ഫോണിലും"; logged out, "· ഈ ഫോണിൽ"). Under the head, four filter chips across (എല്ലാം · ക്യാഷ് · UPI · കടം; 48px, 12px radius, field edge; picked: filled in the kind's ink with white text, എല്ലാം in ink; icons drop below 340px, on the chips and the badges) filter both days. Then a sticky heading per day (ഇന്ന് or ഇന്നലെ with the short date in ink-2, the count and total of what is shown in the picked kind's ink; a day with none of that kind says so), then 64px rows (നം. 0006 over the time and item count, a 26px payment badge in the kind's wash and ink, the total in leaf-deep, a chevron). A row swaps in that bill's receipt on a white torn-edge slip over paper-2; the footer holds the payment toggle (with "മാറ്റിയാൽ കടയിലെ എല്ലാ ഫോണിലും മാറും" under it when logged in), then print (primary) and share (ghost); ‹, Esc and Android back return to the list.
+
+### Payment toggle ("പണം")
+In the slip under ആകെ, hidden while the bill is empty: the label പണം (15.5px ink-2) and a segmented control of three 48px segments (field edge, 14px radius): ക്യാഷ് (banknote), UPI (scan frame), കടം (ledger), each word and stroke icon in its kind's ink. A picked segment fills with that ink, white text. A new bill has none picked. Print, share and പുതിയ ബിൽ do nothing until one is: the control's edge turns chilli with a 3px chilli-wash halo, "ആദ്യം പണം തിരഞ്ഞെടുക്കൂ" (14px chilli, 600) shows under it, and it scrolls to the centre with the focus on its first segment. The receipt (print, image, kept slip) gets a പണം row under ആകെ.
 
 ### Quantity sheet
 A native `<dialog>`; no drag grip. Header: the brass balance drawing beside the product name (with "സ്റ്റോക്ക് 25 kg" under the English name for a counted item) and an editable rate. Body: preset chips, then a custom quantity row with the unit toggle. Footer on paper: the computed line and amount in display type, then a danger remove button (only when editing a line already on the bill) and a full-width primary.
