@@ -3,7 +3,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { handle, pinHash } from '../functions/api/thraasu/[[path]].js';
+import { handle, pinHash, paidThrough, endOfDay, TRIAL_DAYS } from '../functions/api/thraasu/[[path]].js';
 import { mime } from '../workers/thraasu-mail/mime.js';
 
 const raw = new DatabaseSync(':memory:');
@@ -37,7 +37,7 @@ const call = async (method, path, { token, body } = {}) => {
 let n = 0;
 const t = async (name, fn) => { await fn(); n++; };
 const salt = 'salt-1';
-raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created) VALUES (?, ?, ?, ?, ?)').run('NANMA', 'Nanma Store', salt, await pinHash('482913', salt), Date.now());
+raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created, paid_until) VALUES (?, ?, ?, ?, ?, ?)').run('NANMA', 'Nanma Store', salt, await pinHash('482913', salt), Date.now(), Date.now() + 365 * 864e5);
 
 let token, signupCode;
 const mails = [];
@@ -135,7 +135,7 @@ await t('shop name: trimmed, capped, never empty', async () => {
 });
 
 await t('one shop never sees another', async () => {
-  raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created) VALUES (?, ?, ?, ?, ?)').run('OTHER', 'Other', 's2', await pinHash('1111', 's2'), Date.now());
+  raw.prepare('INSERT INTO shops (code, name, salt, pin_hash, created, paid_until) VALUES (?, ?, ?, ?, ?, ?)').run('OTHER', 'Other', 's2', await pinHash('1111', 's2'), Date.now(), Date.now() + 365 * 864e5);
   const other = (await call('POST', 'login', { body: { code: 'OTHER', pin: '1111' } })).data.token;
   const s = await call('GET', 'state', { token: other });
   assert.deepEqual([s.data.prices, s.data.photos, s.data.stock], [{}, {}, { P1: 7 }]);
@@ -195,9 +195,12 @@ await t('review link: GET shows the request; POST approves or rejects; a bad or 
   assert.equal(g.status, 200);
   assert.ok(g.text.includes('Second shop') && g.text.includes('value="approve"') && g.text.includes('tel:+919847012345'));
   assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'pending', 'opening the link approves nothing');
+  const before = Date.now();
   const a = await call('POST', link, { body: 'do=approve' });
   assert.ok(a.text.includes('Approved: the shop can log in now.'));
   assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'active');
+  const trial = raw.prepare('SELECT paid_until FROM shops WHERE code = ?').get(code).paid_until;
+  assert.ok([paidThrough(0, TRIAL_DAYS, before), paidThrough(0, TRIAL_DAYS)].includes(trial), 'approving starts the 30-day trial');
   await call('POST', link, { body: 'do=reject' });
   assert.equal(raw.prepare('SELECT status FROM shops WHERE code = ?').get(code).status, 'active', 'an approved shop is never rejected by its link');
   // a hostile name is shown as text; reject deletes the request
@@ -333,6 +336,37 @@ await t('bills: every phone of the shop gets them, only what changed since; junk
   await send(a, { k1: bill('k1', 1, 'cash') });
   assert.equal(raw.prepare("SELECT COUNT(*) AS n FROM bills WHERE id = 'stale'").get().n, 0, 'deleted on the next write');
   assert.deepEqual((await pull(await login('OTHER'))).bills, [], "another shop's bills are its own");
+});
+
+await t('paidThrough: 30 days after the approval day; a renewal runs from the end, or from tomorrow after a lapse', async () => {
+  const ist = s => Date.parse(s + '+05:30');
+  assert.equal(paidThrough(0, TRIAL_DAYS, ist('2026-10-24T13:00:00')), ist('2026-11-24T00:00:00'), 'last day 23 Nov');
+  const end = ist('2026-11-24T00:00:00');
+  assert.equal(paidThrough(end, 30, ist('2026-11-20T10:00:00')), ist('2026-12-24T00:00:00'), 'before the end: from the end');
+  assert.equal(paidThrough(end, 30, ist('2026-11-26T09:00:00')), ist('2026-12-27T00:00:00'), 'after a lapse: from tomorrow');
+  assert.equal(endOfDay('2027-03-31'), ist('2027-04-01T00:00:00'));
+  for (const bad of ['2027-02-30', '2027-3-31', 'soon', '']) assert.equal(endOfDay(bad), null, bad);
+});
+
+await t('past its date a shop is paused: 402 with the date on every route but logout; login still works', async () => {
+  const fresh = (await call('POST', 'login', { body: { code: 'NANMA', pin: '482913' } })).data.token;
+  const paid = raw.prepare("SELECT paid_until FROM shops WHERE code = 'NANMA'").get().paid_until;
+  assert.equal((await call('GET', 'state', { token: fresh })).data.paid, paid, 'state carries the date');
+  raw.prepare("UPDATE shops SET paid_until = ? WHERE code = 'NANMA'").run(Date.now() - 1000);
+  try {
+    for (const [m, p] of [['GET', 'state'], ['POST', 'prices'], ['POST', 'sales'], ['PUT', 'photo'], ['GET', 'catalog'], ['PUT', 'shop'], ['POST', 'items'], ['GET', 'items'], ['POST', 'bills'], ['GET', 'bills'], ['POST', 'hidden'], ['GET', 'photos']]) {
+      const r = await call(m, p, { token: fresh, body: m === 'GET' ? undefined : {} });
+      assert.deepEqual([r.status, r.data.error, typeof r.data.until], [402, 'paused', 'number'], p);
+    }
+    db.queries = 0;
+    assert.equal((await call('GET', 'state', { token: fresh })).status, 402);
+    assert.equal(db.queries, 1, 'the check rides on the session lookup');
+    const again = await call('POST', 'login', { body: { code: 'NANMA', pin: '482913' } });
+    assert.equal(again.status, 200, 'a paused shop still logs in, so its phone can say why');
+    assert.equal((await call('POST', 'logout', { token: again.data.token })).status, 200, 'and can log out');
+    raw.prepare("UPDATE shops SET paid_until = ? WHERE code = 'NANMA'").run(paidThrough(Date.now() - 1000, 30));
+    assert.equal((await call('GET', 'state', { token: fresh })).status, 200, 'renewed: the same session works again');
+  } finally { raw.prepare("UPDATE shops SET paid_until = ? WHERE code = 'NANMA'").run(paid); }
 });
 
 await t('unknown routes are a JSON 404', async () => {

@@ -478,7 +478,7 @@ button:disabled { cursor: default; }
 /* the dot: grey on this phone only, leaf when synced, brass while something waits */
 .acct::after { content: ''; position: absolute; top: 9px; right: 7px; width: 11px; height: 11px; border: 2px solid var(--paper); border-radius: 50%; background: var(--field); }
 .acct[data-state="ok"]::after { background: var(--leaf); }
-.acct[data-state="wait"]::after, .acct[data-state="busy"]::after { background: var(--brass); }
+.acct[data-state="wait"]::after, .acct[data-state="busy"]::after, .acct[data-state="paused"]::after { background: var(--brass); }
 .shop[open] { display: flex; flex-direction: column; }
 .shop-body { display: grid; gap: 14px; overflow-y: auto; padding: 4px 16px calc(20px + env(safe-area-inset-bottom)); }
 .box { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); }
@@ -497,7 +497,33 @@ button:disabled { cursor: default; }
 .box .small { font-size: 14px; }
 .box a { color: var(--leaf-deep); font-weight: 600; }
 #syncState { font-weight: 620; color: var(--leaf-deep); }
-#syncState[data-state="wait"] { color: var(--brass-ink); }
+#syncState[data-state="wait"], #syncState[data-state="paused"] { color: var(--brass-ink); }
+/* the account's date: leaf while it runs, brass in its last 5 days and once it is over */
+.box .plan { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--leaf-wash); color: var(--leaf-deep); }
+.box .plan b { font-size: 16px; font-weight: 700; }
+.box .plan span { font-size: 14px; color: var(--ink-2); }
+.box .plan[data-state="ending"], .box .plan[data-state="over"] { background: var(--brass-wash); color: var(--ink); }
+.paused { display: grid; gap: 10px; }
+.box a.small { justify-self: start; padding: 4px 0; }
+/* the strip in the bills sheet and the price list: what the account adds, its last days, or paused */
+.note { display: flex; align-items: center; margin: 12px 16px 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); }
+.note[data-kind="end"] { border-color: transparent; background: var(--brass-wash); }
+.kb .note { display: none; }   /* typing: the strip a keyboard leaves keeps only the field and the list */
+.note-go { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 12px 4px 12px 12px; border: 0; background: none; text-align: left; color: var(--ink); }
+.note-go svg { flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.note-go svg:first-child { width: 36px; height: 36px; padding: 8px; border-radius: 50%; background: var(--leaf-wash); color: var(--leaf-deep); }
+.note[data-kind="end"] .note-go svg:first-child { background: var(--slip); color: var(--brass-ink); }
+.note-go svg:last-child { width: 20px; height: 20px; color: var(--ink-2); }
+.note-go span { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.note-go b { font-size: 15px; font-weight: 680; }
+.note-go small { font-size: 14px; line-height: 1.35; color: var(--ink-2); }
+.note-x { flex: none; width: 44px; min-height: 48px; border: 0; background: none; font-size: 16px; color: var(--ink-2); }
+/* a free phone's shop sheet: what the account gives, one icon and one sentence each */
+.uses { display: grid; gap: 12px; list-style: none; }
+.uses li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.4; color: var(--ink-2); }
+.uses b { display: block; font-size: 16px; font-weight: 680; color: var(--ink); }
+.use-ico { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--leaf-wash); color: var(--leaf-deep); }
+.use-ico svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- adding an item: the name first, searched against the whole list ---------- */
 /* The add button sits in the category's head row: seen on arrival, never a tile where billing taps land. */
@@ -771,6 +797,7 @@ button:disabled { cursor: default; }
     <label for="pq" class="vh">വില തിരയുക</label>
     <input id="pq" type="search" placeholder="തിരയുക… thakkali" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
   </div>
+  <div class="note" id="pricesNote" hidden></div>
   <ol class="price-list" id="priceList"></ol>
   <div class="sheet-foot prices-foot" id="pricesFoot">
     <button class="btn quiet" id="pickStart" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>സാധനങ്ങൾ നീക്കുക</button>
@@ -798,6 +825,7 @@ button:disabled { cursor: default; }
     <button class="icon-btn" id="billsClose" type="button" aria-label="അടയ്ക്കുക">✕</button>
   </div>
   <div class="pay-filter" id="payFilter" role="group" aria-label="പണം അനുസരിച്ച്"></div>
+  <div class="note" id="billsNote" hidden></div>
   <div class="bills-list" id="billsList"></div>
   <div class="past" id="pastView" hidden>
     <div class="past-body" id="pastBody"><div class="slip past-slip" id="pastSlip"></div></div>
@@ -853,15 +881,22 @@ button:disabled { cursor: default; }
   <div class="shop-body">
     <section class="box" id="signedOut">
       <h3>കടയുടെ അക്കൗണ്ട്</h3>
-      <p>ലോഗിൻ ചെയ്താൽ കടയുടെ സാധനങ്ങളും വിലയും ഫോട്ടോയും സെർവറിൽ സൂക്ഷിക്കും; കടയിലെ എല്ലാ ഫോണിലും ഒരുപോലെ കിട്ടും.</p>
+      <p>അക്കൗണ്ട് ഉണ്ടെങ്കിൽ:</p>
+      <ul class="uses">
+        <li><span class="use-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7.5" height="15" rx="1.5"/><rect x="13.5" y="4" width="7.5" height="15" rx="1.5"/><path d="M6 16h1.5M16.5 16h1.5"/></svg></span><span><b>എല്ലാ ഫോണിലും ഒരേ വില</b>ഒരു ഫോണിൽ മാറ്റിയാൽ എല്ലാ ഫോണിലും മാറും; ഫോൺ മാറിയാലും ഒന്നും പോകില്ല.</span></li>
+        <li><span class="use-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8h5M9.5 11.5h5M9.5 15h3"/></svg></span><span><b>എല്ലാ ഫോണിലെയും ബില്ലുകൾ ഒരിടത്ത്</b>ഏതു ഫോണിൽ ബിൽ ചെയ്താലും ഒരേ നമ്പർ നിര; ക്യാഷ്, UPI, കടം വേറെ വേറെ കാണാം.</span></li>
+        <li><span class="use-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9"/></svg></span><span><b>വിൽക്കുന്നതനുസരിച്ച് സ്റ്റോക്ക്</b>ബിൽ ചെയ്യുമ്പോൾ സ്റ്റോക്ക് തനിയെ കുറയും.</span></li>
+      </ul>
+      <p class="fee" id="offerLine"></p>
       <p class="req" id="reqNote" role="status" hidden></p>
-      <form id="loginForm" novalidate>
+      <form id="loginForm" novalidate hidden>
         <label class="field">കടയുടെ കോഡ്<input id="shopCode" autocomplete="username" autocapitalize="characters" spellcheck="false" maxlength="20" enterkeyhint="next"></label>
         <label class="field">പിൻ<input id="shopPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="8" enterkeyhint="go"></label>
         <p class="hint" id="loginMsg" role="alert" hidden></p>
         <button class="btn primary" id="loginBtn" type="submit">ലോഗിൻ</button>
       </form>
-      <button class="btn ghost" id="signupOpen" type="button">പുതിയ കട രജിസ്റ്റർ ചെയ്യുക</button>
+      <button class="btn primary" id="signupOpen" type="button">പുതിയ കട രജിസ്റ്റർ ചെയ്യുക</button>
+      <button class="btn ghost" id="loginOpen" type="button">കോഡ് ഉണ്ടെങ്കിൽ ലോഗിൻ ചെയ്യുക</button>
     </section>
     <section class="box" id="signupBox" hidden>
       <h3>പുതിയ കട</h3>
@@ -879,9 +914,17 @@ button:disabled { cursor: default; }
     </section>
     <section class="box" id="signedIn" hidden>
       <h3 id="acctName"></h3>
+      <p class="plan" id="planLine" hidden></p>
+      <div class="paused" id="pausedNote" hidden>
+        <p>ഈ ഫോണിലെ ബില്ലുകളും വിലയും ഇവിടെത്തന്നെയുണ്ട്; പുതിയ മാറ്റങ്ങളും ഫോണിൽ സൂക്ഷിക്കും. പുതുക്കിയാൽ അവ തനിയെ മറ്റു ഫോണുകളിലെത്തും.</p>
+        <p class="fee" id="renewLine"></p>
+        <p id="graceLine"></p>
+        <p class="small">അല്ലെങ്കിൽ ലോഗൗട്ട് ചെയ്ത് ഈ ഫോണിൽ സൗജന്യമായി തുടരാം; കടയുടെ വിവരങ്ങൾ സെർവറിൽ സുരക്ഷിതം. ബാക്കപ്പ് എടുത്താൽ വിലയും ഫോട്ടോയും കൂടെ കൊണ്ടുപോകാം.</p>
+      </div>
       <p id="syncState" role="status"></p>
       <div class="two"><button class="btn ghost" id="syncNow" type="button">ഇപ്പോൾ സിങ്ക്</button><button class="btn quiet" id="logoutBtn" type="button">ലോഗൗട്ട്</button></div>
       <p class="hint" id="logoutMsg" role="alert" hidden></p>
+      <a class="small" href="./privacy.html#delete" target="_blank" rel="noopener">കടയുടെ അക്കൗണ്ട് ഇല്ലാതാക്കാൻ</a>
     </section>
     <section class="box">
       <h3>ബാക്കപ്പ് ഫയൽ</h3>
@@ -908,9 +951,12 @@ const SESSION_KEY = 'thraasu_session', OUTBOX_KEY = 'thraasu_outbox', SYNCED_KEY
 const SIGNUP_KEY = 'thraasu_signup';   // { code, name } of a shop asked for on this phone, until it logs in
 const ITEMS_KEY = 'thraasu_items';     // { id: item } the shop added on its phones (cleanItem in bill-core.js)
 const HIDDEN_KEY = 'thraasu_hidden';   // ids of list items the shop took off its list (one it added is deleted instead)
-// The monthly fee shown at sign-up, in rupees.
-// ponytail: a label only. Charging needs a payment step (manual UPI or Razorpay), built when this goes above 0.
-const MONTHLY_FEE = 0;
+const HINTS_KEY = 'thraasu_hints';     // { bills: 1, prices: 1 }: the free-phone hints closed on this phone
+// The shop account: TRIAL_DAYS free from approval (the API's TRIAL_DAYS must match), then MONTHLY_FEE rupees a
+// month, collected outside the app (Play consumption-only: no pay button or link here). Past its date a phone
+// carries on alone for GRACE more bills and GRACE new products.
+const MONTHLY_FEE = 199, TRIAL_DAYS = 30, GRACE = 5;
+const OFFER = `${TRIAL_DAYS} ദിവസം സൗജന്യം · പിന്നെ മാസം ₹${MONTHLY_FEE}`;
 const wide = matchMedia('(min-width: 900px)');
 const sheetEl = $('sheet'), pricesEl = $('prices'), shopEl = $('shopSheet');
 
@@ -987,7 +1033,7 @@ function saveBill() {
   try { localStorage.setItem(BILL_KEY, JSON.stringify(bill)); } catch {}
   if (bill.sold) { queue('sale', bill.id, Object.fromEntries(bill.lines.map(l => [l.pid, l.qty]))); keep(bill); queue('bill', bill.id, keptForm(bill)); }
 }
-function markSold() { if (!bill.sold) { bill.sold = true; saveBill(); } }
+function markSold() { if (!bill.sold) { bill.sold = true; useGrace('bills'); saveBill(); } }
 
 // ---------- the kept bills: today's and yesterday's ----------
 // Each sold bill of the shop with what its receipt needs (cleanBill in bill-core.js): this phone's, and once
@@ -1089,7 +1135,7 @@ function renderPrices() {
 }
 function openPrices() {
   $('pq').value = '';
-  renderPrices();
+  renderPrices(); renderNotes();
   pricesEl.showModal();
   $('priceList').scrollTop = 0;
 }
@@ -1205,6 +1251,18 @@ const writeJSON = (k, v) => { try { v == null ? localStorage.removeItem(k) : loc
 const freshOutbox = () => ({ set: {}, clear: [], photos: [], name: null, sales: {}, items: {}, hide: {}, bills: {} });
 let account = readJSON(SESSION_KEY);                 // { token, code, name } once logged in
 let signingUp = false;                               // the sign-up form is showing in the shop sheet
+let loginOpen = false;                               // the login form, behind its button until tapped or a request waits
+// The account's end (exclusive, an IST midnight): whole days after today, and its last day, on the phone's clock.
+const daysLeft = until => Math.floor((until - Date.now()) / 864e5);
+const lastDay = until => new Date(until - 1).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+// Paused (account.paused: the server's date), a phone may still sell GRACE bills and add GRACE new products.
+const graceLeft = kind => GRACE - (account?.grace?.[kind] || 0);
+const blocked = kind => !!account?.paused && graceLeft(kind) <= 0;
+function useGrace(kind) {
+  if (!account?.paused) return;
+  account = { ...account, grace: { ...account.grace, [kind]: (account.grace?.[kind] || 0) + 1 } };
+  writeJSON(SESSION_KEY, account);
+}
 let outbox = { ...freshOutbox(), ...readJSON(OUTBOX_KEY) };
 let synced = readJSON(SYNCED_KEY) || { at: 0, photos: {} };   // when, and the server time of each photo we hold
 let shopItems = loadItems();
@@ -1226,7 +1284,7 @@ let syncing = null, syncError = '', syncTimer = 0;
 const pending = () => Object.keys(outbox.set).length + outbox.clear.length + outbox.photos.length + (outbox.name ? 1 : 0) + Object.keys(outbox.sales).length + Object.keys(outbox.items).length + Object.keys(outbox.hide).length + Object.keys(outbox.bills).length;
 // Stock on hand: the shop's count at the last sync, less this phone's bills not sent yet. null: not counted.
 function stockLeft(id) {
-  if (!synced.stock || !Object.hasOwn(synced.stock, id)) return null;
+  if (account?.paused || !synced.stock || !Object.hasOwn(synced.stock, id)) return null;   // paused: other phones' sales stop counting
   return Object.values(outbox.sales).reduce((n, items) => n - (items[id] || 0), synced.stock[id]);
 }
 const stockText = p => { const n = stockLeft(p.id); return n === null ? '' : `സ്റ്റോക്ക് ${fmtQty(n, p.unit)}`; };
@@ -1238,6 +1296,12 @@ async function api(path, opts = {}) {
     headers: { 'content-type': 'application/json', ...(account ? { authorization: 'Bearer ' + account.token } : {}) },
   });
   if (res.status === 401 && account && path !== 'login') signOut(false);   // PIN changed or session gone
+  if (res.status === 402 && account && !account.paused) {   // past the shop's date: the phone carries on alone
+    const { until } = await res.clone().json().catch(() => ({}));
+    account = { ...account, paused: until || Date.now(), grace: { bills: 0, items: 0 } };
+    writeJSON(SESSION_KEY, account);
+    clearTimeout(syncTimer);                               // a sync already scheduled would only meet the same 402
+  }
   return res;
 }
 async function fetchCatalog() {
@@ -1246,6 +1310,7 @@ async function fetchCatalog() {
       const r = await api('catalog');
       if (r.ok) { const text = await r.text(), list = JSON.parse(text); try { localStorage.setItem(CATALOG_KEY, text); } catch {} return list; }
       if (r.status === 404) writeJSON(CATALOG_KEY, null);          // no own list yet: the template it is
+      if (r.status === 402) { const cached = readJSON(CATALOG_KEY); if (cached) return cached; }   // paused: the list it had
     } catch {
       const cached = readJSON(CATALOG_KEY);                      // offline: the list from the last sync
       if (cached) return cached;
@@ -1269,6 +1334,7 @@ function queue(kind, id, value) {
   if (kind === 'bill') outbox.bills[id] = value;  // a sold bill as kept (keptForm); no lines: emptied
   writeJSON(OUTBOX_KEY, outbox);
   renderSync();
+  if (account.paused) return;                            // paused: it goes up once the shop is renewed
   clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500);
 }
 // The shop's bills from its server, over this phone's: one with a change not yet sent stays as it is here, and
@@ -1400,15 +1466,16 @@ function sync() {
         }
       }
       if (!$('shopName').value.trim() && st.shop.name) { $('shopName').value = st.shop.name; try { localStorage.setItem(SHOP_KEY, st.shop.name); } catch {} }
-      account = { ...account, name: st.shop.name }; writeJSON(SESSION_KEY, account);
+      const { paused, grace, ...acct } = account;        // a good state: the account runs (again)
+      account = { ...acct, name: st.shop.name }; writeJSON(SESSION_KEY, account);
       const listChanged = st.catalog !== (synced.catalog ?? null);
-      synced = { ...synced, at: Date.now(), catalog: st.catalog, items: st.items ?? null, stock: st.stock || {}, bills: billsAt };
+      synced = { ...synced, at: Date.now(), catalog: st.catalog, items: st.items ?? null, stock: st.stock || {}, bills: billsAt, paid: st.paid ?? null };
       writeJSON(SYNCED_KEY, synced);
       if (listChanged) await loadCatalog(); else if (itemsChanged) buildProducts(); else applyPrices();
       renderShelf(); renderBill(); if (pricesEl.open) renderPrices();
       if (billsChanged) refreshBills();
       syncError = '';
-    } catch { syncError = navigator.onLine === false ? 'offline' : 'server'; }
+    } catch { syncError = account?.paused ? 'paused' : navigator.onLine === false ? 'offline' : 'server'; }
     syncing = null;
     renderSync();
   })();
@@ -1452,10 +1519,17 @@ async function requestShop(name, mobile, pin, pin2) {
   $('shopCode').value = code;
   return '';
 }
-// Logging out leaves nothing of the shop on the phone, so it waits until nothing is unsent.
+// Logging out leaves nothing of the shop on the phone, so it waits until nothing is unsent. Paused, it is how a
+// shop goes on free: a second tap within 8 s logs out anyway.
+let logoutAsked = 0;
 async function logout() {
   await sync();
-  if (pending()) return `${pending()} മാറ്റം ഇനിയും സെർവറിൽ എത്തിയിട്ടില്ല: ഇന്റർനെറ്റ് ഉള്ളപ്പോൾ ലോഗൗട്ട് ചെയ്യൂ`;
+  if (pending() && !(account?.paused && Date.now() - logoutAsked < 8000)) {
+    if (!account?.paused) return `${pending()} മാറ്റം ഇനിയും സെർവറിൽ എത്തിയിട്ടില്ല: ഇന്റർനെറ്റ് ഉള്ളപ്പോൾ ലോഗൗട്ട് ചെയ്യൂ`;
+    logoutAsked = Date.now();
+    return `${pending()} മാറ്റം കടയിലേക്ക് പോകില്ല · ഒന്നുകൂടി തൊട്ടാൽ ലോഗൗട്ട്`;
+  }
+  logoutAsked = 0;
   try { await api('logout', { method: 'POST' }); } catch {}
   signOut(true);
   return '';
@@ -1472,23 +1546,62 @@ function signOut(wipe) {
   }
   loadCatalog(); renderBill(); renderSync();
 }
+// One strip each in the bills sheet and the price list: on a free phone what the account adds (until its ✕); with
+// an account its last 5 days, or that it is paused. Every strip opens the shop sheet. No user text goes in.
+const NOTE_ICON = {
+  phones: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7.5" height="15" rx="1.5"/><rect x="13.5" y="4" width="7.5" height="15" rx="1.5"/><path d="M6 16h1.5M16.5 16h1.5"/></svg>',
+  stock: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/></svg>',
+};
+const hints = () => readJSON(HINTS_KEY) || {};
+function renderNotes() {
+  const until = account && (account.paused || synced.paid), left = until ? daysLeft(until) : null;
+  note($('billsNote'), 'bills', !account ? !hints().bills && ['free', NOTE_ICON.phones, 'ഈ ഫോണിലെ ബില്ലുകൾ മാത്രം', 'കടയിലെ എല്ലാ ഫോണിലെയും ബില്ലുകൾ ഒന്നിച്ച് ഇവിടെ കാണാൻ: കട അക്കൗണ്ട്']
+    : account.paused ? ['end', NOTE_ICON.pause, 'സിങ്ക് നിർത്തിവെച്ചു', 'മറ്റു ഫോണുകളിലെ പുതിയ ബില്ലുകൾ വരില്ല: കട']
+    : until && left < 5 ? ['end', NOTE_ICON.clock, left > 0 ? `കാലാവധി ${left} ദിവസം കൂടി` : 'കാലാവധി ഇന്നു തീരും', `${lastDay(until)} വരെ · തുടരാൻ മാസം ₹${MONTHLY_FEE} · ഞങ്ങൾ വിളിക്കും`]
+    : null);
+  note($('pricesNote'), 'prices', !account && !hints().prices && ['free', NOTE_ICON.stock, 'സ്റ്റോക്ക് എത്ര ബാക്കി?', 'ബിൽ ചെയ്യുമ്പോൾ ഓരോ സാധനത്തിന്റെയും സ്റ്റോക്ക് തനിയെ കുറയും: കട അക്കൗണ്ട്']);
+}
+function note(el, key, n) {
+  el.hidden = !n;
+  if (!n) return;
+  const [kind, icon, title, line] = n;
+  el.dataset.kind = kind;
+  el.innerHTML = `<button class="note-go" type="button">${icon}<span><b>${title}</b><small>${line}</small></span>${NEXT}</button>` +
+    (kind === 'free' ? `<button class="note-x" type="button" aria-label="മറയ്ക്കുക" data-hint="${key}">✕</button>` : '');
+}
 function renderSync() {
-  const n = pending();
-  const state = !account ? 'out' : syncing ? 'busy' : syncError || n ? 'wait' : 'ok';
+  const n = pending(), paused = account?.paused;
+  const state = !account ? 'out' : paused ? 'paused' : syncing ? 'busy' : syncError || n ? 'wait' : 'ok';
   $('acctBtn').dataset.state = state;
   $('signedOut').hidden = !!account || signingUp; $('signedIn').hidden = !account; $('signupBox').hidden = !!account || !signingUp;
   const req = !account && readJSON(SIGNUP_KEY);
   $('reqNote').hidden = !req;
   if (req) $('reqNote').innerHTML = `അപേക്ഷ അയച്ചു: <b>${esc(req.name)}</b><span class="code">${esc(req.code)}</span>അംഗീകരിച്ചു കഴിഞ്ഞാൽ ഈ കോഡും പിനും കൊണ്ട് ലോഗിൻ ചെയ്യാം.`;
-  $('shopSub').textContent = account ? 'സെർവറിൽ സൂക്ഷിക്കുന്നു · ഫോണിലും' : 'ഇപ്പോൾ ഈ ഫോണിൽ മാത്രം';
+  // Login waits behind its button until tapped or a request waits; then register yields the one leaf button.
+  $('loginForm').hidden = !(loginOpen || req); $('loginOpen').hidden = !$('loginForm').hidden;
+  $('signupOpen').classList.toggle('primary', $('loginForm').hidden); $('signupOpen').classList.toggle('ghost', !$('loginForm').hidden);
+  $('shopSub').textContent = !account ? 'ഇപ്പോൾ ഈ ഫോണിൽ മാത്രം' : paused ? 'സിങ്ക് നിർത്തിവെച്ചു · ഈ ഫോണിൽ സൂക്ഷിക്കുന്നു' : 'സെർവറിൽ സൂക്ഷിക്കുന്നു · ഫോണിലും';
+  renderNotes();
   if (!account) return;
   $('acctName').textContent = `${account.name} · ${account.code}`;
+  const until = paused || synced.paid, left = until ? daysLeft(until) : 0;
+  $('planLine').hidden = !until;
+  $('planLine').dataset.state = paused ? 'over' : left < 5 ? 'ending' : 'ok';
+  $('planLine').innerHTML = !until ? '' : paused
+    ? `<b>കാലാവധി ${lastDay(until)}-ന് കഴിഞ്ഞു</b><span>സിങ്കും എല്ലാ ഫോണിലെയും ബില്ലുകളും സ്റ്റോക്കും നിർത്തിവെച്ചു.</span>`
+    : `<b>കാലാവധി ${lastDay(until)} വരെ · ${left > 0 ? `${left} ദിവസം ബാക്കി` : 'ഇന്ന് അവസാന ദിവസം'}</b>`;
+  $('pausedNote').hidden = !paused;
+  const b = graceLeft('bills'), i = graceLeft('items');
+  $('graceLine').textContent = 'ഈ ഫോണിൽ: ' + [b > 0 ? `ഇനി ${b} ബിൽ കൂടി` : 'പുതിയ ബിൽ പുതുക്കിയ ശേഷം', i > 0 ? `${i} പുതിയ സാധനം കൂടി` : 'പുതിയ സാധനം പുതുക്കിയ ശേഷം'].join(' · ');
+  $('syncNow').textContent = paused ? 'വീണ്ടും നോക്കുക' : 'ഇപ്പോൾ സിങ്ക്';
   $('syncState').dataset.state = state;
   $('syncState').textContent = state === 'busy' ? 'സിങ്ക് ചെയ്യുന്നു…'
     : syncError === 'offline' ? `ഓഫ്‌ലൈൻ · ${n} മാറ്റം കാത്തിരിക്കുന്നു`
-    : syncError ? `സെർവർ കിട്ടിയില്ല · ${n} മാറ്റം കാത്തിരിക്കുന്നു`
+    : syncError === 'server' ? `സെർവർ കിട്ടിയില്ല · ${n} മാറ്റം കാത്തിരിക്കുന്നു`
     : n ? `${n} മാറ്റം കാത്തിരിക്കുന്നു`
-    : synced.at ? `എല്ലാം സിങ്ക് ആയി · ${fmtDate(synced.at)}` : '';
+    : synced.at && !paused ? `എല്ലാം സിങ്ക് ആയി · ${fmtDate(synced.at)}` : '';
 }
 
 // ---------- backup file: prices, photos and the shop name, to keep anywhere ----------
@@ -1584,6 +1697,7 @@ function openCat(id) {
 
 // ---------- quantity sheet ----------
 function openSheet(item, fromSearch = false) {
+  if (!bill.lines.length && blocked('bills')) return openShop();   // paused, its grace used: renew or go free
   const line = lineOf(item.pid);
   const u = UNITS[item.unit];
   sheet = { item, fromSearch, big: false, handSet: false, qty: 0, rate: 0 };
@@ -1859,7 +1973,8 @@ function showPast(id) {
   $('billsTitle').textContent = past ? `ബിൽ നം. ${billNo(past.no)}` : 'ബില്ലുകൾ';
   $('billsSub').textContent = past
     ? `${dayKey(past.started) === dayKey(new Date()) ? 'ഇന്ന്' : 'ഇന്നലെ'} · ${fmtTime(past.started)} · ${countLabel(past.lines.length)}`
-    : `ഇന്നും ഇന്നലെയും · ${account ? 'കടയിലെ എല്ലാ ഫോണിലും' : 'ഈ ഫോണിൽ'}`;
+    : `ഇന്നും ഇന്നലെയും · ${!account ? 'ഈ ഫോണിൽ' : account.paused ? 'സിങ്ക് നിർത്തിവെച്ചു' : 'കടയിലെ എല്ലാ ഫോണിലും'}`;
+  if (past) $('billsNote').hidden = true; else renderNotes();
   if (past) {
     renderPast();
     $('pastPayNote').hidden = !account;
@@ -1918,6 +2033,7 @@ function addNames() {
   return !hasMalayalam(a) && hasMalayalam(b) ? [b, a] : [a, b];
 }
 function openAdd(name, c) {
+  if (blocked('items')) return openShop();
   adding = { cat: c && catById.has(c) ? c : null, unit: null, unitSet: false, steps: ['name'] };
   if (adding.cat) adding.unit = unitFor(adding.cat);
   $('addName').value = name; $('addEn').value = ''; $('addRate').value = '';
@@ -1973,6 +2089,7 @@ function saveAdd() {
   const id = 'u' + [...crypto.getRandomValues(new Uint8Array(10))].map(x => ID_CHARS[x % 62]).join('');
   addEl.close();
   setItem(id, item);
+  useGrace('items');
   if ($('q').value.trim()) { $('q').value = item.ml; renderShelf(); }   // from search: the new item is the result
   else if (cat !== item.cat) openCat(item.cat);
   const tile = $('shelf').querySelector(`[data-pid="${id}"]`);
@@ -2046,13 +2163,17 @@ $('removeBtn').addEventListener('click', () => {
 });
 sheetEl.addEventListener('click', e => { if (e.target === sheetEl) sheetEl.close(); });   // backdrop tap
 $('samplePill').addEventListener('click', openPrices);
-$('acctBtn').addEventListener('click', () => {
-  signingUp = false; renderSync(); $('loginMsg').hidden = $('logoutMsg').hidden = true;
+// The shop sheet: from the shop button, a hint, a strip or a used-up grace (closing the sheet it came from).
+function openShop() {
+  for (const d of [billsEl, pricesEl, sheetEl, addEl]) if (d.open) d.close();
+  signingUp = false; loginOpen = false; renderSync(); $('loginMsg').hidden = $('logoutMsg').hidden = true;
   const req = readJSON(SIGNUP_KEY);
   if (req && !$('shopCode').value) $('shopCode').value = req.code;
   shopEl.showModal(); if (account) sync();
-});
-$('feeLine').textContent = MONTHLY_FEE ? `മാസവരി ₹${MONTHLY_FEE}` : 'മാസവരി ₹0 · ഇപ്പോൾ സൗജന്യം';
+}
+$('acctBtn').addEventListener('click', openShop);
+$('feeLine').textContent = $('offerLine').textContent = OFFER;
+$('loginOpen').addEventListener('click', () => { loginOpen = true; renderSync(); $('shopCode').focus(); });
 $('signupOpen').addEventListener('click', () => { signingUp = true; $('signupMsg').hidden = true; renderSync(); $('suName').focus(); });
 $('signupBack').addEventListener('click', () => { signingUp = false; renderSync(); $('signupOpen').focus(); });
 $('signupForm').addEventListener('submit', async e => {
@@ -2161,6 +2282,12 @@ $('priceList').addEventListener('click', e => {
 $('billBar').addEventListener('click', () => bill.lines.length ? openBill() : openBills());
 $('billsBtn').addEventListener('click', openBills);
 $('billsClose').addEventListener('click', () => billsEl.close());
+for (const el of [$('billsNote'), $('pricesNote')]) el.addEventListener('click', e => {
+  const x = e.target.closest('.note-x');
+  if (x) { writeJSON(HINTS_KEY, { ...hints(), [x.dataset.hint]: 1 }); renderNotes(); return; }
+  if (e.target.closest('.note-go')) openShop();
+});
+$('renewLine').textContent = `തുടരാൻ മാസം ₹${MONTHLY_FEE} · ഞങ്ങൾ വിളിക്കും`;
 $('billsBack').addEventListener('click', () => showPast(null));
 billsEl.addEventListener('cancel', e => { if (past) { e.preventDefault(); showPast(null); } });   // Esc or Android back: the list first
 billsEl.addEventListener('click', e => { if (e.target === billsEl) billsEl.close(); });

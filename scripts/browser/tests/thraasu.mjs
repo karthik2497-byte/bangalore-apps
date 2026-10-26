@@ -566,6 +566,37 @@ export default async (t) => {
   }, ad.id2);
   t.check('an added item survives a reload', adKept.join() === 'ടൊമാറ്റോ സോസ്,true', adKept);
 
+  // A free phone (2026-10-24): the shop sheet says what the account gives and what it costs; one hint in Bills
+  // and one in Prices open it, and a ✕ hides a hint for good on this phone.
+  const fr = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id), r = {};
+    localStorage.removeItem('thraasu_hints');
+    renderSync(); openBills();
+    r.bills = [$('billsNote').hidden, $('billsNote').dataset.kind, $('billsNote').textContent.includes('ഈ ഫോണിലെ ബില്ലുകൾ മാത്രം'), Math.round($('billsNote').querySelector('.note-x').getBoundingClientRect().height)];
+    $('billsNote').querySelector('.note-x').click();
+    r.closed = [$('billsNote').hidden, localStorage.getItem('thraasu_hints')];
+    billsEl.close(); openPrices();
+    r.prices = [$('pricesNote').hidden, $('pricesNote').textContent.includes('സ്റ്റോക്ക് എത്ര ബാക്കി?')];
+    $('pricesNote').querySelector('.note-go').click();
+    r.go = [pricesEl.open, shopEl.open];
+    r.offer = [$('offerLine').textContent, $('signedOut').querySelectorAll('.uses li').length, $('loginForm').hidden, $('loginOpen').hidden, $('signupOpen').classList.contains('primary')];
+    $('loginOpen').click();
+    r.login = [$('loginForm').hidden, $('loginOpen').hidden, document.activeElement.id, $('signupOpen').classList.contains('primary')];
+    shopEl.close();
+    return r;
+  });
+  t.check('free: a hint in Bills, with a 48 px ✕ that hides it on this phone', fr.bills.join() === 'false,free,true,48' && fr.closed.join() === 'true,{"bills":1}', [fr.bills, fr.closed]);
+  t.check('free: a hint in Prices opens the shop sheet', fr.prices.join() === 'false,true' && fr.go.join() === 'false,true', [fr.prices, fr.go]);
+  t.check('free: the shop sheet lists three uses and the offer; register leads, login waits behind its button', fr.offer.join() === '30 ദിവസം സൗജന്യം · പിന്നെ മാസം ₹199,3,true,false,true' && fr.login.join() === 'false,true,shopCode,false', [fr.offer, fr.login]);
+  await t.reload(); await ready(t);
+  const fr2 = await t.evaluate(() => {
+    openBills(); const r = [document.getElementById('billsNote').hidden]; billsEl.close();
+    openPrices(); r.push(document.getElementById('pricesNote').hidden); pricesEl.close();
+    localStorage.removeItem('thraasu_hints');
+    return r;
+  });
+  t.check('a closed hint stays closed after a reload; the other still shows', fr2.join() === 'true,false', fr2);
+
   // Sign-up: the form checks before the network; a request shows its code and fills Login;
   // logging in before approval says so.
   const su = await t.evaluate(async () => {
@@ -606,8 +637,8 @@ export default async (t) => {
     shopEl.close(); window.fetch = realFetch;
     return r;
   });
-  t.check('sign-up opens from the shop sheet: fee ₹0 shown, policy linked, 48 px button', su.closed.join() === 'true,false,true,' + su.closed[3] && su.closed[3] >= 48 &&
-    su.open.join() === 'false,true,suName,മാസവരി ₹0 · ഇപ്പോൾ സൗജന്യം,true', su);
+  t.check('sign-up opens from the shop sheet: the offer shown, policy linked, 48 px button', su.closed.join() === 'true,false,true,' + su.closed[3] && su.closed[3] >= 48 &&
+    su.open.join() === 'false,true,suName,30 ദിവസം സൗജന്യം · പിന്നെ മാസം ₹199,true', su);
   t.check('sign-up checks name, mobile and PIN before the network', su.errs.join('|') === 'കടയുടെ പേര് നൽകുക|ശരിയായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക|പിൻ 4 മുതൽ 8 വരെ അക്കം വേണം|രണ്ടു പിനും ഒന്നല്ല' && su.early === 0, su);
   t.check('a mobile with a request already waiting is told so', su.dup === 'ഈ നമ്പറിൽ ഒരു അപേക്ഷ ഇപ്പോൾത്തന്നെ ഉണ്ട്', su.dup);
   t.check('a request shows its code, fills Login and clears the form', su.ok === '' && su.after.join() === '9847012345,true,false,K7M3QX,K7M3QX,K7M3QX,', su);
@@ -791,6 +822,106 @@ export default async (t) => {
   t.check('logout leaves nothing of the shop on the phone', sy.logout === '' && sy.out.join() === ',0,0,68,out,', sy.out);
   t.check("logout leaves none of the shop's bills on the phone", sy.keptOut.join() === '0,', sy.keptOut);
   t.check('a backup file restores; anything else is refused', sy.restored.join() === '5600,true,Kale,shallot' && sy.junk === 'ഇത് ത്രാസ് ബാക്കപ്പ് ഫയൽ അല്ല', sy);
+
+  // A shop account with a date (2026-10-24): the server says when it ends; past it, 402 and the phone carries on
+  // alone with 5 more bills and 5 new products; a renewal brings everything back; logging out is the way to go free.
+  const pz = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    const until = async ok => { for (let i = 0; i < 60 && !ok(); i++) await new Promise(r => setTimeout(r, 50)); };
+    const srv = window.__srv = { paid: Date.now() + 20 * 864e5, paused: false, calls: 0, token: null, stock: { onion: 3000 },
+      catalog: { sample: false, categories: [{ id: 'veg', ml: 'പച്ചക്കറി', en: 'Vegetables', icon: '🥬' }], products: [
+        { id: 'tomato', cat: 'veg', ml: 'തക്കാളി', en: 'Tomato', icon: '🍅', unit: 'kg', rate: 44 },
+        { id: 'onion', cat: 'veg', ml: 'സവാള', en: 'Onion', icon: '🧅', unit: 'kg', rate: 50 },
+        { id: 'shallot', cat: 'veg', ml: 'ചെറിയ ഉള്ളി', en: 'Shallots', icon: '🧅', unit: 'kg', rate: 90 }] } };
+    window.__realFetch = window.__realFetch || window.fetch;
+    window.fetch = async (u, o = {}) => {
+      const url = String(u);
+      if (!url.includes('/api/thraasu/')) return window.__realFetch(u, o);
+      const [route] = url.split('/api/thraasu/')[1].split('?'), m = (o.method || 'GET') + ' ' + route;
+      const res = (b, status = 200) => new Response(typeof b === 'string' ? b : JSON.stringify(b), { status });
+      srv.calls++;
+      if (m === 'POST login') return res({ token: srv.token = 'b'.repeat(64), shop: { code: 'NANMA', name: 'Nanma Store' } });
+      if (o.headers?.authorization !== 'Bearer ' + srv.token) return res({ error: 'login' }, 401);
+      if (m === 'POST logout') { srv.token = null; return res({ ok: true }); }
+      if (srv.paused) return res({ error: 'paused', until: srv.paid }, 402);
+      if (m === 'GET catalog') return res(JSON.stringify(srv.catalog));
+      if (m === 'GET state') return res({ shop: { code: 'NANMA', name: 'Nanma Store' }, catalog: 1, prices: {}, photos: {}, stock: srv.stock, items: null, hidden: [], bills: null, paid: srv.paid });
+      if (m === 'GET bills') return res({ at: null, bills: [] });
+      return res({ ok: true, dup: [], at: Date.now() });
+    };
+    const r = {};
+    localStorage.removeItem('thraasu_signup');
+    await login('NANMA', '482913');
+    r.in = [account?.code, synced.paid === srv.paid, products.length, stockLeft('onion')];
+    srv.paused = true; srv.paid = Date.now() - 3600e3;
+    await sync();
+    r.paused = [account.paused === srv.paid, JSON.stringify(account.grace), stockLeft('onion'), syncError];
+    await loadCatalog(); r.ownList = [products.length, byId.has('shallot')];
+    srv.calls = 0; setMine(byId.get('onion'), 5700); await new Promise(res => setTimeout(res, 1800));
+    r.noTimer = [srv.calls, pending() > 0];
+    for (let i = 0; i < 5; i++) { bill = freshBill(nextNo()); openSheet(asItem(byId.get('tomato'))); setQty(500); commit(); bill.pay = 'cash'; markSold(); }
+    r.fiveBills = [account.grace.bills, blocked('bills')];
+    bill = freshBill(nextNo()); saveBill(); renderBill();
+    openSheet(asItem(byId.get('tomato'))); r.sixth = [sheetEl.open, shopEl.open]; shopEl.close();
+    account.grace.bills = 4; openSheet(asItem(byId.get('tomato'))); setQty(500); commit(); account.grace.bills = 5;
+    openSheet(asItem(byId.get('onion'))); r.started = sheetEl.open; sheetEl.close();   // a bill already started still takes items
+    account.grace.items = 4;
+    openAdd('കോവക്ക', 'veg'); $('addForm').requestSubmit(); $('addRate').value = '80'; $('addForm').requestSubmit();
+    r.fifthItem = [account.grace.items, blocked('items'), Object.values(shopItems).some(x => x.ml === 'കോവക്ക')];
+    openAdd('വെണ്ട', 'veg'); r.addBlocked = [addEl.open, shopEl.open]; shopEl.close(); hideToast();
+    await syncing;                                         // the sync the shop sheet started, still paused
+    srv.paused = false; srv.paid = Date.now() + 30 * 864e5;
+    await sync();
+    r.renewed = [account.paused, account.grace, pending(), stockLeft('onion')];
+    srv.paused = true; srv.paid = Date.now() - 1000; await sync();
+    setMine(byId.get('onion'), 5800);
+    r.lo1 = [await logout(), !!account];
+    r.lo2 = [await logout(), account];
+    await until(() => products.length > 10);
+    bill = freshBill(1); saveBill(); renderBill();
+    return r;
+  });
+  t.check('an account carries its date; stock counts while paid', pz.in[0] === 'NANMA' && pz.in[1] && pz.in[2] === 3 && pz.in[3] === 3000, pz.in);
+  t.check('a 402 pauses the phone: grace starts at 0/0, stock counts hide', pz.paused.join() === 'true,{"bills":0,"items":0},,paused', pz.paused);
+  t.check("paused, the phone keeps the shop's own list, not the template", pz.ownList.join() === '3,true', pz.ownList);
+  t.check('paused, a change waits on the phone and starts no sync timer', pz.noTimer.join() === '0,true', pz.noTimer);
+  t.check('5 bills sold while paused use the grace; the first item of a 6th opens the shop sheet', pz.fiveBills.join() === '5,true' && pz.sixth.join() === 'false,true', [pz.fiveBills, pz.sixth]);
+  t.check('a bill already started still takes items', pz.started === true, pz.started);
+  t.check('the 5th new product is added; the 6th opens the shop sheet', pz.fifthItem.join() === '5,true,true' && pz.addBlocked.join() === 'false,true', [pz.fifthItem, pz.addBlocked]);
+  t.check('renewed: paused and grace clear, changes go up, stock counts again', pz.renewed[0] == null && pz.renewed[1] == null && pz.renewed[2] === 0 && pz.renewed[3] !== null, pz.renewed);
+  t.check('paused with unsent changes, logout asks for a second tap, then goes free', pz.lo1[0].includes('ഒന്നുകൂടി തൊട്ടാൽ ലോഗൗട്ട്') && pz.lo1[1] === true && pz.lo2.join() === ',', [pz.lo1, pz.lo2]);
+
+  // What the account box and the bills sheet say: days left, the last 5 days, paused with the grace left.
+  const pu = await t.evaluate(async () => {
+    const $ = id => document.getElementById(id), srv = window.__srv;
+    srv.paused = false; srv.paid = Date.now() + 3.5 * 864e5;
+    await login('NANMA', '482913');
+    const r = {};
+    openShop(); await syncing;
+    r.ending = [$('planLine').dataset.state, $('planLine').textContent.includes('3 ദിവസം ബാക്കി'), !!$('signedIn').querySelector('a[href="./privacy.html#delete"]'), $('acctBtn').dataset.state];
+    shopEl.close(); openBills(); await syncing;
+    r.strip = [$('billsNote').hidden, $('billsNote').dataset.kind, $('billsNote').textContent.includes('കാലാവധി 3 ദിവസം കൂടി'), $('billsNote').textContent.includes('₹199'), !$('billsNote').querySelector('.note-x')];
+    $('billsNote').querySelector('.note-go').click(); r.go = [billsEl.open, shopEl.open]; shopEl.close(); await syncing;
+    srv.paid = Date.now() + 20 * 864e5; await sync(); openBills(); await syncing; r.calm = $('billsNote').hidden; billsEl.close();
+    srv.paused = true; srv.paid = Date.now() - 1000; await sync();
+    openShop(); await syncing;
+    r.paused = [$('planLine').dataset.state, $('planLine').textContent.includes('കഴിഞ്ഞു'), $('pausedNote').hidden, $('graceLine').textContent, $('renewLine').textContent, $('syncNow').textContent, $('shopSub').textContent, $('acctBtn').dataset.state];
+    shopEl.close(); openBills(); await syncing;
+    r.billsPaused = [$('billsNote').dataset.kind, $('billsNote').textContent.includes('സിങ്ക് നിർത്തിവെച്ചു'), $('billsSub').textContent.endsWith('സിങ്ക് നിർത്തിവെച്ചു')];
+    billsEl.close();
+    account.grace = { bills: 5, items: 2 }; renderSync(); r.used = $('graceLine').textContent;
+    srv.paused = false; srv.paid = Date.now() + 30 * 864e5; await sync();
+    r.out = [await logout(), account];
+    window.fetch = window.__realFetch;
+    bill = freshBill(1); saveBill(); renderBill();
+    return r;
+  });
+  t.check('3 days left: a brass account line, a delete-account link', pu.ending.join() === 'ending,true,true,ok', pu.ending);
+  t.check('the last days show in the bills sheet, with the price, no ✕, and open the shop sheet', pu.strip.join() === 'false,end,true,true,true' && pu.go.join() === 'false,true' && pu.calm === true, [pu.strip, pu.go, pu.calm]);
+  t.check('paused: the box says so, with the grace left, the renewal line and check-again', pu.paused.join('|') === 'over|true|false|ഈ ഫോണിൽ: ഇനി 5 ബിൽ കൂടി · 5 പുതിയ സാധനം കൂടി|തുടരാൻ മാസം ₹199 · ഞങ്ങൾ വിളിക്കും|വീണ്ടും നോക്കുക|സിങ്ക് നിർത്തിവെച്ചു · ഈ ഫോണിൽ സൂക്ഷിക്കുന്നു|paused', pu.paused);
+  t.check('paused: the bills sheet strip and subtitle say sync stopped', pu.billsPaused.join() === 'end,true,true', pu.billsPaused);
+  t.check('a used-up grace says what waits for the renewal', pu.used === 'ഈ ഫോണിൽ: പുതിയ ബിൽ പുതുക്കിയ ശേഷം · 3 പുതിയ സാധനം കൂടി', pu.used);
+  t.check('renewed, the shop logs out cleanly', pu.out.join() === ',', pu.out);
 
   // Removing items (2026-10-17, option A): no ✕ on any row; one button at the foot turns the price boxes into
   // ticks; tick any number (search keeps them), one red button, one confirmation, undo. Logged out here.

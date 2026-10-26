@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS shops (
   catalog_at INTEGER, created INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'active', mobile TEXT,  -- 'pending' from an app sign-up until approved; created = request time
   items_at INTEGER,                                    -- last change to the shop's added items
-  bills_at INTEGER                                     -- last change to the shop's bills: MAX(old + 1, now), so it always moves
+  bills_at INTEGER,                                    -- last change to the shop's bills: MAX(old + 1, now), so it always moves
+  paid_until INTEGER NOT NULL DEFAULT 0                -- the account works until then (exclusive, an IST midnight): 30 days from approval, then paid; 0 while pending
 );
 CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, shop TEXT NOT NULL, created INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS prices (shop TEXT NOT NULL, id TEXT NOT NULL, paise INTEGER NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (shop, id));

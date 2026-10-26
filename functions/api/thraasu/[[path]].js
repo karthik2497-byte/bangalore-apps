@@ -3,7 +3,8 @@
 // 8_thraasu/tools/schema.sql. A shop is requested from the app (POST signup) and starts pending;
 // 8_thraasu/tools/shop-admin.mjs approves it (or makes one directly). Each request is emailed to the
 // operator (Worker workers/thraasu-mail, service binding MAILER) with a link to GET/POST review,
-// signed with the Pages secret REVIEW_KEY, to approve or reject it from the inbox. A shop's list, the items it adds, its prices and its photos are kept per shop; the
+// signed with the Pages secret REVIEW_KEY, to approve or reject it from the inbox. An approved shop runs until its
+// paid_until (30 days, then paid; shop-admin.mjs paid); past it the API answers 402. A shop's list, the items it adds, its prices and its photos are kept per shop; the
 // app works offline and pushes when it can. Last write wins per item. Bills lower the shop's
 // stock (POST sales), and the last three days' sold bills are kept whole (POST/GET bills) so every phone
 // of the shop shows the same list. On the Free plan an invocation gets 50 D1 queries, so no route's query
@@ -18,6 +19,17 @@ const MAX_PHOTO = 300000, MAX_PHOTOS = 3000, MAX_PRICES = 5000, IDS_PER_GET = 30
 const PHOTO_BYTES = 25e6, SALES_KEEP_MS = 60 * 864e5, PENDING_MAX = 20, MAX_ITEMS = 1000, MAX_HIDDEN = 2000;
 // Every phone of a shop shows its sold bills of today and yesterday: three days covers both, whatever the hour.
 const BILLS_KEEP_MS = 3 * 864e5, KEPT_PER_POST = 50;
+// A shop account runs until paid_until (epoch ms, exclusive, always an IST midnight): 30 days from approval, then
+// what the shop pays for (shop-admin.mjs paid). Past it every route but logout answers 402; the phone carries on alone.
+export const TRIAL_DAYS = 30;
+const DAY = 864e5, IST = 330 * 60e3;
+// The end after adding `days`: from the current end, or from tomorrow (IST) once that has passed.
+export const paidThrough = (paidUntil, days, now = Date.now()) => Math.max(paidUntil, Math.floor((now + IST) / DAY) * DAY - IST + DAY) + days * DAY;
+// The end for "paid through 2027-03-31": the IST midnight after that day; null for anything but a real date.
+export const endOfDay = ymd => {
+  const t = /^\d{4}-\d{2}-\d{2}$/.test(ymd) ? Date.parse(ymd + 'T00:00:00+05:30') : NaN;
+  return Number.isFinite(t) && new Date(t + IST).toISOString().slice(0, 10) === ymd ? t + DAY : null;
+};
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32: no 0/O or 1/I to misread over the phone
 const ID = /^[\w-]{1,40}$/, PHOTO = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
@@ -69,12 +81,13 @@ export async function pinHash(pin, salt) {
   return hex(bits);
 }
 
-// Sessions are stored as the SHA-256 of the token, so a copy of the database holds no live login.
+// Sessions are stored as the SHA-256 of the token, so a copy of the database holds no live login. The shop's
+// paid_until comes with it, so the paid check costs no query of its own.
 async function sessionShop(request, db) {
   const m = /^Bearer ([0-9a-f]{64})$/.exec(request.headers.get('authorization') || '');
   if (!m) return null;
-  const row = await db.prepare('SELECT shop, created FROM sessions WHERE token = ?').bind(await sha256(m[1])).first();
-  return row && Date.now() - row.created < SESSION_MS ? row.shop : null;
+  const row = await db.prepare('SELECT s.shop, s.created, p.paid_until FROM sessions s JOIN shops p ON p.code = s.shop WHERE s.token = ?').bind(await sha256(m[1])).first();
+  return row && Date.now() - row.created < SESSION_MS ? row : null;
 }
 
 async function login(request, db) {
@@ -155,7 +168,7 @@ async function review(request, db, key) {
   if (request.method === 'POST' && shop?.status === 'pending') {
     const act = new URLSearchParams(await request.text()).get('do');
     if (act === 'approve') {
-      await db.prepare("UPDATE shops SET status = 'active' WHERE code = ? AND status = 'pending'").bind(code).run();
+      await db.prepare("UPDATE shops SET status = 'active', paid_until = ? WHERE code = ? AND status = 'pending'").bind(paidThrough(0, TRIAL_DAYS), code).run();
       shop.status = 'active'; done = 'Approved: the shop can log in now.';
     } else if (act === 'reject') {
       await db.prepare("DELETE FROM shops WHERE code = ? AND status = 'pending'").bind(code).run();
@@ -175,8 +188,11 @@ export async function handle(request, db, path, opts = {}) {
   if (request.method === 'POST' && path === 'login') return login(request, db);
   if (request.method === 'POST' && path === 'signup') return signup(request, db, opts);
   if (path === 'review') return review(request, db, opts.reviewKey);
-  const shop = await sessionShop(request, db);
-  if (!shop) return json({ error: 'login' }, 401);
+  const session = await sessionShop(request, db);
+  if (!session) return json({ error: 'login' }, 401);
+  const shop = session.shop;
+  // Past its date the shop's phones carry on alone: only logging out still goes through.
+  if (Date.now() >= session.paid_until && !(request.method === 'POST' && path === 'logout')) return json({ error: 'paused', until: session.paid_until }, 402);
   const count = table => db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE shop = ?`).bind(shop).first('n');
 
   switch (request.method + ' ' + path) {
@@ -196,7 +212,7 @@ export async function handle(request, db, path, opts = {}) {
         prices: Object.fromEntries(prices.results.map(r => [r.id, r.paise])),
         photos: Object.fromEntries(photos.results.map(r => [r.id, r.at])),
         stock: Object.fromEntries(stock.results.map(r => [r.id, r.qty])),
-        hidden: hidden.results.map(r => r.id), bills: s.bills_at ?? null,
+        hidden: hidden.results.map(r => r.id), bills: s.bills_at ?? null, paid: session.paid_until,
       });
     }
     case 'POST hidden': {
