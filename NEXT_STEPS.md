@@ -24,8 +24,8 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 **fixed permanently at first Play publish** — get them right before submitting.
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
-      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-24,
-      after the Thraasu shared-bills deploy (`main` at `27d1c0b`): PASS — 8 apps, CSPs applied,
+      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-26,
+      after the Thraasu paid-account deploy (`main` at `b52393e`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
@@ -90,9 +90,17 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       takes effect on the next deploy. Failures log to `wrangler pages deployment tail <id>` and
       `npx wrangler@4 tail --config workers/thraasu-mail/wrangler.toml` (from the root, a bare
       `wrangler tail` picks up the Pages config and refuses). Or make one directly with
-      `add CODE "Name"`; `catalog CODE list.json` if it has its own list. Fee: `MONTHLY_FEE = 0` in the
-      app, a label only; charging (manual UPI or Razorpay) is built when it goes above 0. At most 20
+      `add CODE "Name"`; `catalog CODE list.json` if it has its own list. At most 20
       requests wait at once; 25 MB of photos per shop; sold bills kept 60 days.
+      **A shop account is paid** (live 2026-10-26, `b52393e`; spec
+      `docs/superpowers/specs/2026-10-24-thraasu-paid-shop-account-design.md`): 30 days from approval (or `add`),
+      then ₹199 a month, taken by UPI outside the app (Play's consumption-only route: no pay button, link or number
+      in the app). Call the owner before the last day, then `shop-admin.mjs paid CODE +30` (or `paid CODE
+      YYYY-MM-DD`, its last day); `list` shows `paid_through`, soonest first. Past it a logged-in phone gets 402 on every
+      call but logout: sync stops, and each phone may finish 5 more bills and add 5 more products, then those open the
+      shop sheet (renew, or log out and carry on free). Nothing is deleted. NANMA runs through 2027-03-31
+      (`tools/migrate-paid.sql`, run live before the push). A phone with no account is unchanged and never runs out.
+      Not built: a reminder before a trial ends, paying in the app, an App Store build.
       **Shops add their own items from the phone** (live 2026-10-11, `93a0f63`): + പുതിയ സാധനം in a
       category's head row or in an empty search; a name the list already has is refused (spelling forgiven),
       similar ones are only shown. Since 2026-10-17 (`5e06726`) it goes in steps so nothing scrolls above a
@@ -143,10 +151,11 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       no Kannada TTS at all — but not accent. A native speaker should review all 108
       phrases (is ನೇರೆ ಹೋಗಿ idiomatic?) and re-record; replacements are a drop-in under
       the same filenames, then re-run the tool for the manifest.
-- [ ] **Thraasu Malayalam is unreviewed.** The add-item copy (2026-10-11, steps 2026-10-17) the bills sheet and remove-mode copy (2026-10-17) and the payment copy (2026-10-24: ക്യാഷ്, കടം, പണം,
-      ആദ്യം പണം തിരഞ്ഞെടുക്കൂ, മാറ്റിയാൽ കടയിലെ എല്ലാ ഫോണിലും മാറും) are listed in their specs. The UI copy and the 459 product names (Nanma Store) were written
+- [ ] **Thraasu Malayalam is unreviewed.** The add-item copy (2026-10-11, steps 2026-10-17) the bills sheet and remove-mode copy (2026-10-17), the payment copy (2026-10-24: ക്യാഷ്, കടം, പണം,
+      ആദ്യം പണം തിരഞ്ഞെടുക്കൂ, മാറ്റിയാൽ കടയിലെ എല്ലാ ഫോണിലും മാറും) and the paid-account copy (2026-10-24: the shop sheet's uses and
+      offer, the two hints, the account box's date and paused lines) are listed in their specs. The UI copy and the 459 product names (Nanma Store) were written
       by the build agent. A native speaker should read every label in `8_thraasu/index.html`
-      and every `ml` field in `products.json`. Thraasu also needs a `privacy.html` before Play.
+      and every `ml` field in `products.json`.
 - [ ] **CardGuard Play Billing**: create the `cardguard_premium_yearly` product in
       Play Console, and verify bubblewrap's `alphaDependencies.playBilling` field
       name against the installed `@bubblewrap/core` before wiring it into
@@ -188,6 +197,10 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
 - [ ] **Thraasu payment and shared bills on two real phones** (2026-10-24): log one shop in on both; a bill sold
       on one shows on the other once ബില്ലുകൾ opens; print without a payment is refused with the ask; the toggle
       and the chips one-handed; a payment changed on one phone shows on the other.
+- [ ] **Thraasu paid account on a real phone** (2026-10-26): a free phone shows the two hints and the shop
+      sheet's three uses; a throwaway shop set past its date (`UPDATE shops SET paid_until = 1`) shows the paused
+      box and the brass dot, finishes 5 bills, then the first item of a new bill opens the shop sheet; `paid CODE
+      +30` and വീണ്ടും നോക്കുക bring sync back; logout takes two taps. Proven in headless Chrome and on the live API only.
 - [ ] **Thraasu bills sheet and remove mode on a real phone** (2026-10-17): ബില്ലുകൾ, a kept bill's print and
       share, and ticking items in the price list one-handed; proven in headless Chrome only.
 - [ ] **Thraasu sheets with a real keyboard** (2026-10-11, `966fa2b`; add in steps 2026-10-17, `5e06726`): sheets

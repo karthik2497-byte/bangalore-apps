@@ -47,6 +47,12 @@ phone can already reach.
   Added items live beside the list (`thraasu_items`, D1 `items`) and join the end of their category.
 - Any item can be taken off the price list (remove mode: tick, one confirmation, undo). A list item is
   hidden (`thraasu_hidden`, D1 `hidden`, on every phone of the shop); an added one is deleted.
+- The shop account is the paid part (sync, the shop's bills on every phone, stock): 30 days from approval, then
+  ₹199 a month, paid outside the app (`shops.paid_until`, renewed with `shop-admin.mjs paid`). A phone with no
+  account keeps every billing feature with no limit and never runs out. Past its date an account stops syncing;
+  each phone may finish 5 more bills and add 5 more products, then those ask to renew, and logging out returns
+  the phone to free use. Free phones learn of it from the shop sheet and one hint each in the bills sheet and
+  the price list.
 - localStorage keys prefixed `thraasu_`; Cache Storage prefixed `thraasu-` (shared origin).
 
 ## Brand Commitments
