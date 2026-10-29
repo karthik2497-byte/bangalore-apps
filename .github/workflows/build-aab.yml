@@ -60,8 +60,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Its default also asks for the old 'tools' package, which sdkmanager no longer finds (exit 1, 2026-10-29).
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       # Pinned: 1.27.0's template targets API 36, which Play requires of new apps and updates since 2026-08-31.
       - name: Install Bubblewrap Core
