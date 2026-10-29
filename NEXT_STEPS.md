@@ -30,24 +30,24 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
 
-## 2. Play Store release — blocked on $25 and a signing key
+## 2. Play Store release — waiting on the Play Console account ($25)
 
 Play App Signing is **mandatory for new apps and free**; the $25 is the one-time
 Google Play Console registration, covering all 7 apps and any future ones. Two
 keys exist: an *upload key* you hold, and the *app signing key* Google holds and
 re-signs with before shipping to devices.
 
-- [ ] Open a Play Console account — **$25, one time.**
-- [ ] Generate ONE upload keystore locally; one key can sign all 7 apps:
-      `keytool -genkey -v -keystore upload.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000`
-      Do **not** commit it. Back it up somewhere you will still have in five years.
-- [ ] Add GitHub repo secrets: `UPLOAD_KEYSTORE_BASE64` (`base64 -i upload.keystore`),
-      `UPLOAD_KEYSTORE_PASSWORD`, `UPLOAD_KEY_ALIAS`, `UPLOAD_KEY_PASSWORD`.
-- [ ] **Rewrite `.github/workflows/build-aab.yml` to restore that keystore instead of
-      running `keytool -genkey` per run, and delete the hardcoded `bangaloreapps123`
-      passwords. This is the actual blocker** — CI currently signs every build with a
-      different throwaway key, so no fingerprint is stable and Play would reject every
-      update.
+- [ ] Open a Play Console account — **$25, one time.** Karthik chose a **personal** account (2026-10-29):
+      production needs a closed test first, at least 12 testers opted in for 14 days in a row. Thraasu goes
+      first: every listing text, form answer and release step is in `8_thraasu/PLAY-LISTING.md`; the graphics
+      (`8_thraasu/tools/play-shots.mjs`), `thraasu.aab` and a test APK are in `~/Desktop/thraasu-play`.
+      Done 2026-10-29: ONE upload key (PKCS12, alias `upload`) in `~/play-upload-key` on Karthik's Mac (with
+      its password and a README; back both up off the Mac) and in the repo secrets `UPLOAD_KEYSTORE_BASE64` /
+      `UPLOAD_KEYSTORE_PASSWORD`; `build-aab.yml` signs with it (bubblewrap 1.27.0, minSdk 24, version code =
+      run number); Thraasu's assetlinks entry names it (`A3:97:C8:…`), so a sideloaded APK opens full-screen.
+- [ ] Play's review shop for App access: `shop-admin.mjs add PLAYREVIEW "Play review"`, then
+      `paid PLAYREVIEW 2027-12-31`, its PIN into `~/Desktop/thraasu-play/review-login.txt` (never the repo).
+      Not made yet: the auto-mode classifier stopped the live write, so it waits for Karthik's go.
 - [ ] Build the 7 AABs (workflow dispatch, `origin` = `https://tinkerhouse.uk`), create
       7 Play listings, upload each to internal testing.
 - [ ] Read each app's **app signing key** SHA-256 from Play Console → Setup → App

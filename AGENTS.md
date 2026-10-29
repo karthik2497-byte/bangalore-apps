@@ -83,7 +83,7 @@ node --check <file>                 # syntax-check any extracted inline script
   covering any area you are about to touch; each ends with a rule to apply.
 
 Phase A (deploy) is closed. The unblocked path is the Play Store release, which
-is blocked on one $25 spend and a signing decision — see `NEXT_STEPS.md` §2.
+waits on the $25 Play Console account (the signing key is done, 2026-10-29) — see `NEXT_STEPS.md` §2.
 
 ## Package ids
 
