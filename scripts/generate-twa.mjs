@@ -32,6 +32,9 @@ async function main() {
   twaManifest.appVersionCode = run;
   twaManifest.appVersionName = `1.${run}`;
 
+  // Bubblewrap 1.27.0 still defaults to 21, but its androidbrowserhelper needs 24 (Android 7): the manifest merge fails.
+  twaManifest.minSdkVersion = 24;
+
   // Bubblewrap derives packageId from the HOST, so every app sharing one origin
   // gets the same id and only one of them could ever exist on Play. Each app
   // passes its own, matching /.well-known/assetlinks.json.
