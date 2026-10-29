@@ -53,7 +53,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - uses: actions/setup-java@v4
         with:
@@ -63,8 +63,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      # Pinned: 1.27.0's template targets API 36, which Play requires of new apps and updates since 2026-08-31.
       - name: Install Bubblewrap Core
-        run: cd scripts && npm init -y && npm install @bubblewrap/core
+        run: cd scripts && npm init -y && npm install @bubblewrap/core@1.27.0
 
       - name: Write Bubblewrap config
         run: |
@@ -75,15 +76,16 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
 
-      - name: Generate signing keystore
+      # The one upload key for every app (made 2026-10-29; the original is in ~/play-upload-key on Karthik's Mac).
+      # Play re-signs each app with its own app signing key, which is what assetlinks.json must name.
+      - name: Restore the upload key
+        env:
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
         run: |
-          keytool -genkey -v \
-            -keystore "$GITHUB_WORKSPACE/android.keystore" \
-            -alias android \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass "bangaloreapps123" \
-            -keypass "bangaloreapps123" \
-            -dname "CN=Karthik, O=BangaloreApps, L=Bangalore, ST=Karnataka, C=IN"
+          [ -n "$UPLOAD_KEYSTORE_BASE64" ] && [ -n "$KS_PASS" ] || { echo "secrets UPLOAD_KEYSTORE_BASE64 / UPLOAD_KEYSTORE_PASSWORD missing"; exit 1; }
+          echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          keytool -list -v -keystore "$RUNNER_TEMP/upload.keystore" -storepass:env KS_PASS -alias upload | grep 'SHA256:'
 
       - name: Generate TWA project (non-interactive)
         run: |
@@ -101,7 +103,7 @@ jobs:
           node scripts/generate-twa.mjs \
             "$MANIFEST_URL" \
             "$BUILD_DIR" \
-            "$GITHUB_WORKSPACE/android.keystore" \
+            "$RUNNER_TEMP/upload.keystore" \
             "${{ matrix.pkg }}"
 
           echo "=== Generated files ==="
@@ -117,6 +119,8 @@ jobs:
 
       - name: Sign APK
         working-directory: build_${{ matrix.dir }}
+        env:
+          KS_PASS: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
         run: |
           UNSIGNED_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
           ALIGNED_APK="app-release-aligned.apk"
@@ -128,10 +132,10 @@ jobs:
 
           # Sign with apksigner
           "${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools/" | sort -V | tail -1)/apksigner" sign \
-            --ks "$GITHUB_WORKSPACE/android.keystore" \
-            --ks-key-alias android \
-            --ks-pass pass:bangaloreapps123 \
-            --key-pass pass:bangaloreapps123 \
+            --ks "$RUNNER_TEMP/upload.keystore" \
+            --ks-key-alias upload \
+            --ks-pass env:KS_PASS \
+            --key-pass env:KS_PASS \
             --out "$SIGNED_APK" \
             "$ALIGNED_APK"
 
@@ -140,16 +144,17 @@ jobs:
 
       - name: Sign AAB
         working-directory: build_${{ matrix.dir }}
+        env:
+          KS_PASS: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
         run: |
           UNSIGNED_AAB="app/build/outputs/bundle/release/app-release.aab"
           SIGNED_AAB="app-release-bundle.aab"
 
           jarsigner -verbose \
             -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore "$GITHUB_WORKSPACE/android.keystore" \
-            -storepass "bangaloreapps123" \
-            -keypass "bangaloreapps123" \
-            "$UNSIGNED_AAB" android
+            -keystore "$RUNNER_TEMP/upload.keystore" \
+            -storepass:env KS_PASS \
+            "$UNSIGNED_AAB" upload
 
           # Copy signed AAB to expected output name
           cp "$UNSIGNED_AAB" "$SIGNED_AAB"

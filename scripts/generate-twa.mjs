@@ -23,8 +23,14 @@ async function main() {
   console.log(`Fetching web manifest: ${manifestUrl}`);
   const twaManifest = await TwaManifest.fromWebManifest(manifestUrl);
 
-  // Override signing key to use our CI-generated keystore
-  twaManifest.signingKey = { path: keystorePath, alias: 'android' };
+  // The one upload key, restored from the repo secrets
+  twaManifest.signingKey = { path: keystorePath, alias: 'upload' };
+
+  // Play refuses a version code it has seen, and this project is generated fresh every run: the run number
+  // only goes up. Local runs get 1.
+  const run = Number(process.env.GITHUB_RUN_NUMBER) || 1;
+  twaManifest.appVersionCode = run;
+  twaManifest.appVersionName = `1.${run}`;
 
   // Bubblewrap derives packageId from the HOST, so every app sharing one origin
   // gets the same id and only one of them could ever exist on Play. Each app

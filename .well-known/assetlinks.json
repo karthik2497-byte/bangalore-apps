@@ -60,7 +60,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "uk.tinkerhouse.thraasu",
-      "sha256_cert_fingerprints": ["REPLACE_WITH_THRAASU_SHA256"]
+      "sha256_cert_fingerprints": ["A3:97:C8:64:86:EA:CD:7F:7F:6F:2F:7D:8D:23:04:09:0C:E8:5D:2A:20:1B:51:85:45:41:C4:9D:75:5E:BF:BD"]
     }
   }
 ]
