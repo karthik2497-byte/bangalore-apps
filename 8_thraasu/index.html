@@ -887,7 +887,6 @@ button:disabled { cursor: default; }
         <li><span class="use-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4L6 21z"/><path d="M9.5 8h5M9.5 11.5h5M9.5 15h3"/></svg></span><span><b>എല്ലാ ഫോണിലെയും ബില്ലുകൾ ഒരിടത്ത്</b>ഏതു ഫോണിൽ ബിൽ ചെയ്താലും ഒരേ നമ്പർ നിര; ക്യാഷ്, UPI, കടം വേറെ വേറെ കാണാം.</span></li>
         <li><span class="use-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9"/></svg></span><span><b>വിൽക്കുന്നതനുസരിച്ച് സ്റ്റോക്ക്</b>ബിൽ ചെയ്യുമ്പോൾ സ്റ്റോക്ക് തനിയെ കുറയും.</span></li>
       </ul>
-      <p class="fee" id="offerLine"></p>
       <p class="req" id="reqNote" role="status" hidden></p>
       <form id="loginForm" novalidate hidden>
         <label class="field">കടയുടെ കോഡ്<input id="shopCode" autocomplete="username" autocapitalize="characters" spellcheck="false" maxlength="20" enterkeyhint="next"></label>
@@ -901,7 +900,6 @@ button:disabled { cursor: default; }
     <section class="box" id="signupBox" hidden>
       <h3>പുതിയ കട</h3>
       <p>അപേക്ഷ അയച്ചാൽ കടയുടെ കോഡ് കിട്ടും. അംഗീകരിച്ചു കഴിഞ്ഞാൽ ആ കോഡും പിനും കൊണ്ട് ലോഗിൻ ചെയ്യാം.</p>
-      <p class="fee" id="feeLine"></p>
       <form id="signupForm" novalidate>
         <label class="field">കടയുടെ പേര്<input id="suName" autocomplete="organization" maxlength="60" enterkeyhint="next"></label>
         <label class="field">ഉടമയുടെ മൊബൈൽ നമ്പർ<input id="suMobile" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="15" enterkeyhint="next"></label>
@@ -917,7 +915,7 @@ button:disabled { cursor: default; }
       <p class="plan" id="planLine" hidden></p>
       <div class="paused" id="pausedNote" hidden>
         <p>ഈ ഫോണിലെ ബില്ലുകളും വിലയും ഇവിടെത്തന്നെയുണ്ട്; പുതിയ മാറ്റങ്ങളും ഫോണിൽ സൂക്ഷിക്കും. പുതുക്കിയാൽ അവ തനിയെ മറ്റു ഫോണുകളിലെത്തും.</p>
-        <p class="fee" id="renewLine"></p>
+        <p class="fee" id="renewLine">തുടരാൻ ഞങ്ങൾ വിളിക്കും</p>
         <p id="graceLine"></p>
         <p class="small">അല്ലെങ്കിൽ ലോഗൗട്ട് ചെയ്ത് ഈ ഫോണിൽ സൗജന്യമായി തുടരാം; കടയുടെ വിവരങ്ങൾ സെർവറിൽ സുരക്ഷിതം. ബാക്കപ്പ് എടുത്താൽ വിലയും ഫോട്ടോയും കൂടെ കൊണ്ടുപോകാം.</p>
       </div>
@@ -952,11 +950,10 @@ const SIGNUP_KEY = 'thraasu_signup';   // { code, name } of a shop asked for on 
 const ITEMS_KEY = 'thraasu_items';     // { id: item } the shop added on its phones (cleanItem in bill-core.js)
 const HIDDEN_KEY = 'thraasu_hidden';   // ids of list items the shop took off its list (one it added is deleted instead)
 const HINTS_KEY = 'thraasu_hints';     // { bills: 1, prices: 1 }: the free-phone hints closed on this phone
-// The shop account: TRIAL_DAYS free from approval (the API's TRIAL_DAYS must match), then MONTHLY_FEE rupees a
-// month, collected outside the app (Play consumption-only: no pay button or link here). Past its date a phone
-// carries on alone for GRACE more bills and GRACE new products.
-const MONTHLY_FEE = 199, TRIAL_DAYS = 30, GRACE = 5;
-const OFFER = `${TRIAL_DAYS} ദിവസം സൗജന്യം · പിന്നെ മാസം ₹${MONTHLY_FEE}`;
+// The shop account: a trial from approval, then paid monthly, collected outside the app. Play consumption-only: no
+// price, trial, pay button or link here; shops hear the price by phone. Past its date a phone carries on alone for
+// GRACE more bills and GRACE new products.
+const GRACE = 5;
 const wide = matchMedia('(min-width: 900px)');
 const sheetEl = $('sheet'), pricesEl = $('prices'), shopEl = $('shopSheet');
 
@@ -1559,7 +1556,7 @@ function renderNotes() {
   const until = account && (account.paused || synced.paid), left = until ? daysLeft(until) : null;
   note($('billsNote'), 'bills', !account ? !hints().bills && ['free', NOTE_ICON.phones, 'ഈ ഫോണിലെ ബില്ലുകൾ മാത്രം', 'കടയിലെ എല്ലാ ഫോണിലെയും ബില്ലുകൾ ഒന്നിച്ച് ഇവിടെ കാണാൻ: കട അക്കൗണ്ട്']
     : account.paused ? ['end', NOTE_ICON.pause, 'സിങ്ക് നിർത്തിവെച്ചു', 'മറ്റു ഫോണുകളിലെ പുതിയ ബില്ലുകൾ വരില്ല: കട']
-    : until && left < 5 ? ['end', NOTE_ICON.clock, left > 0 ? `കാലാവധി ${left} ദിവസം കൂടി` : 'കാലാവധി ഇന്നു തീരും', `${lastDay(until)} വരെ · തുടരാൻ മാസം ₹${MONTHLY_FEE} · ഞങ്ങൾ വിളിക്കും`]
+    : until && left < 5 ? ['end', NOTE_ICON.clock, left > 0 ? `കാലാവധി ${left} ദിവസം കൂടി` : 'കാലാവധി ഇന്നു തീരും', `${lastDay(until)} വരെ · തുടരാൻ ഞങ്ങൾ വിളിക്കും`]
     : null);
   note($('pricesNote'), 'prices', !account && !hints().prices && ['free', NOTE_ICON.stock, 'സ്റ്റോക്ക് എത്ര ബാക്കി?', 'ബിൽ ചെയ്യുമ്പോൾ ഓരോ സാധനത്തിന്റെയും സ്റ്റോക്ക് തനിയെ കുറയും: കട അക്കൗണ്ട്']);
 }
@@ -2172,7 +2169,6 @@ function openShop() {
   shopEl.showModal(); if (account) sync();
 }
 $('acctBtn').addEventListener('click', openShop);
-$('feeLine').textContent = $('offerLine').textContent = OFFER;
 $('loginOpen').addEventListener('click', () => { loginOpen = true; renderSync(); $('shopCode').focus(); });
 $('signupOpen').addEventListener('click', () => { signingUp = true; $('signupMsg').hidden = true; renderSync(); $('suName').focus(); });
 $('signupBack').addEventListener('click', () => { signingUp = false; renderSync(); $('signupOpen').focus(); });
@@ -2287,7 +2283,6 @@ for (const el of [$('billsNote'), $('pricesNote')]) el.addEventListener('click',
   if (x) { writeJSON(HINTS_KEY, { ...hints(), [x.dataset.hint]: 1 }); renderNotes(); return; }
   if (e.target.closest('.note-go')) openShop();
 });
-$('renewLine').textContent = `തുടരാൻ മാസം ₹${MONTHLY_FEE} · ഞങ്ങൾ വിളിക്കും`;
 $('billsBack').addEventListener('click', () => showPast(null));
 billsEl.addEventListener('cancel', e => { if (past) { e.preventDefault(); showPast(null); } });   // Esc or Android back: the list first
 billsEl.addEventListener('click', e => { if (e.target === billsEl) billsEl.close(); });

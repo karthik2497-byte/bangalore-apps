@@ -6,8 +6,8 @@ The app file comes from GitHub Actions: Build Android AABs, app `8_thraasu` (art
 The Malayalam below is unreviewed, like the app's (NEXT_STEPS §4). The review shop's PIN is never written here:
 this repo is public.
 
-Never in the listing: the ₹199, a trial, or how a shop pays. Play bans steering users to pay outside Play, in the
-listing as well as in the app.
+Never in the listing, the app or the privacy page (since 2026-10-31): the ₹199, a trial, or how a shop pays. Play
+bans language that encourages buying outside Play, in the listing as well as in the app; tell shops by phone.
 
 ## 1. Create the app (Play Console → Create app)
 

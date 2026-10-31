@@ -100,8 +100,8 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       requests wait at once; 25 MB of photos per shop; sold bills kept 60 days.
       **A shop account is paid** (live 2026-10-26, `b52393e`; spec
       `docs/superpowers/specs/2026-10-24-thraasu-paid-shop-account-design.md`): 30 days from approval (or `add`),
-      then ₹199 a month, taken by UPI outside the app (Play's consumption-only route: no pay button, link or number
-      in the app). Call the owner before the last day, then `shop-admin.mjs paid CODE +30` (or `paid CODE
+      then ₹199 a month, taken by UPI outside the app (Play's consumption-only route: no price, trial, pay button, link or
+      number in the app or its privacy page since 2026-10-31; owners hear the price by phone). Call the owner before the last day, then `shop-admin.mjs paid CODE +30` (or `paid CODE
       YYYY-MM-DD`, its last day); `list` shows `paid_through`, soonest first. Past it a logged-in phone gets 402 on every
       call but logout: sync stops, and each phone may finish 5 more bills and add 5 more products, then those open the
       shop sheet (renew, or log out and carry on free). Nothing is deleted. NANMA runs through 2027-03-31

@@ -579,7 +579,7 @@ export default async (t) => {
     r.prices = [$('pricesNote').hidden, $('pricesNote').textContent.includes('സ്റ്റോക്ക് എത്ര ബാക്കി?')];
     $('pricesNote').querySelector('.note-go').click();
     r.go = [pricesEl.open, shopEl.open];
-    r.offer = [$('offerLine').textContent, $('signedOut').querySelectorAll('.uses li').length, $('loginForm').hidden, $('loginOpen').hidden, $('signupOpen').classList.contains('primary')];
+    r.offer = [$('signedOut').textContent.includes('₹'), $('signedOut').querySelectorAll('.uses li').length, $('loginForm').hidden, $('loginOpen').hidden, $('signupOpen').classList.contains('primary')];
     $('loginOpen').click();
     r.login = [$('loginForm').hidden, $('loginOpen').hidden, document.activeElement.id, $('signupOpen').classList.contains('primary')];
     shopEl.close();
@@ -587,7 +587,7 @@ export default async (t) => {
   });
   t.check('free: a hint in Bills, with a 48 px ✕ that hides it on this phone', fr.bills.join() === 'false,free,true,48' && fr.closed.join() === 'true,{"bills":1}', [fr.bills, fr.closed]);
   t.check('free: a hint in Prices opens the shop sheet', fr.prices.join() === 'false,true' && fr.go.join() === 'false,true', [fr.prices, fr.go]);
-  t.check('free: the shop sheet lists three uses and the offer; register leads, login waits behind its button', fr.offer.join() === '30 ദിവസം സൗജന്യം · പിന്നെ മാസം ₹199,3,true,false,true' && fr.login.join() === 'false,true,shopCode,false', [fr.offer, fr.login]);
+  t.check('free: the shop sheet lists three uses and the offer; register leads, login waits behind its button', fr.offer.join() === 'false,3,true,false,true' && fr.login.join() === 'false,true,shopCode,false', [fr.offer, fr.login]);
   await t.reload(); await ready(t);
   const fr2 = await t.evaluate(() => {
     openBills(); const r = [document.getElementById('billsNote').hidden]; billsEl.close();
@@ -622,7 +622,7 @@ export default async (t) => {
     $('acctBtn').click();
     r.closed = [$('signupBox').hidden, $('signedOut').hidden, $('reqNote').hidden, Math.round($('signupOpen').getBoundingClientRect().height)];
     $('signupOpen').click();
-    r.open = [$('signupBox').hidden, $('signedOut').hidden, document.activeElement.id, $('feeLine').textContent, !!$('signupBox').querySelector('a[href="./privacy.html"]')];
+    r.open = [$('signupBox').hidden, $('signedOut').hidden, document.activeElement.id, $('signupBox').textContent.includes('₹'), !!$('signupBox').querySelector('a[href="./privacy.html"]')];
     r.errs = [await submit(' ', '9847012345', '2468', '2468'), await submit('Raju', '12345', '2468', '2468'),
       await submit('Raju', '9847012345', '24', '24'), await submit('Raju', '9847012345', '2468', '2469')];
     r.early = sent.length;
@@ -638,7 +638,7 @@ export default async (t) => {
     return r;
   });
   t.check('sign-up opens from the shop sheet: the offer shown, policy linked, 48 px button', su.closed.join() === 'true,false,true,' + su.closed[3] && su.closed[3] >= 48 &&
-    su.open.join() === 'false,true,suName,30 ദിവസം സൗജന്യം · പിന്നെ മാസം ₹199,true', su);
+    su.open.join() === 'false,true,suName,false,true', su);
   t.check('sign-up checks name, mobile and PIN before the network', su.errs.join('|') === 'കടയുടെ പേര് നൽകുക|ശരിയായ 10 അക്ക മൊബൈൽ നമ്പർ നൽകുക|പിൻ 4 മുതൽ 8 വരെ അക്കം വേണം|രണ്ടു പിനും ഒന്നല്ല' && su.early === 0, su);
   t.check('a mobile with a request already waiting is told so', su.dup === 'ഈ നമ്പറിൽ ഒരു അപേക്ഷ ഇപ്പോൾത്തന്നെ ഉണ്ട്', su.dup);
   t.check('a request shows its code, fills Login and clears the form', su.ok === '' && su.after.join() === '9847012345,true,false,K7M3QX,K7M3QX,K7M3QX,', su);
@@ -900,7 +900,7 @@ export default async (t) => {
     openShop(); await syncing;
     r.ending = [$('planLine').dataset.state, $('planLine').textContent.includes('3 ദിവസം ബാക്കി'), !!$('signedIn').querySelector('a[href="./privacy.html#delete"]'), $('acctBtn').dataset.state];
     shopEl.close(); openBills(); await syncing;
-    r.strip = [$('billsNote').hidden, $('billsNote').dataset.kind, $('billsNote').textContent.includes('കാലാവധി 3 ദിവസം കൂടി'), $('billsNote').textContent.includes('₹199'), !$('billsNote').querySelector('.note-x')];
+    r.strip = [$('billsNote').hidden, $('billsNote').dataset.kind, $('billsNote').textContent.includes('കാലാവധി 3 ദിവസം കൂടി'), !$('billsNote').textContent.includes('₹'), !$('billsNote').querySelector('.note-x')];
     $('billsNote').querySelector('.note-go').click(); r.go = [billsEl.open, shopEl.open]; shopEl.close(); await syncing;
     srv.paid = Date.now() + 20 * 864e5; await sync(); openBills(); await syncing; r.calm = $('billsNote').hidden; billsEl.close();
     srv.paused = true; srv.paid = Date.now() - 1000; await sync();
@@ -918,7 +918,7 @@ export default async (t) => {
   });
   t.check('3 days left: a brass account line, a delete-account link', pu.ending.join() === 'ending,true,true,ok', pu.ending);
   t.check('the last days show in the bills sheet, with the price, no ✕, and open the shop sheet', pu.strip.join() === 'false,end,true,true,true' && pu.go.join() === 'false,true' && pu.calm === true, [pu.strip, pu.go, pu.calm]);
-  t.check('paused: the box says so, with the grace left, the renewal line and check-again', pu.paused.join('|') === 'over|true|false|ഈ ഫോണിൽ: ഇനി 5 ബിൽ കൂടി · 5 പുതിയ സാധനം കൂടി|തുടരാൻ മാസം ₹199 · ഞങ്ങൾ വിളിക്കും|വീണ്ടും നോക്കുക|സിങ്ക് നിർത്തിവെച്ചു · ഈ ഫോണിൽ സൂക്ഷിക്കുന്നു|paused', pu.paused);
+  t.check('paused: the box says so, with the grace left, the renewal line and check-again', pu.paused.join('|') === 'over|true|false|ഈ ഫോണിൽ: ഇനി 5 ബിൽ കൂടി · 5 പുതിയ സാധനം കൂടി|തുടരാൻ ഞങ്ങൾ വിളിക്കും|വീണ്ടും നോക്കുക|സിങ്ക് നിർത്തിവെച്ചു · ഈ ഫോണിൽ സൂക്ഷിക്കുന്നു|paused', pu.paused);
   t.check('paused: the bills sheet strip and subtitle say sync stopped', pu.billsPaused.join() === 'end,true,true', pu.billsPaused);
   t.check('a used-up grace says what waits for the renewal', pu.used === 'ഈ ഫോണിൽ: പുതിയ ബിൽ പുതുക്കിയ ശേഷം · 3 പുതിയ സാധനം കൂടി', pu.used);
   t.check('renewed, the shop logs out cleanly', pu.out.join() === ',', pu.out);
