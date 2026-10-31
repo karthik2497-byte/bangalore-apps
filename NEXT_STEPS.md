@@ -24,20 +24,20 @@ Domain is Cloudflare Registrar, $5.30/yr. Android package ids are `uk.tinkerhous
 **fixed permanently at first Play publish** — get them right before submitting.
 
 - [ ] **Run `bash scripts/verify-deploy.sh` after every deploy.** `_headers` only takes
-      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-26,
-      after the Thraasu paid-account deploy (`main` at `b52393e`): PASS — 8 apps, CSPs applied,
+      effect on Pages, so nothing in the repo proves the CSPs work. Last run 2026-10-31,
+      after Thraasu's Play signing key went into assetlinks (`main` at `0533c62`): PASS — 8 apps, CSPs applied,
       assetlinks 8/8, real 404s, no repo file reachable, sync API answering.
 
 Phase B (Play Store) is now the unblocked path; Phase C (backends) is what §4 needs.
 
-## 2. Play Store release — waiting on the Play Console account ($25)
+## 2. Play Store release — Thraasu first, in Play Console setup
 
 Play App Signing is **mandatory for new apps and free**; the $25 is the one-time
 Google Play Console registration, covering all 7 apps and any future ones. Two
 keys exist: an *upload key* you hold, and the *app signing key* Google holds and
 re-signs with before shipping to devices.
 
-- [ ] Open a Play Console account — **$25, one time.** Karthik chose a **personal** account (2026-10-29):
+- [ ] The Play Console account is **open and verified** (2026-10-30; a **personal** account, Karthik's pick 2026-10-29):
       production needs a closed test first, at least 12 testers opted in for 14 days in a row. Thraasu goes
       first: every listing text, form answer and release step is in `8_thraasu/PLAY-LISTING.md`; the graphics
       (`8_thraasu/tools/play-shots.mjs`), `thraasu.aab` and a test APK are in `~/Desktop/thraasu-play`.
@@ -45,9 +45,15 @@ re-signs with before shipping to devices.
       its password and a README; back both up off the Mac) and in the repo secrets `UPLOAD_KEYSTORE_BASE64` /
       `UPLOAD_KEYSTORE_PASSWORD`; `build-aab.yml` signs with it (bubblewrap 1.27.0, minSdk 24, version code =
       run number); Thraasu's assetlinks entry names it (`A3:97:C8:…`), so a sideloaded APK opens full-screen.
-- [ ] Play's review shop for App access: `shop-admin.mjs add PLAYREVIEW "Play review"`, then
-      `paid PLAYREVIEW 2027-12-31`, its PIN into `~/Desktop/thraasu-play/review-login.txt` (never the repo).
-      Not made yet: the auto-mode classifier stopped the live write, so it waits for Karthik's go.
+- [ ] Play's review shop **PLAYREVIEW is live** (2026-10-30, on Karthik's go), paid through 2027-12-31; its PIN is only
+      in `~/Desktop/thraasu-play/review-login.txt` (never the repo). Keep it while Thraasu is on Play: Google reviews
+      every update with it. Before 2027-12-31: `shop-admin.mjs paid PLAYREVIEW 2028-12-31`.
+- [ ] **Thraasu's closed test is in Google's review** (sent 2026-10-31 by Claude in Chrome on Karthik's go; setup 11 of
+      11, answers as entered in `PLAY-LISTING.md`): Closed testing - Alpha, India, release 12 (1.12), Google's app
+      signing key `5D:7C:9B:…:85:CA` in assetlinks since `0533c62` (Google's API: `linked: true`). The email list
+      "Thraasu testers" holds only Karthik's Play Gmail: add 11+ Android users' Gmails (Testers tab). Once approved,
+      send them the join link; 12 opted in for 14 days in a row, then apply for production (`PLAY-LISTING.md` §5).
+      On the first Play install, confirm there is no URL bar.
 - [ ] Build the 7 AABs (workflow dispatch, `origin` = `https://tinkerhouse.uk`), create
       7 Play listings, upload each to internal testing.
 - [ ] Read each app's **app signing key** SHA-256 from Play Console → Setup → App

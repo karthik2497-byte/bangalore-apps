@@ -82,8 +82,8 @@ node --check <file>                 # syntax-check any extracted inline script
 - **`MISTAKES.md`** — one line per mistake that cost a retry. Read the entries
   covering any area you are about to touch; each ends with a rule to apply.
 
-Phase A (deploy) is closed. The unblocked path is the Play Store release, which
-waits on the $25 Play Console account (the signing key is done, 2026-10-29) — see `NEXT_STEPS.md` §2.
+Phase A (deploy) is closed. The unblocked path is the Play Store release: the Play Console account is open
+(2026-10-30) and Thraasu is going through its setup first — see `NEXT_STEPS.md` §2.
 
 ## Package ids
 

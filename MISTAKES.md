@@ -3,6 +3,7 @@
 Newest at top. One line each. Format:
 `- YYYY-MM-DD — <what I assumed/did> → <what was actually true>. Rule: <do this instead>.`
 
+- 2026-10-31 — Uploaded the six Play phone screenshots in one file-input call → they upload in parallel and landed in random order (the bill first). Rule: upload store screenshots one at a time and check the order (the slot's "Remove <file>" button labels list it).
 - 2026-10-29 — Checked that another session's unsaved record edits still merge with macOS `diff3 -m` on copies → it exited 0 ("clean") while dropping three audit rows; the verdict was only right because `git merge-file` agrees. Rule: test a 3-way merge with `git merge-file -p theirs base mine` on copies, and check the merged line count adds up.
 - 2026-10-29 — Dispatched `build-aab.yml`, unrun since April, after pinning a newer bubblewrap, without reading the tools' defaults → two red runs: setup-android@v3's default `packages` asks for the removed `tools`, and bubblewrap 1.27.0's TwaManifest defaults minSdk 21 while its androidbrowserhelper needs 24. Rule: before a build after a tooling change, read the action's input defaults and TwaManifest's defaults against the template's dependencies.
 - 2026-10-29 — Called `closeBill()` and `openBills()` in one step to stage a Thraasu screenshot → closeBill goes back in history, and that popstate closed the sheet just opened (the shot showed the shelf). Rule: after anything that calls `history.back()`, wait ~500 ms before opening a sheet.
