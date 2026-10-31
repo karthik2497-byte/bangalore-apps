@@ -60,7 +60,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "uk.tinkerhouse.thraasu",
-      "sha256_cert_fingerprints": ["A3:97:C8:64:86:EA:CD:7F:7F:6F:2F:7D:8D:23:04:09:0C:E8:5D:2A:20:1B:51:85:45:41:C4:9D:75:5E:BF:BD"]
+      "sha256_cert_fingerprints": ["5D:7C:9B:58:5B:55:77:6D:8B:08:30:06:EE:11:43:5B:F1:D6:A7:E6:AD:64:B1:68:DD:41:A1:23:83:CF:85:CA", "A3:97:C8:64:86:EA:CD:7F:7F:6F:2F:7D:8D:23:04:09:0C:E8:5D:2A:20:1B:51:85:45:41:C4:9D:75:5E:BF:BD"]
     }
   }
 ]
