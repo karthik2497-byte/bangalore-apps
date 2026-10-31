@@ -7,6 +7,16 @@ export default async (t) => {
     const r = await t.evaluate(() => ({ h1: document.querySelector('h1').textContent, back: document.querySelector('footer a').getAttribute('href'), fonts: /fonts\.googleapis\.com/.test(document.body.textContent) }));
     t.check(`${app} policy renders, names Google Fonts, links back`, /Privacy Policy/.test(r.h1) && r.back === './index.html' && r.fonts, r);
   }
+  // Play's account-deletion URL (privacy.html#delete) must show the steps, what is deleted or kept, and how long.
+  await t.goto(B + '8_thraasu/privacy.html#delete');
+  const del = await t.evaluate(() => {
+    const h = document.getElementById('delete'), s = [];
+    for (let e = h.nextElementSibling; e && e.tagName !== 'H2'; e = e.nextElementSibling) s.push(e.textContent);
+    return { steps: [...h.parentElement.querySelectorAll('h2#delete ~ ol li')].length, text: s.join(' ') };
+  });
+  t.check('Thraasu delete section: steps, what is deleted and kept, 7 and 30 days',
+    del.steps === 3 && /ckventurestech@gmail\.com/.test(del.text) && /What is deleted/.test(del.text) && /What is kept/.test(del.text) && /7 days/.test(del.text) && /30 days/.test(del.text), del);
+
   await t.goto(B + '6_stock_ping/privacy.html');
   t.check('StockPing policy names both proxies', await t.evaluate(() => /api\.allorigins\.win/.test(document.body.textContent) && /corsproxy\.io/.test(document.body.textContent)));
 

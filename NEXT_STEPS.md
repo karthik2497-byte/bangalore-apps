@@ -119,6 +119,9 @@ the *only* passive revenue paths across all 7 apps, with the numbers: `MONETISAT
       into ticks, one confirmation, undo. An added item is deleted; a list item is hidden (`thraasu_hidden`,
       D1 `hidden`: every phone of the shop, and a `catalog` re-import keeps it off). Not built: a list of
       removed items to put back (undo only; deleting its D1 `hidden` row brings one back).
+      **Deleting a shop** (privacy page §4 promises it within 7 days): confirm with the shop's registered mobile,
+      `shop-admin.mjs remove CODE`, delete the request emails about it in ckventurestech@gmail.com (search the code),
+      and reply that it is done.
       Open: a shop must log in once on each phone.
 - [ ] **Thraasu stock goes down as bills are sold (live 2026-10-10, `1561c60`).** A bill counts once
       printed, shared or closed (പുതിയ ബിൽ); later edits move stock by the difference. Counts show in
